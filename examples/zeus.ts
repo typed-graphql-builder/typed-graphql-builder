@@ -120,6 +120,4 @@ export type Result<Obj> = Obj extends [any, infer Output]
   ? { [K in keyof Obj]: Result<Obj[K]> }
   : Obj
 
-type Test = Result<Card>
-
-declare let x: Test
+type Test = Result<Query>
