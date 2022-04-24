@@ -1,0 +1,14 @@
+{
+  "name": "typed-graphql-builder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@swc-node/register": "^1.4.2",
+    "@types/node": "^17.0.25",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "graphql": "^16.3.0"
+  }
+}
