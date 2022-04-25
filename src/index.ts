@@ -75,6 +75,7 @@ ${printDocumentation(def.description)}
 export type ${def.name.value} = {
   ${def.fields?.map(field => printInputValue(field)).join(',\n')}
 }
+
     `
 }
 
@@ -88,15 +89,14 @@ export type ${def.name.value} = unknown
 function printUnion(def: gq.UnionTypeDefinitionNode) {
   return `
 ${printDocumentation(def.description)}
-export type ${def.name.value} =
-  ${def.types?.map(t => printType(t)).join(' |\n')}
-`
+export type ${def.name.value} = {[Union]:{
+  ${def.types?.map(t => `${printType(t, true)}:${printType(t, true)}`).join('\n')}
+}}`
 }
 
 function printEnumValue(def: gq.EnumValueDefinitionNode) {
   return `${printDocumentation(def.description)}
-  ${def.name.value} = "${def.name.value}"
-`
+  ${def.name.value} = "${def.name.value}"`
 }
 function printEnum(def: gq.EnumTypeDefinitionNode) {
   return `
@@ -107,9 +107,12 @@ export enum ${def.name.value} {
   `
 }
 
-// function printSchema(def: gq.SchemaDefinitionNode) {
-//   def.operationTypes.map(op => op.operation.
-// }
+function printSchema(def: gq.SchemaDefinitionNode) {
+  return `
+  export type $ROOT = {
+    ${def.operationTypes.map(op => `${op.operation}: ${printType(op.type, true)}`).join('\n')}
+  }`
+}
 
 function main() {
   const schemaData = fs.readFileSync('./examples/zeus.graphql', 'utf8')
@@ -117,6 +120,136 @@ function main() {
 
   // console.log(res)
 
+  const variableTypeTree: any = {}
+
+  console.log(`
+import { TypedDocumentNode } from "@graphql-typed-document-node/core"
+import gql from "graphql-tag"
+
+type Unionize<Members> = ToQuery<Pick<Members[keyof Members], keyof Members[keyof Members]>> & {
+  [Name in keyof Members as \`...on \${string & Name}\`]: ToQuery<
+    Omit<Members[Name], keyof Members[keyof Members]>
+  >
+}
+
+export type ToQuery<Type> = Type extends string | number | undefined
+  ? true
+  : Type extends [infer Input, infer Output]
+  ? [Input, ToQuery<Output>]
+  : Type extends Array<infer Inner>
+  ? ToQuery<Inner>
+  : Type extends Array<infer Inner> | undefined
+  ? ToQuery<Inner>
+  : Type extends { [Union]: infer Members }
+  ? Unionize<Members>
+  : { [Field in keyof Type]?: ToQuery<Type[Field]> }
+
+export type ToModel<Type> = Type extends string | number | undefined
+  ? Type
+  : Type extends [infer Input, infer Output]
+  ? ToModel<Output>
+  : Type extends Array<infer Inner>
+  ? Array<ToModel<Inner>>
+  : Type extends Array<infer Inner> | undefined
+  ? Array<ToModel<Inner>> | undefined
+  : Type extends { [Union]: infer Members }
+  ? Members[keyof Members]
+  : { [Field in keyof Type]?: ToModel<Type[Field]> }
+
+type m = ToModel<Card>
+
+
+const Union = '1fcbcbff-3e78-462f-b45c-668a3e09bfd7'
+const Variable = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
+
+
+
+type Variable<T, Name extends string> = {
+  ' __zeus_name': Name
+  ' __zeus_type': T
+}
+
+type QueryInputWithVariables<T> = T extends string | number | Array<any>
+  ? Variable<T, any> | T
+  : Variable<T, any> | { [K in keyof T]: QueryInputWithVariables<T[K]> } | T
+
+type QueryWithVariables<T> = T extends [infer Input, infer Output]
+  ? [QueryInputWithVariables<Input>, QueryWithVariables<Output>]
+  : { [K in keyof T]: QueryWithVariables<T[K]> }
+
+type ExtractVariables<Query> = Query extends Variable<infer VType, infer VName>
+  ? { [key in VName]: VType }
+  : Query extends [infer Inputs, infer Outputs]
+  ? ExtractVariables<Inputs> & ExtractVariables<Outputs>
+  : Query extends string | number | boolean
+  ? {}
+  : UnionToIntersection<{ [K in keyof Query]: ExtractVariables<Query[K]> }[keyof Query]>
+
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+  ? I
+  : never
+
+export const $ = <Type, Name extends string>(name: Name) => {
+  return \`\${Variable}$\${name}\` as any as Variable<Type, Name>
+}
+
+function stringifyQuery(qType: string, query: any) {
+  const vars = []
+
+  function stringifyInput(input: any) {
+    if (typeof input === 'string') {
+      if (input.startsWith(Variable)) {
+        const varName = input.substring(Variable.length)
+        vars.push(varName)
+        return varName
+      } else {
+        return JSON.stringify(input)
+      }
+    } else if (typeof input === 'number' || typeof input === 'boolean') {
+      return JSON.stringify(input)
+    } else if (Array.isArray(input)) {
+      return \`[\${input.map(stringifyInput).join(',')}]\`
+    } else {
+      return \`{\${Object.entries(input).map(([k, v]) => \`\${k}:\${stringifyInput(v)}\`)}}\`
+    }
+  }
+  function stringifyOutput(output: any) {
+    if (output === true) return ''
+    else
+      return \`{\${Object.entries(output)
+        .map(([k, v]) => stringifyField(k, v))
+        .join(' ')}}\`
+  }
+  function stringifyField(key: string, field: any) {
+    if (Array.isArray(field)) {
+      return \`\${key}(\${stringifyInput(field[0])}) \${stringifyOutput(field[1])}\`
+    } else {
+      return \`\${key}\${stringifyOutput(field)}\`
+    }
+  }
+  return \`\${qType}(\${vars.join(',')}){\${stringifyOutput(query)}}\`
+}
+
+export function query<Z extends QueryWithVariables<ToQuery<$ROOT['query']>>>(
+  query: Z
+): TypedDocumentNode<ToModel<Z>, ExtractVariables<Z>> {
+  return gql(stringifyQuery('query', query))
+}
+
+export function mutation<Z extends QueryWithVariables<ToQuery<$ROOT['mutation']>>>(
+  mutation: Z
+): TypedDocumentNode<ToModel<Z>, ExtractVariables<Z>> {
+  return gql(stringifyQuery('mutation', mutation))
+}
+
+export function subscription<Z extends QueryWithVariables<ToQuery<$ROOT['subscription']>>>(
+  subscription: Z
+): TypedDocumentNode<ToModel<Z>, ExtractVariables<Z>> {
+  return gql(stringifyQuery('subscription', subscription))
+}
+
+
+  `)
   for (let def of res.definitions) {
     // console.log('---->', def.kind)
     switch (def.kind) {
@@ -140,7 +273,7 @@ function main() {
         console.log(printInterface(def))
         break
       case gq.Kind.SCHEMA_DEFINITION:
-      // console.log(printSchema(def))
+        console.log(printSchema(def))
     }
   }
 }
