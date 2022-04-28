@@ -1,78 +1,12 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
-type ToUnionQuery<Members> = ToQuery<Pick<Members[keyof Members], keyof Members[keyof Members]>> & {
-  [Name in keyof Members as `...on ${string & Name}`]: ToQuery<
-    Omit<Members[Name], keyof Members[keyof Members]>
-  >
-}
-
-export type ToQuery<Type> = Type extends string | number | undefined
-  ? true
-  : Type extends [infer Input, infer Output]
-  ? [Input, ToQuery<Output>]
-  : Type extends Array<infer Inner>
-  ? ToQuery<Inner>
-  : Type extends Array<infer Inner> | undefined
-  ? ToQuery<Inner>
-  : Type extends { [Union]: infer Members }
-  ? ToUnionQuery<Members>
-  : { [Field in keyof Type]?: ToQuery<Type[Field]> }
-
-type ToUnionModel<Members> = ToModel<Pick<Members[keyof Members], keyof Members[keyof Members]>> & {
-  [Name in keyof Members as `...on ${string & Name}`]: ToModel<
-    Omit<Members[Name], keyof Members[keyof Members]>
-  >
-}
-
-export type ToModel<Type> = Type extends string | number | undefined
-  ? Type
-  : Type extends [infer Input, infer Output]
-  ? ToModel<Output>
-  : Type extends Array<infer Inner>
-  ? Array<ToModel<Inner>>
-  : Type extends Array<infer Inner> | undefined
-  ? Array<ToModel<Inner>> | undefined
-  : Type extends { [Union]: infer Members }
-  ? ToUnionModel<Members>
-  : { [Field in keyof Type]?: ToModel<Type[Field]> }
-
-type SelectUnionKeys<K> = K extends `...on ${any}` ? K : never
-
-type FromUnionQuery<T> = T[SelectUnionKeys<keyof T>] & {
-  [K in keyof T]: K extends `...on ${any}` ? never : T[K]
-}
-
-type QueryToValueMapper<Query, ValueDescriptor> = {
-  [Key in keyof Query]: Key extends keyof ValueDescriptor
-    ? Query[Key] extends true
-      ? ValueDescriptor[Key]
-      : ValueDescriptor[Key] extends Array<infer Inner>
-      ? Array<
-          Query[Key] extends [any, infer Outputs]
-            ? QueryToValueMapper<Outputs, Inner>
-            : QueryToValueMapper<Query[Key], Inner>
-        >
-      : ValueDescriptor[Key] extends Array<infer Inner> | undefined
-      ?
-          | Array<
-              Query[Key] extends [any, infer Outputs]
-                ? QueryToValueMapper<Outputs, Inner>
-                : QueryToValueMapper<Query[Key], Inner>
-            >
-          | undefined
-      : Query[Key] extends [any, infer Outputs]
-      ? QueryToValueMapper<Outputs, ValueDescriptor[Key]>
-      : QueryToValueMapper<Query[Key], ValueDescriptor[Key]>
-    : never
-}
-
 const Union = '1fcbcbff-3e78-462f-b45c-668a3e09bfd7'
 const Variable = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 
 type Variable<T, Name extends string> = {
-  ' __zeus_name': Name
-  ' __zeus_type': T
+  ' __var_name': Name
+  ' __var_type': T
 }
 
 type QueryInputWithVariables<T> = T extends string | number | Array<any>
@@ -445,6 +379,9 @@ export class SpecialCard extends $_Base<SpecialCard> {
   get name(): Field<'name', string> {
     return this.$_select('name' as const)
   }
+  get thing(): Field<'thing', string> {
+    return this.$_select('thing' as const)
+  }
 }
 
 export class EffectCard extends $_Base<EffectCard> {
@@ -457,6 +394,14 @@ export class EffectCard extends $_Base<EffectCard> {
   }
   get name(): Field<'name', string> {
     return this.$_select('name' as const)
+  }
+  thing<Sel extends Selection<Number>>(
+    selectorFn: (s: Number) => [...Sel]
+  ): Field<'thing', JoinFields<Sel>> {
+    const options = {
+      selection: selectorFn(new Number()),
+    }
+    return this.$_select('thing' as const, options)
   }
 }
 

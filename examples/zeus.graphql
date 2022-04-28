@@ -124,6 +124,8 @@ type SpecialCard implements Nameable {
 
   """"""
   name: String!
+
+  thing: String!
 }
 
 """"""
@@ -133,6 +135,8 @@ type EffectCard implements Nameable {
 
   """"""
   name: String!
+
+  thing: Number!
 }
 
 """create card inputs<br>"""
