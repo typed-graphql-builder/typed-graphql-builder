@@ -1,6 +1,18 @@
 import * as gq from 'graphql'
 import * as fs from 'fs'
 
+function isScalar(scalar: string) {
+  switch (scalar) {
+    case 'number':
+    case 'string':
+    case 'boolean':
+      return true
+
+    default:
+      return false
+  }
+}
+
 function translateScalar(scalar: string) {
   switch (scalar) {
     case 'Int':
@@ -18,6 +30,23 @@ function translateScalar(scalar: string) {
   }
 }
 
+function printTypeWrapped(
+  wrappedType: string,
+  wrapperDef: gq.TypeNode,
+  notNull: boolean = false
+): string {
+  switch (wrapperDef.kind) {
+    case gq.Kind.NON_NULL_TYPE:
+      return `${printTypeWrapped(wrappedType, wrapperDef.type, true)}`
+    case gq.Kind.LIST_TYPE:
+      return `Array<${printTypeWrapped(wrappedType, wrapperDef.type)}>${
+        !notNull ? ' | undefined' : ''
+      }`
+    case gq.Kind.NAMED_TYPE:
+      return `${translateScalar(wrappedType)}${!notNull ? ' | undefined' : ''}`
+  }
+}
+
 function printType(def: gq.TypeNode, notNull: boolean = false): string {
   switch (def.kind) {
     case gq.Kind.NON_NULL_TYPE:
@@ -29,8 +58,20 @@ function printType(def: gq.TypeNode, notNull: boolean = false): string {
   }
 }
 
-function printInputValue(def: gq.InputValueDefinitionNode) {
-  return `${def.name.value}: ${printType(def.type)}`
+function printTypeBase(def: gq.TypeNode): string {
+  switch (def.kind) {
+    case gq.Kind.NON_NULL_TYPE:
+      return `${printTypeBase(def.type)}`
+    case gq.Kind.LIST_TYPE:
+      return `${printTypeBase(def.type)}`
+    case gq.Kind.NAMED_TYPE:
+      return `${translateScalar(def.name.value)}`
+  }
+}
+
+function printInputField(def: gq.InputValueDefinitionNode, quoteType = false) {
+  const q = quoteType ? '"' : ''
+  return `${def.name.value}: ${q}${printType(def.type)}${q}`
 }
 
 function printDocumentation(description?: gq.StringValueNode) {
@@ -41,30 +82,74 @@ function printDocumentation(description?: gq.StringValueNode) {
  */`
     : ''
 }
-function printField(field: gq.FieldDefinitionNode) {
-  if (field.arguments?.length) {
-    return `${field.name.value}: [{
-      ${field.arguments.map(arg => printInputValue(arg)).join('\n')},
-    },
-    ${printType(field.type)}
-  ],`
-  } else {
-    return `${field.name.value}: ${printType(field.type)},`
-  }
-}
 
 function printObjectType(def: gq.ObjectTypeDefinitionNode) {
+  const className = def.name.value
   return `
 ${printDocumentation(def.description)}
-export type ${def.name.value} = {
+export class ${className} extends $_Base<${className}> {
+  constructor() {
+    super("${className}")
+  }
+
   ${def.fields?.map(printField).join('\n')}
 }`
 }
 
+function printField(field: gq.FieldDefinitionNode) {
+  const methodArgs: string[] = []
+
+  // const fieldType = printType(field.type)
+  const fieldTypeName = printTypeBase(field.type)
+
+  let hasArgs = false,
+    hasSelector = false
+  if (field.arguments?.length) {
+    hasArgs = true
+    methodArgs.push(`args: {
+      ${field.arguments.map(arg => printInputField(arg)).join('\n')},
+    }`)
+  }
+  if (!isScalar(fieldTypeName)) {
+    hasSelector = true
+
+    methodArgs.push(`selectorFn: (s: ${fieldTypeName}) => [...Sel]`)
+  }
+  if (methodArgs.length > 0) {
+    return `${field.name.value}<Sel extends Selection<${fieldTypeName}>>(${methodArgs.join(
+      ', '
+    )}):Field<"${field.name.value}", ${printTypeWrapped('JoinFields<Sel>', field.type)}> {
+      const options = {
+        ${
+          hasArgs
+            ? `argTypes: {
+              ${field.arguments?.map(arg => printInputField(arg, true)).join('\n')}
+            },`
+            : ''
+        }
+        ${hasArgs ? `args,` : ''}
+
+        ${hasSelector ? `selection: selectorFn(new ${fieldTypeName})` : ''}
+      };
+      return this.$_select("${field.name.value}" as const, options)
+    }
+  `
+  } else {
+    return `get ${field.name.value}(): Field<"${field.name.value}", ${printType(field.type)}>  {
+       return this.$_select("${field.name.value}" as const)
+    }`
+  }
+}
+
 function printInterface(def: gq.InterfaceTypeDefinitionNode) {
+  const className = def.name.value
+
   return `
 ${printDocumentation(def.description)}
-export type ${def.name.value} = {
+export class ${className} extends $_Base<${className}> {
+  constructor() {
+    super("${className}")
+  }
   ${def.fields?.map(printField).join('\n')}
 }`
 }
@@ -73,7 +158,7 @@ function printInputObjectType(def: gq.InputObjectTypeDefinitionNode) {
   return `
 ${printDocumentation(def.description)}
 export type ${def.name.value} = {
-  ${def.fields?.map(field => printInputValue(field)).join(',\n')}
+  ${def.fields?.map(field => printInputField(field)).join(',\n')}
 }
 
     `
@@ -280,6 +365,27 @@ export function subscription<Z extends QueryWithVariables<ToQuery<$ROOT['subscri
 }
 
 
+
+type Field<Name extends string, Type> = {
+  name: Name
+  ' _type'?: Type
+}
+
+type JoinFields<X extends Field<any, any>[]> = UnionToIntersection<
+  {
+    [I in keyof X]: X[I] extends Field<infer Name, infer Type> ? { [K in Name]: Type } : never
+  }[keyof X & number]
+>
+
+type FieldOrReturn<T> = T extends (...args: any) => infer Ret ? Ret : T
+type Selection<Obj> = Array<
+  { [K in keyof Obj & string]: FieldOrReturn<Obj[K]> }[keyof Obj & string]
+>
+
+class $_Base<T> {
+  constructor(name: string) {}
+  protected $_select(...args: any): any {}
+}
 
   `)
   for (let def of res.definitions) {
