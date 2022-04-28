@@ -1,7 +1,7 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
-type Unionize<Members> = ToQuery<Pick<Members[keyof Members], keyof Members[keyof Members]>> & {
+type ToUnionQuery<Members> = ToQuery<Pick<Members[keyof Members], keyof Members[keyof Members]>> & {
   [Name in keyof Members as `...on ${string & Name}`]: ToQuery<
     Omit<Members[Name], keyof Members[keyof Members]>
   >
@@ -16,8 +16,14 @@ export type ToQuery<Type> = Type extends string | number | undefined
   : Type extends Array<infer Inner> | undefined
   ? ToQuery<Inner>
   : Type extends { [Union]: infer Members }
-  ? Unionize<Members>
+  ? ToUnionQuery<Members>
   : { [Field in keyof Type]?: ToQuery<Type[Field]> }
+
+type ToUnionModel<Members> = ToModel<Pick<Members[keyof Members], keyof Members[keyof Members]>> & {
+  [Name in keyof Members as `...on ${string & Name}`]: ToModel<
+    Omit<Members[Name], keyof Members[keyof Members]>
+  >
+}
 
 export type ToModel<Type> = Type extends string | number | undefined
   ? Type
@@ -28,10 +34,38 @@ export type ToModel<Type> = Type extends string | number | undefined
   : Type extends Array<infer Inner> | undefined
   ? Array<ToModel<Inner>> | undefined
   : Type extends { [Union]: infer Members }
-  ? Members[keyof Members]
+  ? ToUnionModel<Members>
   : { [Field in keyof Type]?: ToModel<Type[Field]> }
 
-type m = ToModel<Card>
+type SelectUnionKeys<K> = K extends `...on ${any}` ? K : never
+
+type FromUnionQuery<T> = T[SelectUnionKeys<keyof T>] & {
+  [K in keyof T]: K extends `...on ${any}` ? never : T[K]
+}
+
+type QueryToValueMapper<Query, ValueDescriptor> = {
+  [Key in keyof Query]: Key extends keyof ValueDescriptor
+    ? Query[Key] extends true
+      ? ValueDescriptor[Key]
+      : ValueDescriptor[Key] extends Array<infer Inner>
+      ? Array<
+          Query[Key] extends [any, infer Outputs]
+            ? QueryToValueMapper<Outputs, Inner>
+            : QueryToValueMapper<Query[Key], Inner>
+        >
+      : ValueDescriptor[Key] extends Array<infer Inner> | undefined
+      ?
+          | Array<
+              Query[Key] extends [any, infer Outputs]
+                ? QueryToValueMapper<Outputs, Inner>
+                : QueryToValueMapper<Query[Key], Inner>
+            >
+          | undefined
+      : Query[Key] extends [any, infer Outputs]
+      ? QueryToValueMapper<Outputs, ValueDescriptor[Key]>
+      : QueryToValueMapper<Query[Key], ValueDescriptor[Key]>
+    : never
+}
 
 const Union = '1fcbcbff-3e78-462f-b45c-668a3e09bfd7'
 const Variable = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
