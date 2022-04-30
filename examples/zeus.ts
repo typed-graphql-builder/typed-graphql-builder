@@ -30,89 +30,71 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   : never
 
 export const $ = <Type, Name extends string>(name: Name) => {
-  return `${Variable}$${name}` as any as Variable<Type, Name>
+  return (Variable + '$' + 'name') as any as Variable<Type, Name>
 }
 
-function stringifyQuery(qType: string, query: any) {
-  const vars = []
+type SelectOptions = {
+  argTypes?: { [key: string]: string }
+  args?: { [key: string]: any }
+  selection?: Selection<any>
+}
 
-  function stringifyInput(input: any) {
-    if (typeof input === 'string') {
-      if (input.startsWith(Variable)) {
-        const varName = input.substring(Variable.length)
-        vars.push(varName)
-        return varName
-      } else {
-        return JSON.stringify(input)
-      }
-    } else if (typeof input === 'number' || typeof input === 'boolean') {
-      return JSON.stringify(input)
-    } else if (Array.isArray(input)) {
-      return `[${input.map(stringifyInput).join(',')}]`
-    } else {
-      return `{${Object.entries(input).map(([k, v]) => `${k}:${stringifyInput(v)}`)}}`
-    }
+class $Field<Name extends string, Type, Parent extends string, Alias extends string = Name> {
+  private kind: 'field' = 'field'
+  private type!: Type
+
+  constructor(private name: Name, private alias: Alias, public options: SelectOptions) {}
+
+  as<Rename extends string>(alias: Rename): $Field<Name, Type, Parent, Rename> {
+    return new $Field(this.name, alias, this.options)
   }
-  function stringifyOutput(output: any) {
-    if (output === true) return ''
-    else
-      return `{${Object.entries(output)
-        .map(([k, v]) => stringifyField(k, v))
-        .join(' ')}}`
-  }
-  function stringifyField(key: string, field: any) {
-    if (Array.isArray(field)) {
-      return `${key}(${stringifyInput(field[0])}) ${stringifyOutput(field[1])}`
-    } else {
-      return `${key}${stringifyOutput(field)}`
-    }
-  }
-  return `${qType}(${vars.join(',')}){${stringifyOutput(query)}}`
 }
 
-export function query<Z extends QueryWithVariables<ToQuery<$ROOT['query']>>>(
-  query: Z
-): TypedDocumentNode<ToModel<Z>, ExtractVariables<Z>> {
-  return gql(stringifyQuery('query', query))
-}
-
-export function mutation<Z extends QueryWithVariables<ToQuery<$ROOT['mutation']>>>(
-  mutation: Z
-): TypedDocumentNode<ToModel<Z>, ExtractVariables<Z>> {
-  return gql(stringifyQuery('mutation', mutation))
-}
-
-export function subscription<Z extends QueryWithVariables<ToQuery<$ROOT['subscription']>>>(
-  subscription: Z
-): TypedDocumentNode<ToModel<Z>, ExtractVariables<Z>> {
-  return gql(stringifyQuery('subscription', subscription))
-}
-
-type Field<Name extends string, Type> = {
-  name: Name
-  ' _type'?: Type
-}
-
-type JoinFields<X extends Field<any, any>[]> = UnionToIntersection<
-  {
-    [I in keyof X]: X[I] extends Field<infer Name, infer Type> ? { [K in Name]: Type } : never
-  }[keyof X & number]
->
-
-type FieldOrReturn<T> = T extends (...args: any) => infer Ret ? Ret : T
-type Selection<Obj> = Array<
-  { [K in keyof Obj & string]: FieldOrReturn<Obj[K]> }[keyof Obj & string]
->
-
-class $_Base<T> {
+class $Base<Name extends string> {
   constructor(name: string) {}
-  protected $_select(...args: any): any {}
+  protected $_select<Key extends string>(
+    name: Key,
+    options: SelectOptions = {}
+  ): $Field<Key, any, Name, Key> {
+    return new $Field(name, name, options)
+  }
 }
+
+class $Union<T, Name extends String> {
+  private type!: T
+  private name!: Name
+
+  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }) {}
+  $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
+    alternative: Type,
+    selectorFn: (selector: T[Type]) => Sel
+  ): $UnionSelection<JoinFields<Sel>> {
+    const selection = selectorFn(new this.selectorClasses[alternative]())
+
+    return new $UnionSelection(alternative as string, selection)
+  }
+}
+
+class $UnionSelection<T> {
+  public kind = 'union'
+  constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
+}
+
+type Selection<_any> = ReadonlyArray<$Field<any, any, any> | $UnionSelection<any>>
+
+type JoinFields<X extends Selection<any>> = UnionToIntersection<
+  {
+    [I in keyof X]: X[I] extends $Field<any, infer Type, any, infer Alias>
+      ? { [K in Alias]: Type }
+      : never
+  }[keyof X & number]
+> &
+  { [I in keyof X]: X[I] extends $UnionSelection<infer Type> ? Type : never }[keyof X]
 
 /**
  * The query root
  */
-export class Query extends $_Base<Query> {
+export class Query extends $Base<'Query'> {
   constructor() {
     super('Query')
   }
@@ -122,7 +104,7 @@ export class Query extends $_Base<Query> {
       cardId: string | undefined
     },
     selectorFn: (s: Card) => [...Sel]
-  ): Field<'cardById', JoinFields<Sel> | undefined> {
+  ): $Field<'cardById', JoinFields<Sel> | undefined, 'Query'> {
     const options = {
       argTypes: {
         cardId: 'string | undefined',
@@ -136,7 +118,7 @@ export class Query extends $_Base<Query> {
 
   drawCard<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): Field<'drawCard', JoinFields<Sel>> {
+  ): $Field<'drawCard', JoinFields<Sel>, 'Query'> {
     const options = {
       selection: selectorFn(new Card()),
     }
@@ -145,7 +127,7 @@ export class Query extends $_Base<Query> {
 
   drawChangeCard<Sel extends Selection<ChangeCard>>(
     selectorFn: (s: ChangeCard) => [...Sel]
-  ): Field<'drawChangeCard', JoinFields<Sel>> {
+  ): $Field<'drawChangeCard', JoinFields<Sel>, 'Query'> {
     const options = {
       selection: selectorFn(new ChangeCard()),
     }
@@ -154,7 +136,7 @@ export class Query extends $_Base<Query> {
 
   listCards<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): Field<'listCards', Array<JoinFields<Sel>>> {
+  ): $Field<'listCards', Array<JoinFields<Sel>>, 'Query'> {
     const options = {
       selection: selectorFn(new Card()),
     }
@@ -163,7 +145,7 @@ export class Query extends $_Base<Query> {
 
   myStacks<Sel extends Selection<CardStack>>(
     selectorFn: (s: CardStack) => [...Sel]
-  ): Field<'myStacks', Array<JoinFields<Sel>> | undefined> {
+  ): $Field<'myStacks', Array<JoinFields<Sel>> | undefined, 'Query'> {
     const options = {
       selection: selectorFn(new CardStack()),
     }
@@ -172,7 +154,7 @@ export class Query extends $_Base<Query> {
 
   nameables<Sel extends Selection<Nameable>>(
     selectorFn: (s: Nameable) => [...Sel]
-  ): Field<'nameables', Array<JoinFields<Sel>>> {
+  ): $Field<'nameables', Array<JoinFields<Sel>>, 'Query'> {
     const options = {
       selection: selectorFn(new Nameable()),
     }
@@ -183,21 +165,21 @@ export class Query extends $_Base<Query> {
 /**
  * Stack of cards
  */
-export class CardStack extends $_Base<CardStack> {
+export class CardStack extends $Base<'CardStack'> {
   constructor() {
     super('CardStack')
   }
 
   cards<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): Field<'cards', Array<JoinFields<Sel>> | undefined> {
+  ): $Field<'cards', Array<JoinFields<Sel>> | undefined, 'CardStack'> {
     const options = {
       selection: selectorFn(new Card()),
     }
     return this.$_select('cards' as const, options)
   }
 
-  get name(): Field<'name', string> {
+  get name(): $Field<'name', string, 'CardStack'> {
     return this.$_select('name' as const)
   }
 }
@@ -222,36 +204,38 @@ export enum SpecialSkills {
 /**
  * Aws S3 File
  */
-export class S3Object extends $_Base<S3Object> {
+export class S3Object extends $Base<'S3Object'> {
   constructor() {
     super('S3Object')
   }
 
-  get bucket(): Field<'bucket', string> {
+  get bucket(): $Field<'bucket', string, 'S3Object'> {
     return this.$_select('bucket' as const)
   }
-  get key(): Field<'key', string> {
+  get key(): $Field<'key', string, 'S3Object'> {
     return this.$_select('key' as const)
   }
-  get region(): Field<'region', string> {
+  get region(): $Field<'region', string, 'S3Object'> {
     return this.$_select('region' as const)
   }
 }
 
 export type JSON = unknown
 
-export type ChangeCard = {
-  [Union]: {
-    SpecialCard: SpecialCard
-    EffectCard: EffectCard
+export class ChangeCard extends $Union<
+  { SpecialCard: SpecialCard; EffectCard: EffectCard },
+  'ChangeCard'
+> {
+  constructor() {
+    super({ SpecialCard: SpecialCard, EffectCard: EffectCard })
   }
 }
 
-export class Nameable extends $_Base<Nameable> {
+export class Nameable extends $Base<'Nameable'> {
   constructor() {
     super('Nameable')
   }
-  get name(): Field<'name', string> {
+  get name(): $Field<'name', string, 'Nameable'> {
     return this.$_select('name' as const)
   }
 }
@@ -259,18 +243,18 @@ export class Nameable extends $_Base<Nameable> {
 /**
  * Card used in card game<br>
  */
-export class Card extends $_Base<Card> {
+export class Card extends $Base<'Card'> {
   constructor() {
     super('Card')
   }
 
-  get Attack(): Field<'Attack', number> {
+  get Attack(): $Field<'Attack', number, 'Card'> {
     return this.$_select('Attack' as const)
   }
-  get Children(): Field<'Children', number | undefined> {
+  get Children(): $Field<'Children', number | undefined, 'Card'> {
     return this.$_select('Children' as const)
   }
-  get Defense(): Field<'Defense', number> {
+  get Defense(): $Field<'Defense', number, 'Card'> {
     return this.$_select('Defense' as const)
   }
   attack<Sel extends Selection<Card>>(
@@ -278,7 +262,7 @@ export class Card extends $_Base<Card> {
       cardID: Array<string>
     },
     selectorFn: (s: Card) => [...Sel]
-  ): Field<'attack', Array<JoinFields<Sel>> | undefined> {
+  ): $Field<'attack', Array<JoinFields<Sel>> | undefined, 'Card'> {
     const options = {
       argTypes: {
         cardID: 'Array<string>',
@@ -292,45 +276,34 @@ export class Card extends $_Base<Card> {
 
   cardImage<Sel extends Selection<S3Object>>(
     selectorFn: (s: S3Object) => [...Sel]
-  ): Field<'cardImage', JoinFields<Sel> | undefined> {
+  ): $Field<'cardImage', JoinFields<Sel> | undefined, 'Card'> {
     const options = {
       selection: selectorFn(new S3Object()),
     }
     return this.$_select('cardImage' as const, options)
   }
 
-  get description(): Field<'description', string> {
+  get description(): $Field<'description', string, 'Card'> {
     return this.$_select('description' as const)
   }
-  get id(): Field<'id', string> {
+  get id(): $Field<'id', string, 'Card'> {
     return this.$_select('id' as const)
   }
-  get image(): Field<'image', string> {
+  get image(): $Field<'image', string, 'Card'> {
     return this.$_select('image' as const)
   }
-  info<Sel extends Selection<JSON>>(
-    selectorFn: (s: JSON) => [...Sel]
-  ): Field<'info', JoinFields<Sel>> {
-    const options = {
-      selection: selectorFn(new JSON()),
-    }
-    return this.$_select('info' as const, options)
+  get info(): $Field<'info', string, 'Card'> {
+    return this.$_select('info' as const)
   }
-
-  get name(): Field<'name', string> {
+  get name(): $Field<'name', string, 'Card'> {
     return this.$_select('name' as const)
   }
-  skills<Sel extends Selection<SpecialSkills>>(
-    selectorFn: (s: SpecialSkills) => [...Sel]
-  ): Field<'skills', Array<JoinFields<Sel>> | undefined> {
-    const options = {
-      selection: selectorFn(new SpecialSkills()),
-    }
-    return this.$_select('skills' as const, options)
+  get skills(): $Field<'skills', Array<SpecialSkills> | undefined, 'Card'> {
+    return this.$_select('skills' as const)
   }
 }
 
-export class Mutation extends $_Base<Mutation> {
+export class Mutation extends $Base<'Mutation'> {
   constructor() {
     super('Mutation')
   }
@@ -340,7 +313,7 @@ export class Mutation extends $_Base<Mutation> {
       card: createCard
     },
     selectorFn: (s: Card) => [...Sel]
-  ): Field<'addCard', JoinFields<Sel>> {
+  ): $Field<'addCard', JoinFields<Sel>, 'Mutation'> {
     const options = {
       argTypes: {
         card: 'createCard',
@@ -353,14 +326,14 @@ export class Mutation extends $_Base<Mutation> {
   }
 }
 
-export class Subscription extends $_Base<Subscription> {
+export class Subscription extends $Base<'Subscription'> {
   constructor() {
     super('Subscription')
   }
 
   deck<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): Field<'deck', Array<JoinFields<Sel>> | undefined> {
+  ): $Field<'deck', Array<JoinFields<Sel>> | undefined, 'Subscription'> {
     const options = {
       selection: selectorFn(new Card()),
     }
@@ -368,36 +341,36 @@ export class Subscription extends $_Base<Subscription> {
   }
 }
 
-export class SpecialCard extends $_Base<SpecialCard> {
+export class SpecialCard extends $Base<'SpecialCard'> {
   constructor() {
     super('SpecialCard')
   }
 
-  get effect(): Field<'effect', string> {
+  get effect(): $Field<'effect', string, 'SpecialCard'> {
     return this.$_select('effect' as const)
   }
-  get name(): Field<'name', string> {
+  get name(): $Field<'name', string, 'SpecialCard'> {
     return this.$_select('name' as const)
   }
-  get thing(): Field<'thing', string> {
+  get thing(): $Field<'thing', string, 'SpecialCard'> {
     return this.$_select('thing' as const)
   }
 }
 
-export class EffectCard extends $_Base<EffectCard> {
+export class EffectCard extends $Base<'EffectCard'> {
   constructor() {
     super('EffectCard')
   }
 
-  get effectSize(): Field<'effectSize', number> {
+  get effectSize(): $Field<'effectSize', number, 'EffectCard'> {
     return this.$_select('effectSize' as const)
   }
-  get name(): Field<'name', string> {
+  get name(): $Field<'name', string, 'EffectCard'> {
     return this.$_select('name' as const)
   }
   thing<Sel extends Selection<Number>>(
     selectorFn: (s: Number) => [...Sel]
-  ): Field<'thing', JoinFields<Sel>> {
+  ): $Field<'thing', JoinFields<Sel>, 'EffectCard'> {
     const options = {
       selection: selectorFn(new Number()),
     }
@@ -422,3 +395,13 @@ export type $ROOT = {
   mutation: Mutation
   subscription: Subscription
 }
+
+function query<Sel extends Selection<$ROOT['query']>>(fn: (root: $ROOT['query']) => Sel) {
+  const field = new $Field<'_', JoinFields<Sel>, '_'>('_', '_', {
+    selection: fn(new Query()),
+  })
+
+  return 'query' as any as TypedDocumentNode<JoinFields<Sel>, {}>
+}
+
+const cQ = query(q => [q.cardById({ cardId: 'a' }, c => [c.Attack, c.Defense])])
