@@ -7,12 +7,6 @@ function main() {
   const schemaData = fs.readFileSync('./examples/zeus.graphql', 'utf8')
   let res = gq.parse(schemaData)
 
-  // console.log(res)
-
-  const variableTypeTree: any = {}
-
-  console.log(Preamble)
-
   const atomicTypes = new Map(
     res.definitions
       .flatMap(def => {
@@ -37,6 +31,9 @@ function main() {
     return atomicTypes.get(scalar) ?? scalar
   }
 
+  function printAtomicTypes() {
+    return `type $Atomic = ${Array.from(new Set(atomicTypes.values())).join(' | ')}`
+  }
   function printTypeWrapped(
     wrappedType: string,
     wrapperDef: gq.TypeNode,
@@ -246,8 +243,10 @@ export enum ${def.name.value} {
   `
   }
 
+  console.log(Preamble)
+  console.log(printAtomicTypes())
+
   for (let def of res.definitions) {
-    // console.log('---->', def.kind)
     switch (def.kind) {
       case gq.Kind.OBJECT_TYPE_DEFINITION:
         // the interfaces this object implements are def.interfaces

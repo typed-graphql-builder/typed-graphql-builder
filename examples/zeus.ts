@@ -13,8 +13,10 @@ class Variable<T, Name extends string> {
   }
 }
 
-type VariabledInput<T> = T extends string | number | boolean | Array<any>
+type VariabledInput<T> = T extends $Atomic
   ? Variable<T, any> | T
+  : T extends Array<infer R>
+  ? Variable<T, any> | Array<VariabledInput<R>> | T
   : Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
@@ -93,10 +95,15 @@ type GetOutput<X extends Selection<any>> = UnionToIntersection<
       [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
     }[keyof X & number]
   >
+
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
   ? { [key in VName]: VType }
-  : Inputs extends string | number | boolean | Array<any>
+  : Inputs extends $Atomic | Array<any>
   ? {}
+  : Inputs extends Array<any>
+  ? UnionToIntersection<
+      { [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs & number]
+    >
   : UnionToIntersection<{ [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs]>
 
 type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
@@ -157,7 +164,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const queryBody = queryRaw.substring(queryRaw.indexOf('{'))
 
   const varList = Array.from(variables.entries())
-  let ret = 'query'
+  let ret = prefix
   if (varList.length) {
     ret += '(' + varList.map(([name, kind]) => '$' + name + ':' + kind).join(',') + ')'
   }
@@ -201,6 +208,8 @@ export function subscription<Sel extends Selection<$RootTypes.subscription>>(
     GetVariables<Sel>
   >
 }
+
+type $Atomic = SpecialSkills | string | number | boolean
 
 /**
  * The query root

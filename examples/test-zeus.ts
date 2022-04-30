@@ -1,5 +1,5 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { query, $, mutation } from './zeus'
+import { query, $, mutation, SpecialSkills } from './zeus'
 
 type GetOutput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<infer Out, any>
   ? Out
@@ -40,7 +40,7 @@ const tm = mutation(m => {
         Defense: 2,
         name: 'Hi',
         description: 'Lo',
-        skills: [],
+        skills: [SpecialSkills.FIRE, $('ha')],
       },
     },
     c => [c.Attack, c.Defense]
