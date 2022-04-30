@@ -112,9 +112,7 @@ export class ${className} extends $Base<"${className}"> {
       hasSelector = false
     if (field.arguments?.length) {
       hasArgs = true
-      methodArgs.push(`args: {
-      ${field.arguments.map(arg => printInputField(arg)).join('\n')},
-    }`)
+      methodArgs.push(`args: Args`)
     }
     if (!isAtomic(fieldTypeName)) {
       hasSelector = true
@@ -122,12 +120,17 @@ export class ${className} extends $Base<"${className}"> {
       methodArgs.push(`selectorFn: (s: ${fieldTypeName}) => [...Sel]`)
     }
     if (methodArgs.length > 0) {
-      return `${field.name.value}<Sel extends Selection<${fieldTypeName}>>(${methodArgs.join(
-        ', '
-      )}):$Field<"${field.name.value}", ${printTypeWrapped(
-        'JoinFields<Sel>',
-        field.type
-      )}, "${parentName}"> {
+      const argsType = `{
+        ${(field.arguments ?? []).map(arg => printInputField(arg)).join('\n')},
+      }`
+      const generics = (hasArgs ? [`Args extends VariabledInput<${argsType}>`] : []).concat(
+        hasSelector ? [`Sel extends Selection<${fieldTypeName}>`] : []
+      )
+      return `${field.name.value}<${generics.join(',')}>(${methodArgs.join(', ')}):$Field<"${
+        field.name.value
+      }", ${printTypeWrapped('JoinFields<Sel>', field.type)}, "${parentName}" ${
+        hasArgs ? `, ExtractVariables<${hasSelector ? 'Sel' : '{}'}, Args>` : ''
+      }> {
       const options = {
         ${
           hasArgs
@@ -208,9 +211,16 @@ export enum ${def.name.value} {
 
   function printSchema(def: gq.SchemaDefinitionNode) {
     return `
-  export type $ROOT = {
-    ${def.operationTypes.map(op => `${op.operation}: ${printType(op.type, true)}`).join('\n')}
-  }`
+  const $Root = {
+    ${def.operationTypes.map(op => `${op.operation}: ${printType(op.type, true)}`).join(',\n')}
+  }
+
+  namespace $RootTypes {
+    ${def.operationTypes
+      .map(op => `export type ${op.operation} = ${printType(op.type, true)}`)
+      .join('\n')}
+  }
+  `
   }
 
   for (let def of res.definitions) {
