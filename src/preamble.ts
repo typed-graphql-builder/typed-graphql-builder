@@ -80,6 +80,8 @@ class $UnionSelection<T, Vars> {
 
 type Selection<_any> = ReadonlyArray<$Field<any, any, any, any> | $UnionSelection<any, any>>
 
+type NeverNever<T> = [T] extends [never] ? {} : T
+
 type JoinFields<X extends Selection<any>> = UnionToIntersection<
   {
     [I in keyof X]: X[I] extends $Field<any, infer Type, any, any, infer Alias>
@@ -87,13 +89,11 @@ type JoinFields<X extends Selection<any>> = UnionToIntersection<
       : never
   }[keyof X & number]
 > &
-  (
-    | {}
-    | {
-        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
-      }[keyof X & number]
-  )
-
+  NeverNever<
+    {
+      [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
+    }[keyof X & number]
+  >
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
   ? { [key in VName]: VType }
   : Inputs extends string | number | boolean
@@ -168,7 +168,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any, any, any>) {
 }
 
 export function query<Sel extends Selection<$RootTypes.query>>(
-  selectFn: (q: $RootTypes.query) => Sel
+  selectFn: (q: $RootTypes.query) => [...Sel]
 ) {
   let field = new $Field<'query', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
     'query',
@@ -184,7 +184,7 @@ export function query<Sel extends Selection<$RootTypes.query>>(
 }
 
 export function mutation<Sel extends Selection<$RootTypes.mutation>>(
-  selectFn: (q: $RootTypes.mutation) => Sel
+  selectFn: (q: $RootTypes.mutation) => [...Sel]
 ) {
   let field = new $Field<'mutation', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
     'mutation',
@@ -200,7 +200,7 @@ export function mutation<Sel extends Selection<$RootTypes.mutation>>(
 }
 
 export function subscription<Sel extends Selection<$RootTypes.subscription>>(
-  selectFn: (q: $RootTypes.mutation) => Sel
+  selectFn: (q: $RootTypes.mutation) => [...Sel]
 ) {
   let field = new $Field<'subscription', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
     'subscription',
