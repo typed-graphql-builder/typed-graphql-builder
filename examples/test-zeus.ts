@@ -36,5 +36,3 @@ type InTQ = GetInput<typeof tq>
 
 declare let out: OutTQ
 declare let inp: InTQ
-
-out.drawChangeCard

@@ -64,7 +64,7 @@ class $Union<T, Name extends String> {
   constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }) {}
   $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
     alternative: Type,
-    selectorFn: (selector: T[Type]) => Sel
+    selectorFn: (selector: T[Type]) => [...Sel]
   ): $UnionSelection<JoinFields<Sel>, ExtractVariables<Sel>> {
     const selection = selectorFn(new this.selectorClasses[alternative]())
 
