@@ -506,3 +506,14 @@ namespace $RootTypes {
   export type mutation = Mutation
   export type subscription = Subscription
 }
+
+const $InputTypes = {
+  createCard: {
+    skills: '[SpecialSkills!]',
+    name: 'String!',
+    description: 'String!',
+    Children: 'Int',
+    Attack: 'Int!',
+    Defense: 'Int!',
+  },
+}

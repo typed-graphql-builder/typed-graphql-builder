@@ -1,6 +1,7 @@
 import * as gq from 'graphql'
 import * as fs from 'fs'
 import { Preamble } from './preamble'
+import gql from 'graphql-tag'
 
 function main() {
   const schemaData = fs.readFileSync('./examples/zeus.graphql', 'utf8')
@@ -61,6 +62,17 @@ function main() {
         return `Array<${printType(def.type)}>${!notNull ? ' | undefined' : ''}`
       case gq.Kind.NAMED_TYPE:
         return `${toTSType(def.name.value)}${!notNull ? ' | undefined' : ''}`
+    }
+  }
+
+  function printTypeGql(def: gq.TypeNode, notNull: boolean = false): string {
+    switch (def.kind) {
+      case gq.Kind.NON_NULL_TYPE:
+        return `${printTypeGql(def.type, true)}`
+      case gq.Kind.LIST_TYPE:
+        return `[${printTypeGql(def.type)}]${notNull ? '!' : ''}`
+      case gq.Kind.NAMED_TYPE:
+        return `${def.name.value}${notNull ? '!' : ''}`
     }
   }
 
@@ -172,8 +184,21 @@ ${printDocumentation(def.description)}
 export type ${def.name.value} = {
   ${def.fields?.map(field => printInputField(field)).join(',\n')}
 }
-
     `
+  }
+
+  function printInputTypeMap(defs: gq.InputObjectTypeDefinitionNode[]) {
+    return `
+const $InputTypes = {
+  ${defs
+    .map(
+      def => `  ${def.name.value}: {
+    ${def.fields?.map(field => `${field.name.value}: "${printTypeGql(field.type)}"`).join(',\n')}
+  }`
+    )
+    .join(',\n')}
+}
+`
   }
 
   function printScalar(def: gq.ScalarTypeDefinitionNode) {
@@ -247,6 +272,12 @@ export enum ${def.name.value} {
         console.log(printSchema(def))
     }
   }
+
+  console.log(
+    printInputTypeMap(
+      res.definitions.filter(def => def.kind === gq.Kind.INPUT_OBJECT_TYPE_DEFINITION) as any[]
+    )
+  )
 }
 
 main()
