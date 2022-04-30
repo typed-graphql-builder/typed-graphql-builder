@@ -1,6 +1,5 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
-import { argv } from 'process'
 
 const Variable = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
@@ -78,11 +77,11 @@ class $UnionSelection<T, Vars> {
   constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
 }
 
-type Selection<_any> = ReadonlyArray<$Field<any, any, any, any> | $UnionSelection<any, any>>
+type Selection<_any> = ReadonlyArray<$Field<any, any, any, any>> // | $UnionSelection<any, any>>
 
 type JoinFields<X extends Selection<any>> = UnionToIntersection<
   {
-    [I in keyof X & number]: X[I] extends $Field<any, infer Type, any, any, infer Alias>
+    [I in keyof X]: X[I] extends $Field<any, infer Type, any, any, infer Alias>
       ? { [K in Alias]: Type }
       : never
   }[keyof X & number]
@@ -90,7 +89,7 @@ type JoinFields<X extends Selection<any>> = UnionToIntersection<
   (
     | {}
     | {
-        [I in keyof X & number]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
+        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
       }[keyof X & number]
   )
 
@@ -534,3 +533,25 @@ namespace $RootTypes {
   export type mutation = Mutation
   export type subscription = Subscription
 }
+
+type GetOutput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<infer Out, any>
+  ? Out
+  : never
+
+type GetInput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<any, infer Inp>
+  ? Inp
+  : never
+
+const tq = query(q => [
+  q.cardById({ cardId: $('cid') }, c => [
+    c.Attack,
+    c.Defense.as('def'),
+    c.attack({ cardID: $('cids') }, aCards => [aCards.Attack, aCards.Defense]),
+  ]),
+])
+
+type OutTQ = GetOutput<typeof tq>
+type InTQ = GetInput<typeof tq>
+
+declare let out: OutTQ
+declare let inp: InTQ
