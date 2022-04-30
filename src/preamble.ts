@@ -2,15 +2,19 @@ export const Preamble = `
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
-const Variable = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
-const VariableType = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
+const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
+const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
 
-type Variable<T, Name extends string> = {
-  [Variable]: [Name]
-  [VariableType]?: T
+class Variable<T, Name extends string> {
+  private [VariableName]: Name
+  private [VariableType]?: T
+
+  constructor(name: Name) {
+    this[VariableName] = name
+  }
 }
 
-type VariabledInput<T> = T extends string | number | Array<any>
+type VariabledInput<T> = T extends string | number | boolean | Array<any>
   ? Variable<T, any> | T
   : Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
 
@@ -19,7 +23,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   : never
 
 export const $ = <Type, Name extends string>(name: Name) => {
-  return { [Variable]: 'name' } as any as Variable<Type, Name>
+  return new Variable('name') as Variable<Type, Name>
 }
 
 type SelectOptions = {
@@ -92,7 +96,7 @@ type GetOutput<X extends Selection<any>> = UnionToIntersection<
   >
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
   ? { [key in VName]: VType }
-  : Inputs extends string | number | boolean
+  : Inputs extends string | number | boolean | Array<any>
   ? {}
   : UnionToIntersection<{ [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs]>
 
@@ -118,8 +122,8 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       if (args) {
         retVal += '('
         for (let [argName, argVal] of Object.entries(args)) {
-          if (Variable in argVal) {
-            const argVarName = argVal[Variable]
+          if (VariableName in argVal) {
+            const argVarName = argVal[VariableName]
             const argVarType = argTypes[argName]
             variables.set(argVarName, argVarType)
             retVal += argName + ': $' + argVarName

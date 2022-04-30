@@ -1,5 +1,5 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { query, $ } from './zeus'
+import { query, $, mutation } from './zeus'
 
 type GetOutput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<infer Out, any>
   ? Out
@@ -30,6 +30,23 @@ const tq = query(q => [
     cc.$on('SpecialCard', sc => [sc.name, sc.effect]),
   ]),
 ])
+
+const tm = mutation(m => {
+  let x = m.addCard(
+    {
+      card: {
+        Attack: $('test'),
+        Children: $('a'),
+        Defense: 2,
+        name: 'Hi',
+        description: 'Lo',
+        skills: [],
+      },
+    },
+    c => [c.Attack, c.Defense]
+  )
+  return [x]
+})
 
 type OutTQ = GetOutput<typeof tq>
 type InTQ = GetInput<typeof tq>
