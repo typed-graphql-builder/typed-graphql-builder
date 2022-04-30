@@ -27,32 +27,30 @@ type SelectOptions = {
   selection?: Selection<any>
 }
 
-class $Field<
-  Name extends string,
-  Type,
-  Parent extends string,
-  Vars = {},
-  Alias extends string = Name
-> {
+class $Field<Name extends string, Type, Vars = {}> {
   public kind: 'field' = 'field'
   public type!: Type
 
   public vars!: Vars
+  public alias: string | null = null
 
-  constructor(public name: Name, private alias: Alias, public options: SelectOptions) {}
+  constructor(public name: Name, public options: SelectOptions) {}
 
-  as<Rename extends string>(alias: Rename): $Field<Name, Type, Parent, Vars, Rename> {
-    return new $Field(this.name, alias, this.options)
+  as<Rename extends string>(alias: Rename): $Field<Rename, Type, Vars> {
+    const f = new $Field(this.name, this.options)
+    f.alias = alias
+    return f as any
   }
 }
 
 class $Base<Name extends string> {
-  constructor(name: string) {}
+  constructor(private $$name: Name) {}
+
   protected $_select<Key extends string>(
     name: Key,
     options: SelectOptions = {}
-  ): $Field<Key, any, Name, any> {
-    return new $Field(name, name, options)
+  ): $Field<Key, any, any> {
+    return new $Field(name, options)
   }
 }
 
@@ -64,7 +62,7 @@ class $Union<T, Name extends String> {
   $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
     alternative: Type,
     selectorFn: (selector: T[Type]) => [...Sel]
-  ): $UnionSelection<JoinFields<Sel>, ExtractVariables<Sel>> {
+  ): $UnionSelection<GetOutput<Sel>, GetVariables<Sel>> {
     const selection = selectorFn(new this.selectorClasses[alternative]())
 
     return new $UnionSelection(alternative as string, selection)
@@ -77,15 +75,13 @@ class $UnionSelection<T, Vars> {
   constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
 }
 
-type Selection<_any> = ReadonlyArray<$Field<any, any, any, any> | $UnionSelection<any, any>>
+type Selection<_any> = ReadonlyArray<$Field<any, any, any> | $UnionSelection<any, any>>
 
 type NeverNever<T> = [T] extends [never] ? {} : T
 
-type JoinFields<X extends Selection<any>> = UnionToIntersection<
+type GetOutput<X extends Selection<any>> = UnionToIntersection<
   {
-    [I in keyof X]: X[I] extends $Field<any, infer Type, any, any, infer Alias>
-      ? { [K in Alias]: Type }
-      : never
+    [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any> ? { [K in Name]: Type } : never
   }[keyof X & number]
 > &
   NeverNever<
@@ -99,9 +95,9 @@ type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer 
   ? {}
   : UnionToIntersection<{ [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs]>
 
-type ExtractVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
+type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
   {
-    [I in keyof Sel]: Sel[I] extends $Field<any, any, any, infer Vars, any>
+    [I in keyof Sel]: Sel[I] extends $Field<any, any, infer Vars>
       ? Vars
       : Sel[I] extends $UnionSelection<any, infer Vars>
       ? Vars
@@ -110,10 +106,10 @@ type ExtractVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToInter
 > &
   ExtractInputVariables<ExtraVars>
 
-function fieldToQuery(prefix: string, field: $Field<any, any, any, any, any>) {
+function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const variables = new Map<string, string>()
 
-  function extractTextAndVars(field: $Field<any, any, any, any, any> | $UnionSelection<any, any>) {
+  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
     if (field.kind === 'field') {
       let retVal = field.name
       const args = field.options.args,
@@ -169,48 +165,36 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any, any, any>) {
 export function query<Sel extends Selection<$RootTypes.query>>(
   selectFn: (q: $RootTypes.query) => [...Sel]
 ) {
-  let field = new $Field<'query', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
-    'query',
-    'query',
-    {
-      selection: selectFn(new $Root.query()),
-    }
-  )
+  let field = new $Field<'query', GetOutput<Sel>, GetVariables<Sel>>('query', {
+    selection: selectFn(new $Root.query()),
+  })
   return gql(fieldToQuery('query', field)) as any as TypedDocumentNode<
-    JoinFields<Sel>,
-    ExtractVariables<Sel>
+    GetOutput<Sel>,
+    GetVariables<Sel>
   >
 }
 
 export function mutation<Sel extends Selection<$RootTypes.mutation>>(
   selectFn: (q: $RootTypes.mutation) => [...Sel]
 ) {
-  let field = new $Field<'mutation', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
-    'mutation',
-    'mutation',
-    {
-      selection: selectFn(new $Root.mutation()),
-    }
-  )
+  let field = new $Field<'mutation', GetOutput<Sel>, GetVariables<Sel>>('mutation', {
+    selection: selectFn(new $Root.mutation()),
+  })
   return gql(fieldToQuery('mutation', field)) as any as TypedDocumentNode<
-    JoinFields<Sel>,
-    ExtractVariables<Sel>
+    GetOutput<Sel>,
+    GetVariables<Sel>
   >
 }
 
 export function subscription<Sel extends Selection<$RootTypes.subscription>>(
   selectFn: (q: $RootTypes.mutation) => [...Sel]
 ) {
-  let field = new $Field<'subscription', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
-    'subscription',
-    'subscription',
-    {
-      selection: selectFn(new $Root.mutation()),
-    }
-  )
+  let field = new $Field<'subscription', GetOutput<Sel>, GetVariables<Sel>>('subscription', {
+    selection: selectFn(new $Root.mutation()),
+  })
   return gql(fieldToQuery('subscription', field)) as any as TypedDocumentNode<
-    JoinFields<Sel>,
-    ExtractVariables<Sel>
+    GetOutput<Sel>,
+    GetVariables<Sel>
   >
 }
 
@@ -230,7 +214,7 @@ export class Query extends $Base<'Query'> {
   >(
     args: Args,
     selectorFn: (s: Card) => [...Sel]
-  ): $Field<'cardById', JoinFields<Sel> | undefined, 'Query', ExtractVariables<Sel, Args>> {
+  ): $Field<'cardById', GetOutput<Sel> | undefined, GetVariables<Sel, Args>> {
     const options = {
       argTypes: {
         cardId: 'string | undefined',
@@ -244,7 +228,7 @@ export class Query extends $Base<'Query'> {
 
   drawCard<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): $Field<'drawCard', JoinFields<Sel>, 'Query'> {
+  ): $Field<'drawCard', GetOutput<Sel>> {
     const options = {
       selection: selectorFn(new Card()),
     }
@@ -253,7 +237,7 @@ export class Query extends $Base<'Query'> {
 
   drawChangeCard<Sel extends Selection<ChangeCard>>(
     selectorFn: (s: ChangeCard) => [...Sel]
-  ): $Field<'drawChangeCard', JoinFields<Sel>, 'Query'> {
+  ): $Field<'drawChangeCard', GetOutput<Sel>> {
     const options = {
       selection: selectorFn(new ChangeCard()),
     }
@@ -262,7 +246,7 @@ export class Query extends $Base<'Query'> {
 
   listCards<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): $Field<'listCards', Array<JoinFields<Sel>>, 'Query'> {
+  ): $Field<'listCards', Array<GetOutput<Sel>>> {
     const options = {
       selection: selectorFn(new Card()),
     }
@@ -271,7 +255,7 @@ export class Query extends $Base<'Query'> {
 
   myStacks<Sel extends Selection<CardStack>>(
     selectorFn: (s: CardStack) => [...Sel]
-  ): $Field<'myStacks', Array<JoinFields<Sel>> | undefined, 'Query'> {
+  ): $Field<'myStacks', Array<GetOutput<Sel>> | undefined> {
     const options = {
       selection: selectorFn(new CardStack()),
     }
@@ -280,7 +264,7 @@ export class Query extends $Base<'Query'> {
 
   nameables<Sel extends Selection<Nameable>>(
     selectorFn: (s: Nameable) => [...Sel]
-  ): $Field<'nameables', Array<JoinFields<Sel>>, 'Query'> {
+  ): $Field<'nameables', Array<GetOutput<Sel>>> {
     const options = {
       selection: selectorFn(new Nameable()),
     }
@@ -298,14 +282,14 @@ export class CardStack extends $Base<'CardStack'> {
 
   cards<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): $Field<'cards', Array<JoinFields<Sel>> | undefined, 'CardStack'> {
+  ): $Field<'cards', Array<GetOutput<Sel>> | undefined> {
     const options = {
       selection: selectorFn(new Card()),
     }
     return this.$_select('cards' as const, options)
   }
 
-  get name(): $Field<'name', string, 'CardStack'> {
+  get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
 }
@@ -335,13 +319,13 @@ export class S3Object extends $Base<'S3Object'> {
     super('S3Object')
   }
 
-  get bucket(): $Field<'bucket', string, 'S3Object'> {
+  get bucket(): $Field<'bucket', string> {
     return this.$_select('bucket' as const)
   }
-  get key(): $Field<'key', string, 'S3Object'> {
+  get key(): $Field<'key', string> {
     return this.$_select('key' as const)
   }
-  get region(): $Field<'region', string, 'S3Object'> {
+  get region(): $Field<'region', string> {
     return this.$_select('region' as const)
   }
 }
@@ -361,7 +345,7 @@ export class Nameable extends $Base<'Nameable'> {
   constructor() {
     super('Nameable')
   }
-  get name(): $Field<'name', string, 'Nameable'> {
+  get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
 }
@@ -374,13 +358,13 @@ export class Card extends $Base<'Card'> {
     super('Card')
   }
 
-  get Attack(): $Field<'Attack', number, 'Card'> {
+  get Attack(): $Field<'Attack', number> {
     return this.$_select('Attack' as const)
   }
-  get Children(): $Field<'Children', number | undefined, 'Card'> {
+  get Children(): $Field<'Children', number | undefined> {
     return this.$_select('Children' as const)
   }
-  get Defense(): $Field<'Defense', number, 'Card'> {
+  get Defense(): $Field<'Defense', number> {
     return this.$_select('Defense' as const)
   }
   attack<
@@ -391,7 +375,7 @@ export class Card extends $Base<'Card'> {
   >(
     args: Args,
     selectorFn: (s: Card) => [...Sel]
-  ): $Field<'attack', Array<JoinFields<Sel>> | undefined, 'Card', ExtractVariables<Sel, Args>> {
+  ): $Field<'attack', Array<GetOutput<Sel>> | undefined, GetVariables<Sel, Args>> {
     const options = {
       argTypes: {
         cardID: 'Array<string>',
@@ -405,29 +389,29 @@ export class Card extends $Base<'Card'> {
 
   cardImage<Sel extends Selection<S3Object>>(
     selectorFn: (s: S3Object) => [...Sel]
-  ): $Field<'cardImage', JoinFields<Sel> | undefined, 'Card'> {
+  ): $Field<'cardImage', GetOutput<Sel> | undefined> {
     const options = {
       selection: selectorFn(new S3Object()),
     }
     return this.$_select('cardImage' as const, options)
   }
 
-  get description(): $Field<'description', string, 'Card'> {
+  get description(): $Field<'description', string> {
     return this.$_select('description' as const)
   }
-  get id(): $Field<'id', string, 'Card'> {
+  get id(): $Field<'id', string> {
     return this.$_select('id' as const)
   }
-  get image(): $Field<'image', string, 'Card'> {
+  get image(): $Field<'image', string> {
     return this.$_select('image' as const)
   }
-  get info(): $Field<'info', string, 'Card'> {
+  get info(): $Field<'info', string> {
     return this.$_select('info' as const)
   }
-  get name(): $Field<'name', string, 'Card'> {
+  get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
-  get skills(): $Field<'skills', Array<SpecialSkills> | undefined, 'Card'> {
+  get skills(): $Field<'skills', Array<SpecialSkills> | undefined> {
     return this.$_select('skills' as const)
   }
 }
@@ -445,7 +429,7 @@ export class Mutation extends $Base<'Mutation'> {
   >(
     args: Args,
     selectorFn: (s: Card) => [...Sel]
-  ): $Field<'addCard', JoinFields<Sel>, 'Mutation', ExtractVariables<Sel, Args>> {
+  ): $Field<'addCard', GetOutput<Sel>, GetVariables<Sel, Args>> {
     const options = {
       argTypes: {
         card: 'createCard',
@@ -465,7 +449,7 @@ export class Subscription extends $Base<'Subscription'> {
 
   deck<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
-  ): $Field<'deck', Array<JoinFields<Sel>> | undefined, 'Subscription'> {
+  ): $Field<'deck', Array<GetOutput<Sel>> | undefined> {
     const options = {
       selection: selectorFn(new Card()),
     }
@@ -478,10 +462,10 @@ export class SpecialCard extends $Base<'SpecialCard'> {
     super('SpecialCard')
   }
 
-  get effect(): $Field<'effect', string, 'SpecialCard'> {
+  get effect(): $Field<'effect', string> {
     return this.$_select('effect' as const)
   }
-  get name(): $Field<'name', string, 'SpecialCard'> {
+  get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
 }
@@ -491,10 +475,10 @@ export class EffectCard extends $Base<'EffectCard'> {
     super('EffectCard')
   }
 
-  get effectSize(): $Field<'effectSize', number, 'EffectCard'> {
+  get effectSize(): $Field<'effectSize', number> {
     return this.$_select('effectSize' as const)
   }
-  get name(): $Field<'name', string, 'EffectCard'> {
+  get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
 }

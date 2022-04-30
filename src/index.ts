@@ -128,8 +128,8 @@ export class ${className} extends $Base<"${className}"> {
       )
       return `${field.name.value}<${generics.join(',')}>(${methodArgs.join(', ')}):$Field<"${
         field.name.value
-      }", ${printTypeWrapped('JoinFields<Sel>', field.type)}, "${parentName}" ${
-        hasArgs ? `, ExtractVariables<${hasSelector ? 'Sel' : '{}'}, Args>` : ''
+      }", ${printTypeWrapped('GetOutput<Sel>', field.type)} ${
+        hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '{}'}, Args>` : ''
       }> {
       const options = {
         ${
@@ -147,9 +147,7 @@ export class ${className} extends $Base<"${className}"> {
     }
   `
     } else {
-      return `get ${field.name.value}(): $Field<"${field.name.value}", ${printType(
-        field.type
-      )}, "${parentName}">  {
+      return `get ${field.name.value}(): $Field<"${field.name.value}", ${printType(field.type)}>  {
        return this.$_select("${field.name.value}" as const)
     }`
     }

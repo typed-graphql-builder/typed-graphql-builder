@@ -28,32 +28,30 @@ type SelectOptions = {
   selection?: Selection<any>
 }
 
-class $Field<
-  Name extends string,
-  Type,
-  Parent extends string,
-  Vars = {},
-  Alias extends string = Name
-> {
+class $Field<Name extends string, Type, Vars = {}> {
   public kind: 'field' = 'field'
   public type!: Type
 
   public vars!: Vars
+  public alias: string | null = null
 
-  constructor(public name: Name, private alias: Alias, public options: SelectOptions) {}
+  constructor(public name: Name, public options: SelectOptions) {}
 
-  as<Rename extends string>(alias: Rename): $Field<Name, Type, Parent, Vars, Rename> {
-    return new $Field(this.name, alias, this.options)
+  as<Rename extends string>(alias: Rename): $Field<Rename, Type, Vars> {
+    const f = new $Field(this.name, this.options)
+    f.alias = alias
+    return f as any
   }
 }
 
 class $Base<Name extends string> {
-  constructor(name: string) {}
+  constructor(private $$name: Name) {}
+
   protected $_select<Key extends string>(
     name: Key,
     options: SelectOptions = {}
-  ): $Field<Key, any, Name, any> {
-    return new $Field(name, name, options)
+  ): $Field<Key, any, any> {
+    return new $Field(name, options)
   }
 }
 
@@ -65,7 +63,7 @@ class $Union<T, Name extends String> {
   $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
     alternative: Type,
     selectorFn: (selector: T[Type]) => [...Sel]
-  ): $UnionSelection<JoinFields<Sel>, ExtractVariables<Sel>> {
+  ): $UnionSelection<GetOutput<Sel>, GetVariables<Sel>> {
     const selection = selectorFn(new this.selectorClasses[alternative]())
 
     return new $UnionSelection(alternative as string, selection)
@@ -78,15 +76,13 @@ class $UnionSelection<T, Vars> {
   constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
 }
 
-type Selection<_any> = ReadonlyArray<$Field<any, any, any, any> | $UnionSelection<any, any>>
+type Selection<_any> = ReadonlyArray<$Field<any, any, any> | $UnionSelection<any, any>>
 
 type NeverNever<T> = [T] extends [never] ? {} : T
 
-type JoinFields<X extends Selection<any>> = UnionToIntersection<
+type GetOutput<X extends Selection<any>> = UnionToIntersection<
   {
-    [I in keyof X]: X[I] extends $Field<any, infer Type, any, any, infer Alias>
-      ? { [K in Alias]: Type }
-      : never
+    [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any> ? { [K in Name]: Type } : never
   }[keyof X & number]
 > &
   NeverNever<
@@ -100,9 +96,9 @@ type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer 
   ? {}
   : UnionToIntersection<{ [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs]>
 
-type ExtractVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
+type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
   {
-    [I in keyof Sel]: Sel[I] extends $Field<any, any, any, infer Vars, any>
+    [I in keyof Sel]: Sel[I] extends $Field<any, any, infer Vars>
       ? Vars
       : Sel[I] extends $UnionSelection<any, infer Vars>
       ? Vars
@@ -111,10 +107,10 @@ type ExtractVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToInter
 > &
   ExtractInputVariables<ExtraVars>
 
-function fieldToQuery(prefix: string, field: $Field<any, any, any, any, any>) {
+function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const variables = new Map<string, string>()
 
-  function extractTextAndVars(field: $Field<any, any, any, any, any> | $UnionSelection<any, any>) {
+  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
     if (field.kind === 'field') {
       let retVal = field.name
       const args = field.options.args,
@@ -170,48 +166,36 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any, any, any>) {
 export function query<Sel extends Selection<$RootTypes.query>>(
   selectFn: (q: $RootTypes.query) => [...Sel]
 ) {
-  let field = new $Field<'query', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
-    'query',
-    'query',
-    {
-      selection: selectFn(new $Root.query()),
-    }
-  )
+  let field = new $Field<'query', GetOutput<Sel>, GetVariables<Sel>>('query', {
+    selection: selectFn(new $Root.query()),
+  })
   return gql(fieldToQuery('query', field)) as any as TypedDocumentNode<
-    JoinFields<Sel>,
-    ExtractVariables<Sel>
+    GetOutput<Sel>,
+    GetVariables<Sel>
   >
 }
 
 export function mutation<Sel extends Selection<$RootTypes.mutation>>(
   selectFn: (q: $RootTypes.mutation) => [...Sel]
 ) {
-  let field = new $Field<'mutation', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
-    'mutation',
-    'mutation',
-    {
-      selection: selectFn(new $Root.mutation()),
-    }
-  )
+  let field = new $Field<'mutation', GetOutput<Sel>, GetVariables<Sel>>('mutation', {
+    selection: selectFn(new $Root.mutation()),
+  })
   return gql(fieldToQuery('mutation', field)) as any as TypedDocumentNode<
-    JoinFields<Sel>,
-    ExtractVariables<Sel>
+    GetOutput<Sel>,
+    GetVariables<Sel>
   >
 }
 
 export function subscription<Sel extends Selection<$RootTypes.subscription>>(
   selectFn: (q: $RootTypes.mutation) => [...Sel]
 ) {
-  let field = new $Field<'subscription', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
-    'subscription',
-    'subscription',
-    {
-      selection: selectFn(new $Root.mutation()),
-    }
-  )
+  let field = new $Field<'subscription', GetOutput<Sel>, GetVariables<Sel>>('subscription', {
+    selection: selectFn(new $Root.mutation()),
+  })
   return gql(fieldToQuery('subscription', field)) as any as TypedDocumentNode<
-    JoinFields<Sel>,
-    ExtractVariables<Sel>
+    GetOutput<Sel>,
+    GetVariables<Sel>
   >
 }
 
