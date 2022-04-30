@@ -35,9 +35,9 @@ class $Field<
   Alias extends string = Name
 > {
   public kind: 'field' = 'field'
-  private type!: Type
+  public type!: Type
 
-  private vars!: Vars
+  public vars!: Vars
 
   constructor(public name: Name, private alias: Alias, public options: SelectOptions) {}
 
@@ -77,7 +77,7 @@ class $UnionSelection<T, Vars> {
   constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
 }
 
-type Selection<_any> = ReadonlyArray<$Field<any, any, any, any>> // | $UnionSelection<any, any>>
+type Selection<_any> = ReadonlyArray<$Field<any, any, any, any> | $UnionSelection<any, any>>
 
 type JoinFields<X extends Selection<any>> = UnionToIntersection<
   {
@@ -101,7 +101,7 @@ type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer 
 
 type ExtractVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
   {
-    [I in keyof Sel & number]: Sel[I] extends $Field<any, any, any, infer Vars, any>
+    [I in keyof Sel]: Sel[I] extends $Field<any, any, any, infer Vars, any>
       ? Vars
       : Sel[I] extends $UnionSelection<any, infer Vars>
       ? Vars
@@ -533,25 +533,3 @@ namespace $RootTypes {
   export type mutation = Mutation
   export type subscription = Subscription
 }
-
-type GetOutput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<infer Out, any>
-  ? Out
-  : never
-
-type GetInput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<any, infer Inp>
-  ? Inp
-  : never
-
-const tq = query(q => [
-  q.cardById({ cardId: $('cid') }, c => [
-    c.Attack,
-    c.Defense.as('def'),
-    c.attack({ cardID: $('cids') }, aCards => [aCards.Attack, aCards.Defense]),
-  ]),
-])
-
-type OutTQ = GetOutput<typeof tq>
-type InTQ = GetInput<typeof tq>
-
-declare let out: OutTQ
-declare let inp: InTQ
