@@ -142,6 +142,9 @@ input createCard {
   """input skills"""
   skills: [SpecialSkills!]
 
+  """test vars nested in inner arrays"""
+  and: [AndType]
+
   """The name of a card<br>"""
   name: String!
 
@@ -156,6 +159,10 @@ input createCard {
 
   """The defense power<br>"""
   Defense: Int!
+}
+
+input AndType {
+  eq: number
 }
 
 schema{

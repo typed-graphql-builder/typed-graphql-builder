@@ -98,9 +98,9 @@ type GetOutput<X extends Selection<any>> = UnionToIntersection<
 
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
   ? { [key in VName]: VType }
-  : Inputs extends $Atomic | Array<any>
+  : Inputs extends $Atomic
   ? {}
-  : Inputs extends Array<any>
+  : Inputs extends [...Array<any>]
   ? UnionToIntersection<
       { [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs & number]
     >
@@ -501,11 +501,16 @@ export class EffectCard extends $Base<'EffectCard'> {
  */
 export type createCard = {
   skills: Array<SpecialSkills> | undefined
+  and: Array<AndType | undefined> | undefined
   name: string
   description: string
   Children: number | undefined
   Attack: number
   Defense: number
+}
+
+export type AndType = {
+  eq: number | undefined
 }
 
 const $Root = {
@@ -523,10 +528,14 @@ namespace $RootTypes {
 const $InputTypes = {
   createCard: {
     skills: '[SpecialSkills!]',
+    and: '[AndType]',
     name: 'String!',
     description: 'String!',
     Children: 'Int',
     Attack: 'Int!',
     Defense: 'Int!',
+  },
+  AndType: {
+    eq: 'number',
   },
 }

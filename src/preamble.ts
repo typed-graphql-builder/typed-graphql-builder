@@ -99,9 +99,9 @@ type GetOutput<X extends Selection<any>> = UnionToIntersection<
 
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
   ? { [key in VName]: VType }
-  : Inputs extends $Atomic | Array<any>
+  : Inputs extends $Atomic
   ? {}
-  : Inputs extends Array<any>
+  : Inputs extends [...Array<any>]
   ? UnionToIntersection<
       { [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs & number]
     >

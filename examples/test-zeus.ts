@@ -40,7 +40,8 @@ const tm = mutation(m => {
         Defense: 2,
         name: 'Hi',
         description: 'Lo',
-        skills: [SpecialSkills.FIRE, $('ha')],
+        skills: [SpecialSkills.FIRE],
+        and: [{ eq: $('hi') }, { eq: $('bye') }],
       },
     },
     c => [c.Attack, c.Defense]
