@@ -1,6 +1,7 @@
 export const Preamble = `
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
+import { argv } from 'process'
 
 const Variable = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = '$1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
@@ -35,12 +36,12 @@ class $Field<
   Vars = {},
   Alias extends string = Name
 > {
-  private kind: 'field' = 'field'
+  public kind: 'field' = 'field'
   private type!: Type
 
   private vars!: Vars
 
-  constructor(private name: Name, private alias: Alias, public options: SelectOptions) {}
+  constructor(public name: Name, private alias: Alias, public options: SelectOptions) {}
 
   as<Rename extends string>(alias: Rename): $Field<Name, Type, Parent, Vars, Rename> {
     return new $Field(this.name, alias, this.options)
@@ -73,7 +74,7 @@ class $Union<T, Name extends String> {
 }
 
 class $UnionSelection<T, Vars> {
-  public kind = 'union'
+  public kind: 'union' = 'union'
   private vars!: Vars
   constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
 }
@@ -111,6 +112,62 @@ type ExtractVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToInter
 > &
   ExtractInputVariables<ExtraVars>
 
+function fieldToQuery(prefix: string, field: $Field<any, any, any, any, any>) {
+  const variables = new Map<string, string>()
+
+  function extractTextAndVars(field: $Field<any, any, any, any, any> | $UnionSelection<any, any>) {
+    if (field.kind === 'field') {
+      let retVal = field.name
+      const args = field.options.args,
+        argTypes = field.options.argTypes
+      if (args) {
+        retVal += '('
+        for (let [argName, argVal] of Object.entries(args)) {
+          if (Variable in argVal) {
+            const argVarName = argVal[Variable]
+            const argVarType = argTypes[argName]
+            variables.set(argVarName, argVarType)
+            retVal += argName + ': $' + argVarName
+          } else {
+            retVal += argName + ': ' + JSON.stringify(argVal)
+          }
+        }
+        retVal += ')'
+      }
+      let sel = field.options.selection
+      if (sel) {
+        retVal += '{'
+        for (let subField of sel) {
+          retVal += extractTextAndVars(subField)
+        }
+        retVal += '}'
+      }
+      return retVal + ' '
+    } else if (field.kind === 'union') {
+      let retVal = '... on ' + field.alternativeName + ':{'
+      for (let subField of field.alternativeSelection) {
+        retVal += extractTextAndVars(subField)
+      }
+      retVal += '}'
+
+      return retVal + ' '
+    }
+  }
+
+  const queryRaw = extractTextAndVars(field)
+
+  const queryBody = queryRaw.substring(queryRaw.indexOf('{'))
+
+  const varList = Array.from(variables.entries())
+  let ret = 'query'
+  if (varList.length) {
+    ret += '(' + varList.map(([name, kind]) => '$' + name + ':' + kind).join(',') + ')'
+  }
+  ret += queryBody
+
+  return ret
+}
+
 export function query<Sel extends Selection<$RootTypes.query>>(
   selectFn: (q: $RootTypes.query) => Sel
 ) {
@@ -121,7 +178,42 @@ export function query<Sel extends Selection<$RootTypes.query>>(
       selection: selectFn(new $Root.query()),
     }
   )
-  return '' as any as TypedDocumentNode<JoinFields<Sel>, ExtractVariables<Sel>>
+  return gql(fieldToQuery('query', field)) as any as TypedDocumentNode<
+    JoinFields<Sel>,
+    ExtractVariables<Sel>
+  >
+}
+
+export function mutation<Sel extends Selection<$RootTypes.mutation>>(
+  selectFn: (q: $RootTypes.mutation) => Sel
+) {
+  let field = new $Field<'mutation', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
+    'mutation',
+    'mutation',
+    {
+      selection: selectFn(new $Root.mutation()),
+    }
+  )
+  return gql(fieldToQuery('mutation', field)) as any as TypedDocumentNode<
+    JoinFields<Sel>,
+    ExtractVariables<Sel>
+  >
+}
+
+export function subscription<Sel extends Selection<$RootTypes.subscription>>(
+  selectFn: (q: $RootTypes.mutation) => Sel
+) {
+  let field = new $Field<'subscription', JoinFields<Sel>, '$Root', ExtractVariables<Sel>>(
+    'subscription',
+    'subscription',
+    {
+      selection: selectFn(new $Root.mutation()),
+    }
+  )
+  return gql(fieldToQuery('subscription', field)) as any as TypedDocumentNode<
+    JoinFields<Sel>,
+    ExtractVariables<Sel>
+  >
 }
 
 `
