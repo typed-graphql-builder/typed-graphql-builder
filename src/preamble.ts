@@ -14,11 +14,11 @@ class Variable<T, Name extends string> {
   }
 }
 
-type VariabledInput<T> = T extends $Atomic
-  ? Variable<T, any> | T
-  : T extends Array<infer R>
-  ? Variable<T, any> | Array<VariabledInput<R>> | T
-  : Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+type VariabledInput<T> = T extends $Atomic | undefined
+  ? Variable<NonNullable<T>, any> | T
+  : T extends Array<infer R> | undefined
+  ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
+  : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
   ? I
