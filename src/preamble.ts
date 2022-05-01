@@ -124,6 +124,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
     if (field.kind === 'field') {
       let retVal = field.name
+      if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
       if (args) {
@@ -135,6 +136,8 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
             variables.set(argVarName, argVarType)
             retVal += argName + ': $' + argVarName
           } else {
+            // Todo: recusrively deal with arguments including objects and arrays
+            // Todo: make sure to enter types correctly.
             retVal += argName + ': ' + JSON.stringify(argVal)
           }
         }

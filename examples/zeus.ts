@@ -135,6 +135,8 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
             variables.set(argVarName, argVarType)
             retVal += argName + ': $' + argVarName
           } else {
+            // Todo: recusrively deal with arguments including objects and arrays
+            // Todo: make sure to enter types correctly.
             retVal += argName + ': ' + JSON.stringify(argVal)
           }
         }
