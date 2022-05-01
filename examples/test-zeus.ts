@@ -1,13 +1,4 @@
-import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { query, $, mutation, SpecialSkills, fragment, Card } from './zeus'
-
-type GetOutput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<infer Out, any>
-  ? Out
-  : never
-
-type GetInput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<any, infer Inp>
-  ? Inp
-  : never
 
 const cardFragment = fragment(Card, c => [c.Attack, c.Defense.as('def')])
 
@@ -48,11 +39,5 @@ const tm = mutation(m => {
   )
   return [x]
 })
-
-type OutTQ = GetOutput<typeof tq>
-type InTQ = GetInput<typeof tq>
-
-declare let out: OutTQ
-declare let inp: InTQ
 
 console.log(tq, tm)
