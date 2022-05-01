@@ -239,6 +239,9 @@ export class Query extends $Base<'Query'> {
     return this.$_select('cardById' as const, options)
   }
 
+  /**
+   * Draw a card<br>
+   */
   drawCard<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
   ): $Field<'drawCard', GetOutput<Sel>> {
@@ -257,6 +260,9 @@ export class Query extends $Base<'Query'> {
     return this.$_select('drawChangeCard' as const, options)
   }
 
+  /**
+   * list All Cards availble<br>
+   */
   listCards<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
   ): $Field<'listCards', Array<GetOutput<Sel>>> {
@@ -293,6 +299,9 @@ export class CardStack extends $Base<'CardStack'> {
     super('CardStack')
   }
 
+  /**
+   * The list of cards
+   */
   cards<Sel extends Selection<Card>>(
     selectorFn: (s: Card) => [...Sel]
   ): $Field<'cards', Array<GetOutput<Sel>> | undefined> {
@@ -302,6 +311,9 @@ export class CardStack extends $Base<'CardStack'> {
     return this.$_select('cards' as const, options)
   }
 
+  /**
+   * The card name
+   */
   get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
@@ -335,9 +347,11 @@ export class S3Object extends $Base<'S3Object'> {
   get bucket(): $Field<'bucket', string> {
     return this.$_select('bucket' as const)
   }
+
   get key(): $Field<'key', string> {
     return this.$_select('key' as const)
   }
+
   get region(): $Field<'region', string> {
     return this.$_select('region' as const)
   }
@@ -358,6 +372,7 @@ export class Nameable extends $Base<'Nameable'> {
   constructor() {
     super('Nameable')
   }
+
   get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
@@ -371,15 +386,30 @@ export class Card extends $Base<'Card'> {
     super('Card')
   }
 
+  /**
+   * The attack power<br>
+   */
   get Attack(): $Field<'Attack', number> {
     return this.$_select('Attack' as const)
   }
+
+  /**
+   * <div>How many children the greek god had</div>
+   */
   get Children(): $Field<'Children', number | undefined> {
     return this.$_select('Children' as const)
   }
+
+  /**
+   * The defense power<br>
+   */
   get Defense(): $Field<'Defense', number> {
     return this.$_select('Defense' as const)
   }
+
+  /**
+   * Attack other cards on the table , returns Cards after attack<br>
+   */
   attack<
     Args extends VariabledInput<{
       cardID: Array<string>
@@ -400,6 +430,9 @@ export class Card extends $Base<'Card'> {
     return this.$_select('attack' as const, options)
   }
 
+  /**
+   * Put your description here
+   */
   cardImage<Sel extends Selection<S3Object>>(
     selectorFn: (s: S3Object) => [...Sel]
   ): $Field<'cardImage', GetOutput<Sel> | undefined> {
@@ -409,21 +442,32 @@ export class Card extends $Base<'Card'> {
     return this.$_select('cardImage' as const, options)
   }
 
+  /**
+   * Description of a card<br>
+   */
   get description(): $Field<'description', string> {
     return this.$_select('description' as const)
   }
+
   get id(): $Field<'id', string> {
     return this.$_select('id' as const)
   }
+
   get image(): $Field<'image', string> {
     return this.$_select('image' as const)
   }
+
   get info(): $Field<'info', string> {
     return this.$_select('info' as const)
   }
+
+  /**
+   * The name of a card<br>
+   */
   get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
+
   get skills(): $Field<'skills', Array<SpecialSkills> | undefined> {
     return this.$_select('skills' as const)
   }
@@ -434,6 +478,9 @@ export class Mutation extends $Base<'Mutation'> {
     super('Mutation')
   }
 
+  /**
+   * add Card to Cards database<br>
+   */
   addCard<
     Args extends VariabledInput<{
       card: createCard
@@ -478,6 +525,7 @@ export class SpecialCard extends $Base<'SpecialCard'> {
   get effect(): $Field<'effect', string> {
     return this.$_select('effect' as const)
   }
+
   get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }
@@ -491,6 +539,7 @@ export class EffectCard extends $Base<'EffectCard'> {
   get effectSize(): $Field<'effectSize', number> {
     return this.$_select('effectSize' as const)
   }
+
   get name(): $Field<'name', string> {
     return this.$_select('name' as const)
   }

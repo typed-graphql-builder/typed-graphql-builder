@@ -135,7 +135,9 @@ export class ${className} extends $Base<"${className}"> {
       const generics = (hasArgs ? [`Args extends VariabledInput<${argsType}>`] : []).concat(
         hasSelector ? [`Sel extends Selection<${fieldTypeName}>`] : []
       )
-      return `${field.name.value}<${generics.join(',')}>(${methodArgs.join(', ')}):$Field<"${
+      return `
+      ${printDocumentation(field.description)}
+      ${field.name.value}<${generics.join(',')}>(${methodArgs.join(', ')}):$Field<"${
         field.name.value
       }", ${printTypeWrapped('GetOutput<Sel>', field.type)} ${
         hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '{}'}, Args>` : ''
@@ -156,9 +158,11 @@ export class ${className} extends $Base<"${className}"> {
     }
   `
     } else {
-      return `get ${field.name.value}(): $Field<"${field.name.value}", ${printType(field.type)}>  {
+      return `
+      ${printDocumentation(field.description)}
+      get ${field.name.value}(): $Field<"${field.name.value}", ${printType(field.type)}>  {
        return this.$_select("${field.name.value}" as const)
-    }`
+      }`
     }
   }
 
