@@ -22,8 +22,8 @@ const tq = query(q => [
   ]),
 ])
 
-const tm = mutation(m => {
-  let x = m.addCard(
+const tm = mutation(m => [
+  m.addCard(
     {
       card: {
         Attack: $('test'),
@@ -36,8 +36,7 @@ const tm = mutation(m => {
       },
     },
     c => [c.Attack, c.Defense]
-  )
-  return [x]
-})
+  ),
+])
 
 console.log(tq, tm)
