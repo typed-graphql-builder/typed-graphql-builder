@@ -210,4 +210,11 @@ export function subscription<Sel extends Selection<$RootTypes.subscription>>(
   >
 }
 
+export function fragment<T, Sel extends Selection<T>>(
+  GQLType: { new (): T },
+  selectFn: (selector: T) => [...Sel]
+) {
+  return selectFn(new GQLType())
+}
+
 `

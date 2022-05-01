@@ -1,5 +1,5 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { query, $, mutation, SpecialSkills } from './zeus'
+import { query, $, mutation, SpecialSkills, fragment, Card } from './zeus'
 
 type GetOutput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<infer Out, any>
   ? Out
@@ -9,17 +9,17 @@ type GetInput<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNo
   ? Inp
   : never
 
+const cardFragment = fragment(Card, c => [c.Attack, c.Defense.as('def')])
+
 const tq = query(q => [
   q.cardById({ cardId: $('cid') }, c => [
-    c.Attack,
-    c.Defense.as('def'),
+    ...cardFragment,
     c.attack({ cardID: $('cids') }, aCards => [aCards.Attack, aCards.Defense]),
   ]),
 
   q
     .cardById({ cardId: $('cid2') }, c => [
-      c.Attack,
-      c.Defense.as('def2'),
+      ...cardFragment,
       c.attack({ cardID: $('cids2') }, aCards => [aCards.Attack, aCards.Defense]),
     ])
     .as('second'),
