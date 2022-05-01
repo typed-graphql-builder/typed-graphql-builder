@@ -162,7 +162,7 @@ input createCard {
 }
 
 input AndType {
-  eq: number
+  eq: Int!
 }
 
 schema{

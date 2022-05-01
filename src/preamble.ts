@@ -25,7 +25,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   : never
 
 export const $ = <Type, Name extends string>(name: Name) => {
-  return new Variable('name') as Variable<Type, Name>
+  return new Variable(name) as Variable<Type, Name>
 }
 
 type SelectOptions = {
@@ -121,6 +121,38 @@ type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersect
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const variables = new Map<string, string>()
 
+  function stringifyArgs(
+    args: any,
+    argTypes: { [key: string]: string },
+    argVarType?: string
+  ): string {
+    switch (typeof args) {
+      case 'string':
+      case 'number':
+      case 'boolean':
+        return JSON.stringify(args)
+      default:
+        if (VariableName in (args as any)) {
+          if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
+          const argVarName = (args as any)[VariableName]
+          variables.set(argVarName, argVarType)
+          return '$' + argVarName
+        }
+        if (Array.isArray(args))
+          return '[' + args.map(arg => stringifyArgs(arg, argTypes, argVarType)).join(',') + ']'
+        if (args == null) return 'null'
+        const wrapped = (content: string) => (argVarType ? '{' + content + '}' : content)
+        return wrapped(
+          Array.from(Object.entries(args))
+            .map(([key, val]) => {
+              const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
+              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
+            })
+            .join(',')
+        )
+    }
+  }
+
   function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
     if (field.kind === 'field') {
       let retVal = field.name
@@ -128,20 +160,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       const args = field.options.args,
         argTypes = field.options.argTypes
       if (args) {
-        retVal += '('
-        for (let [argName, argVal] of Object.entries(args)) {
-          if (VariableName in argVal) {
-            const argVarName = argVal[VariableName]
-            const argVarType = argTypes[argName]
-            variables.set(argVarName, argVarType)
-            retVal += argName + ': $' + argVarName
-          } else {
-            // Todo: recusrively deal with arguments including objects and arrays
-            // Todo: make sure to enter types correctly.
-            retVal += argName + ': ' + JSON.stringify(argVal)
-          }
-        }
-        retVal += ')'
+        retVal += '(' + stringifyArgs(args, argTypes!) + ')'
       }
       let sel = field.options.selection
       if (sel) {
@@ -153,7 +172,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       }
       return retVal + ' '
     } else if (field.kind === 'union') {
-      let retVal = '... on ' + field.alternativeName + ':{'
+      let retVal = '... on ' + field.alternativeName + ' {'
       for (let subField of field.alternativeSelection) {
         retVal += extractTextAndVars(subField)
       }
@@ -163,7 +182,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
     }
   }
 
-  const queryRaw = extractTextAndVars(field)
+  const queryRaw = extractTextAndVars(field)!
 
   const queryBody = queryRaw.substring(queryRaw.indexOf('{'))
 
@@ -183,10 +202,9 @@ export function query<Sel extends Selection<$RootTypes.query>>(
   let field = new $Field<'query', GetOutput<Sel>, GetVariables<Sel>>('query', {
     selection: selectFn(new $Root.query()),
   })
-  return gql(fieldToQuery('query', field)) as any as TypedDocumentNode<
-    GetOutput<Sel>,
-    GetVariables<Sel>
-  >
+  const str = fieldToQuery('query', field)
+
+  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 }
 
 export function mutation<Sel extends Selection<$RootTypes.mutation>>(
@@ -195,10 +213,9 @@ export function mutation<Sel extends Selection<$RootTypes.mutation>>(
   let field = new $Field<'mutation', GetOutput<Sel>, GetVariables<Sel>>('mutation', {
     selection: selectFn(new $Root.mutation()),
   })
-  return gql(fieldToQuery('mutation', field)) as any as TypedDocumentNode<
-    GetOutput<Sel>,
-    GetVariables<Sel>
-  >
+  const str = fieldToQuery('mutation', field)
+
+  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 }
 
 export function subscription<Sel extends Selection<$RootTypes.subscription>>(

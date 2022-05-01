@@ -146,7 +146,9 @@ export class ${className} extends $Base<"${className}"> {
         ${
           hasArgs
             ? `argTypes: {
-              ${field.arguments?.map(arg => printInputField(arg, true)).join('\n')}
+              ${field.arguments
+                ?.map(arg => `${arg.name.value}: "${printTypeGql(arg.type)}"`)
+                .join('\n')}
             },`
             : ''
         }
@@ -190,7 +192,7 @@ export type ${def.name.value} = {
 
   function printInputTypeMap(defs: gq.InputObjectTypeDefinitionNode[]) {
     return `
-const $InputTypes = {
+const $InputTypes: {[key: string]: {[key: string]: string}} = {
   ${defs
     .map(
       def => `  ${def.name.value}: {
