@@ -123,6 +123,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
     if (field.kind === 'field') {
       let retVal = field.name
+      if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
       if (args) {
