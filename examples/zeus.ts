@@ -263,7 +263,7 @@ export class Query extends $Base<'Query'> {
 
       selection: selectorFn(new Card()),
     }
-    return this.$_select('cardById' as const, options)
+    return this.$_select('cardById', options) as any
   }
 
   /**
@@ -275,7 +275,7 @@ export class Query extends $Base<'Query'> {
     const options = {
       selection: selectorFn(new Card()),
     }
-    return this.$_select('drawCard' as const, options)
+    return this.$_select('drawCard', options) as any
   }
 
   drawChangeCard<Sel extends Selection<ChangeCard>>(
@@ -284,7 +284,7 @@ export class Query extends $Base<'Query'> {
     const options = {
       selection: selectorFn(new ChangeCard()),
     }
-    return this.$_select('drawChangeCard' as const, options)
+    return this.$_select('drawChangeCard', options) as any
   }
 
   /**
@@ -296,7 +296,7 @@ export class Query extends $Base<'Query'> {
     const options = {
       selection: selectorFn(new Card()),
     }
-    return this.$_select('listCards' as const, options)
+    return this.$_select('listCards', options) as any
   }
 
   myStacks<Sel extends Selection<CardStack>>(
@@ -305,7 +305,7 @@ export class Query extends $Base<'Query'> {
     const options = {
       selection: selectorFn(new CardStack()),
     }
-    return this.$_select('myStacks' as const, options)
+    return this.$_select('myStacks', options) as any
   }
 
   nameables<Sel extends Selection<Nameable>>(
@@ -314,7 +314,7 @@ export class Query extends $Base<'Query'> {
     const options = {
       selection: selectorFn(new Nameable()),
     }
-    return this.$_select('nameables' as const, options)
+    return this.$_select('nameables', options) as any
   }
 }
 
@@ -335,14 +335,14 @@ export class CardStack extends $Base<'CardStack'> {
     const options = {
       selection: selectorFn(new Card()),
     }
-    return this.$_select('cards' as const, options)
+    return this.$_select('cards', options) as any
   }
 
   /**
    * The card name
    */
   get name(): $Field<'name', string> {
-    return this.$_select('name' as const)
+    return this.$_select('name') as any
   }
 }
 
@@ -372,15 +372,15 @@ export class S3Object extends $Base<'S3Object'> {
   }
 
   get bucket(): $Field<'bucket', string> {
-    return this.$_select('bucket' as const)
+    return this.$_select('bucket') as any
   }
 
   get key(): $Field<'key', string> {
-    return this.$_select('key' as const)
+    return this.$_select('key') as any
   }
 
   get region(): $Field<'region', string> {
-    return this.$_select('region' as const)
+    return this.$_select('region') as any
   }
 }
 
@@ -401,7 +401,7 @@ export class Nameable extends $Base<'Nameable'> {
   }
 
   get name(): $Field<'name', string> {
-    return this.$_select('name' as const)
+    return this.$_select('name') as any
   }
 }
 
@@ -417,21 +417,21 @@ export class Card extends $Base<'Card'> {
    * The attack power<br>
    */
   get Attack(): $Field<'Attack', number> {
-    return this.$_select('Attack' as const)
+    return this.$_select('Attack') as any
   }
 
   /**
    * <div>How many children the greek god had</div>
    */
   get Children(): $Field<'Children', number | undefined> {
-    return this.$_select('Children' as const)
+    return this.$_select('Children') as any
   }
 
   /**
    * The defense power<br>
    */
   get Defense(): $Field<'Defense', number> {
-    return this.$_select('Defense' as const)
+    return this.$_select('Defense') as any
   }
 
   /**
@@ -454,7 +454,7 @@ export class Card extends $Base<'Card'> {
 
       selection: selectorFn(new Card()),
     }
-    return this.$_select('attack' as const, options)
+    return this.$_select('attack', options) as any
   }
 
   /**
@@ -466,37 +466,37 @@ export class Card extends $Base<'Card'> {
     const options = {
       selection: selectorFn(new S3Object()),
     }
-    return this.$_select('cardImage' as const, options)
+    return this.$_select('cardImage', options) as any
   }
 
   /**
    * Description of a card<br>
    */
   get description(): $Field<'description', string> {
-    return this.$_select('description' as const)
+    return this.$_select('description') as any
   }
 
   get id(): $Field<'id', string> {
-    return this.$_select('id' as const)
+    return this.$_select('id') as any
   }
 
   get image(): $Field<'image', string> {
-    return this.$_select('image' as const)
+    return this.$_select('image') as any
   }
 
   get info(): $Field<'info', string> {
-    return this.$_select('info' as const)
+    return this.$_select('info') as any
   }
 
   /**
    * The name of a card<br>
    */
   get name(): $Field<'name', string> {
-    return this.$_select('name' as const)
+    return this.$_select('name') as any
   }
 
   get skills(): $Field<'skills', Array<SpecialSkills> | undefined> {
-    return this.$_select('skills' as const)
+    return this.$_select('skills') as any
   }
 }
 
@@ -525,7 +525,7 @@ export class Mutation extends $Base<'Mutation'> {
 
       selection: selectorFn(new Card()),
     }
-    return this.$_select('addCard' as const, options)
+    return this.$_select('addCard', options) as any
   }
 }
 
@@ -540,7 +540,7 @@ export class Subscription extends $Base<'Subscription'> {
     const options = {
       selection: selectorFn(new Card()),
     }
-    return this.$_select('deck' as const, options)
+    return this.$_select('deck', options) as any
   }
 }
 
@@ -550,11 +550,11 @@ export class SpecialCard extends $Base<'SpecialCard'> {
   }
 
   get effect(): $Field<'effect', string> {
-    return this.$_select('effect' as const)
+    return this.$_select('effect') as any
   }
 
   get name(): $Field<'name', string> {
-    return this.$_select('name' as const)
+    return this.$_select('name') as any
   }
 }
 
@@ -564,11 +564,11 @@ export class EffectCard extends $Base<'EffectCard'> {
   }
 
   get effectSize(): $Field<'effectSize', number> {
-    return this.$_select('effectSize' as const)
+    return this.$_select('effectSize') as any
   }
 
   get name(): $Field<'name', string> {
-    return this.$_select('name' as const)
+    return this.$_select('name') as any
   }
 }
 

@@ -1,10 +1,32 @@
 import * as gq from 'graphql'
-import * as fs from 'fs'
+import * as fs from 'fs/promises'
 import { Preamble } from './preamble'
 import gql from 'graphql-tag'
+import * as yargs from 'yargs'
+import { describe } from 'yargs'
 
-function main() {
-  const schemaData = fs.readFileSync('./examples/zeus.graphql', 'utf8')
+async function main() {
+  const args = await yargs.options({
+    schema: {
+      type: 'string',
+      describe: 'The path or URL to the schema',
+      required: true,
+    },
+
+    output: {
+      type: 'string',
+      describe: 'The output TypeScript file',
+      required: true,
+    },
+  }).argv
+
+  const schemaData = await fs.readFile(args.schema, 'utf8')
+
+  let outputScript = ''
+  const write = (s: string) => {
+    outputScript += s + '\n'
+  }
+
   let res = gq.parse(schemaData)
 
   const atomicTypes = new Map(
@@ -32,7 +54,8 @@ function main() {
   }
 
   function printAtomicTypes() {
-    return `type $Atomic = ${Array.from(new Set(atomicTypes.values())).join(' | ')}`
+    return `type $Atomic = ${Array.from(new Set(atomicTypes.values())).join(' | ')}
+`
   }
   function printTypeWrapped(
     wrappedType: string,
@@ -139,8 +162,8 @@ export class ${className} extends $Base<"${className}"> {
       ${printDocumentation(field.description)}
       ${field.name.value}<${generics.join(',')}>(${methodArgs.join(', ')}):$Field<"${
         field.name.value
-      }", ${printTypeWrapped('GetOutput<Sel>', field.type)} ${
-        hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '{}'}, Args>` : ''
+      }", ${hasSelector ? printTypeWrapped('GetOutput<Sel>', field.type) : printType(field.type)} ${
+        hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '[]'}, Args>` : ''
       }> {
       const options = {
         ${
@@ -148,7 +171,7 @@ export class ${className} extends $Base<"${className}"> {
             ? `argTypes: {
               ${field.arguments
                 ?.map(arg => `${arg.name.value}: "${printTypeGql(arg.type)}"`)
-                .join('\n')}
+                .join(',\n')}
             },`
             : ''
         }
@@ -156,14 +179,14 @@ export class ${className} extends $Base<"${className}"> {
 
         ${hasSelector ? `selection: selectorFn(new ${fieldTypeName})` : ''}
       };
-      return this.$_select("${field.name.value}" as const, options)
+      return this.$_select("${field.name.value}", options) as any
     }
   `
     } else {
       return `
       ${printDocumentation(field.description)}
       get ${field.name.value}(): $Field<"${field.name.value}", ${printType(field.type)}>  {
-       return this.$_select("${field.name.value}" as const)
+       return this.$_select("${field.name.value}") as any
       }`
     }
   }
@@ -249,40 +272,49 @@ export enum ${def.name.value} {
   `
   }
 
-  console.log(Preamble)
-  console.log(printAtomicTypes())
+  write(Preamble)
+  write(printAtomicTypes())
 
+  let rootNode: gq.SchemaDefinitionNode | null = null
   for (let def of res.definitions) {
     switch (def.kind) {
       case gq.Kind.OBJECT_TYPE_DEFINITION:
         // the interfaces this object implements are def.interfaces
-        console.log(printObjectType(def))
+        write(printObjectType(def))
         break
       case gq.Kind.INPUT_OBJECT_TYPE_DEFINITION:
-        console.log(printInputObjectType(def))
+        write(printInputObjectType(def))
         break
       case gq.Kind.SCALAR_TYPE_DEFINITION:
-        console.log(printScalar(def))
+        write(printScalar(def))
         break
       case gq.Kind.UNION_TYPE_DEFINITION:
-        console.log(printUnion(def))
+        write(printUnion(def))
         break
       case gq.Kind.ENUM_TYPE_DEFINITION:
-        console.log(printEnum(def))
+        write(printEnum(def))
         break
       case gq.Kind.INTERFACE_TYPE_DEFINITION:
-        console.log(printInterface(def))
+        write(printInterface(def))
         break
       case gq.Kind.SCHEMA_DEFINITION:
-        console.log(printSchema(def))
+        rootNode = def
     }
   }
 
-  console.log(
+  if (rootNode) {
+    write(printSchema(rootNode))
+  } else {
+    throw new Error('Schema does not have a root node')
+  }
+
+  write(
     printInputTypeMap(
       res.definitions.filter(def => def.kind === gq.Kind.INPUT_OBJECT_TYPE_DEFINITION) as any[]
     )
   )
+
+  await fs.writeFile(args.output, outputScript)
 }
 
 main()
