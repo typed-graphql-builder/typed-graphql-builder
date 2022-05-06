@@ -5,14 +5,25 @@
   "license": "MIT",
   "devDependencies": {
     "@swc-node/register": "^1.4.2",
-    "swc-node":"^1.0.0",
     "@types/node": "^17.0.25",
+    "@types/tap": "^15.0.7",
     "@types/yargs": "^17.0.10",
+    "swc-node": "^1.0.0",
+    "tap": "^16.2.0",
     "typescript": "^4.6.3"
   },
   "scripts": {
-    "regenerate:big-schema":"swc-node src/index.ts --schema examples/x.graphql --output examples/x.ts",
-    "regenerate:small-schema":"swc-node src/index.ts --schema examples/zeus.graphql --output examples/zeus.ts"
+    "build": "tsc -p tsconfig.lib.json",
+    "test": "tap test/**/*.test.ts",
+    "test:watch": "tap -w test/**/*.test.ts",
+    "regenerate:big-schema": "swc-node src/index.ts --schema examples/x.graphql --output examples/x.ts",
+    "regenerate:small-schema": "swc-node src/index.ts --schema examples/zeus.graphql --output examples/zeus.ts"
+  },
+  "tap": {
+    "node-arg": [
+      "--require=@swc-node/register"
+    ],
+    "ts": true
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
