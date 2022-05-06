@@ -6,6 +6,8 @@ const cardFragment = fragment(Card, c => [
   c.Defense.as('def'),
 ])
 
+function verifyVariables<Inp, Out>(q: TypedDocumentNode<Out, Inp>, vars: Inp) {}
+
 const tq = query(q => [
   q.cardById({ cardId: $('cid') }, c => [
     ...cardFragment,
@@ -73,3 +75,10 @@ type test = GetInput<typeof tm>
 type testO = GetOutput<typeof tq>
 
 console.log(tq, tm)
+
+verifyVariables(tq, {
+  cid: '1',
+  cid2: '1',
+  cids: ['2'],
+  cids2: ['4'],
+})
