@@ -85,7 +85,7 @@ type Selection<_any> = ReadonlyArray<$Field<any, any, any> | $UnionSelection<any
 
 type NeverNever<T> = [T] extends [never] ? {} : T
 
-type GetOutput<X extends Selection<any>> = UnionToIntersection<
+export type GetOutput<X extends Selection<any>> = UnionToIntersection<
   {
     [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any> ? { [K in Name]: Type } : never
   }[keyof X & number]
@@ -106,7 +106,7 @@ type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer 
     >
   : UnionToIntersection<{ [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs]>
 
-type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
+export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
   {
     [I in keyof Sel]: Sel[I] extends $Field<any, any, infer Vars>
       ? Vars
