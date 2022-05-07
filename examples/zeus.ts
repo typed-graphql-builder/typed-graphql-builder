@@ -248,7 +248,7 @@ export class Query extends $Base<'Query'> {
 
   cardById<
     Args extends VariabledInput<{
-      cardId: string | undefined
+      cardId?: string | undefined
     }>,
     Sel extends Selection<Card>
   >(
@@ -576,11 +576,11 @@ export class EffectCard extends $Base<'EffectCard'> {
  * create card inputs<br>
  */
 export type createCard = {
-  skills: Array<SpecialSkills> | undefined
-  and: Array<AndType | undefined> | undefined
+  skills?: Array<SpecialSkills> | undefined
+  and?: Array<AndType | undefined> | undefined
   name: string
   description: string
-  Children: number | undefined
+  Children?: number | undefined
   Attack: number
   Defense: number
 }

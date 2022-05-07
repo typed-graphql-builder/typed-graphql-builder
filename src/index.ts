@@ -107,9 +107,9 @@ async function main() {
     }
   }
 
-  function printInputField(def: gq.InputValueDefinitionNode, quoteType = false) {
-    const q = quoteType ? '"' : ''
-    return `${def.name.value}: ${q}${printType(def.type)}${q}`
+  function printInputField(def: gq.InputValueDefinitionNode) {
+    const maybe = def.type.kind !== gq.Kind.NON_NULL_TYPE ? '?' : ''
+    return `${def.name.value}${maybe}: ${printType(def.type)}`
   }
 
   function printDocumentation(description?: gq.StringValueNode) {

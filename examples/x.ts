@@ -344,15 +344,15 @@ export type _text = unknown
  * Boolean expression to compare columns of type "_text". All fields are combined with logical 'AND'.
  */
 export type _text_comparison_exp = {
-  _eq: string | undefined
-  _gt: string | undefined
-  _gte: string | undefined
-  _in: Array<string> | undefined
-  _is_null: boolean | undefined
-  _lt: string | undefined
-  _lte: string | undefined
-  _neq: string | undefined
-  _nin: Array<string> | undefined
+  _eq?: string | undefined
+  _gt?: string | undefined
+  _gte?: string | undefined
+  _in?: Array<string> | undefined
+  _is_null?: boolean | undefined
+  _lt?: string | undefined
+  _lte?: string | undefined
+  _neq?: string | undefined
+  _nin?: Array<string> | undefined
 }
 
 /**
@@ -448,11 +448,11 @@ export class booking extends $Base<'booking'> {
    */
   lines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -479,11 +479,11 @@ export class booking extends $Base<'booking'> {
    */
   lines_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line_aggregate>
   >(
@@ -507,7 +507,7 @@ export class booking extends $Base<'booking'> {
 
   metadata<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'metadata', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -544,11 +544,11 @@ export class booking extends $Base<'booking'> {
    */
   relatedBookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -575,11 +575,11 @@ export class booking extends $Base<'booking'> {
    */
   relatedBookings_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking_aggregate>
   >(
@@ -610,11 +610,11 @@ export class booking extends $Base<'booking'> {
    */
   tags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -641,11 +641,11 @@ export class booking extends $Base<'booking'> {
    */
   tags_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag_aggregate>
   >(
@@ -754,8 +754,8 @@ export class booking_aggregate_fields extends $Base<'booking_aggregate_fields'> 
 
   count<
     Args extends VariabledInput<{
-      columns: Array<booking_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<booking_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -854,24 +854,24 @@ export class booking_aggregate_fields extends $Base<'booking_aggregate_fields'> 
  * order by aggregate values of table "booking"
  */
 export type booking_aggregate_order_by = {
-  avg: booking_avg_order_by | undefined
-  count: order_by | undefined
-  max: booking_max_order_by | undefined
-  min: booking_min_order_by | undefined
-  stddev: booking_stddev_order_by | undefined
-  stddev_pop: booking_stddev_pop_order_by | undefined
-  stddev_samp: booking_stddev_samp_order_by | undefined
-  sum: booking_sum_order_by | undefined
-  var_pop: booking_var_pop_order_by | undefined
-  var_samp: booking_var_samp_order_by | undefined
-  variance: booking_variance_order_by | undefined
+  avg?: booking_avg_order_by | undefined
+  count?: order_by | undefined
+  max?: booking_max_order_by | undefined
+  min?: booking_min_order_by | undefined
+  stddev?: booking_stddev_order_by | undefined
+  stddev_pop?: booking_stddev_pop_order_by | undefined
+  stddev_samp?: booking_stddev_samp_order_by | undefined
+  sum?: booking_sum_order_by | undefined
+  var_pop?: booking_var_pop_order_by | undefined
+  var_samp?: booking_var_samp_order_by | undefined
+  variance?: booking_variance_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type booking_append_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -879,7 +879,7 @@ export type booking_append_input = {
  */
 export type booking_arr_rel_insert_input = {
   data: Array<booking_insert_input>
-  on_conflict: booking_on_conflict | undefined
+  on_conflict?: booking_on_conflict | undefined
 }
 
 /**
@@ -903,47 +903,47 @@ export class booking_avg_fields extends $Base<'booking_avg_fields'> {
  * order by avg() on columns of table "booking"
  */
 export type booking_avg_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "booking". All fields are combined with a logical 'AND'.
  */
 export type booking_bool_exp = {
-  _and: Array<booking_bool_exp> | undefined
-  _not: booking_bool_exp | undefined
-  _or: Array<booking_bool_exp> | undefined
-  bookedAt: timestamptz_comparison_exp | undefined
-  bookerName: String_comparison_exp | undefined
-  bookingChannel: booking_channel_enum_comparison_exp | undefined
-  checkIn: timestamptz_comparison_exp | undefined
-  checkOut: timestamptz_comparison_exp | undefined
-  confirmationCode: String_comparison_exp | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  currency: currency_enum_comparison_exp | undefined
-  entity: entity_bool_exp | undefined
-  entityId: uuid_comparison_exp | undefined
-  guestName: String_comparison_exp | undefined
-  guests: Int_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  isOTA: Boolean_comparison_exp | undefined
-  lines: line_bool_exp | undefined
-  metadata: jsonb_comparison_exp | undefined
-  nights: Int_comparison_exp | undefined
-  otaBooking: booking_bool_exp | undefined
-  otaBookingId: uuid_comparison_exp | undefined
-  relatedBookings: booking_bool_exp | undefined
-  status: booking_status_enum_comparison_exp | undefined
-  tags: tag_bool_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
-  unit: unit_bool_exp | undefined
-  unitId: uuid_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<booking_bool_exp> | undefined
+  _not?: booking_bool_exp | undefined
+  _or?: Array<booking_bool_exp> | undefined
+  bookedAt?: timestamptz_comparison_exp | undefined
+  bookerName?: String_comparison_exp | undefined
+  bookingChannel?: booking_channel_enum_comparison_exp | undefined
+  checkIn?: timestamptz_comparison_exp | undefined
+  checkOut?: timestamptz_comparison_exp | undefined
+  confirmationCode?: String_comparison_exp | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  currency?: currency_enum_comparison_exp | undefined
+  entity?: entity_bool_exp | undefined
+  entityId?: uuid_comparison_exp | undefined
+  guestName?: String_comparison_exp | undefined
+  guests?: Int_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  isOTA?: Boolean_comparison_exp | undefined
+  lines?: line_bool_exp | undefined
+  metadata?: jsonb_comparison_exp | undefined
+  nights?: Int_comparison_exp | undefined
+  otaBooking?: booking_bool_exp | undefined
+  otaBookingId?: uuid_comparison_exp | undefined
+  relatedBookings?: booking_bool_exp | undefined
+  status?: booking_status_enum_comparison_exp | undefined
+  tags?: tag_bool_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
+  unit?: unit_bool_exp | undefined
+  unitId?: uuid_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -996,8 +996,8 @@ export class booking_channel_aggregate_fields extends $Base<'booking_channel_agg
 
   count<
     Args extends VariabledInput<{
-      columns: Array<booking_channel_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<booking_channel_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -1033,10 +1033,10 @@ export class booking_channel_aggregate_fields extends $Base<'booking_channel_agg
  * Boolean expression to filter rows from the table "booking_channel". All fields are combined with a logical 'AND'.
  */
 export type booking_channel_bool_exp = {
-  _and: Array<booking_channel_bool_exp> | undefined
-  _not: booking_channel_bool_exp | undefined
-  _or: Array<booking_channel_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<booking_channel_bool_exp> | undefined
+  _not?: booking_channel_bool_exp | undefined
+  _or?: Array<booking_channel_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -1067,18 +1067,18 @@ export enum booking_channel_enum {
  * Boolean expression to compare columns of type "booking_channel_enum". All fields are combined with logical 'AND'.
  */
 export type booking_channel_enum_comparison_exp = {
-  _eq: booking_channel_enum | undefined
-  _in: Array<booking_channel_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: booking_channel_enum | undefined
-  _nin: Array<booking_channel_enum> | undefined
+  _eq?: booking_channel_enum | undefined
+  _in?: Array<booking_channel_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: booking_channel_enum | undefined
+  _nin?: Array<booking_channel_enum> | undefined
 }
 
 /**
  * input type for inserting data into table "booking_channel"
  */
 export type booking_channel_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -1141,14 +1141,14 @@ export class booking_channel_mutation_response extends $Base<'booking_channel_mu
 export type booking_channel_on_conflict = {
   constraint: booking_channel_constraint
   update_columns: Array<booking_channel_update_column>
-  where: booking_channel_bool_exp | undefined
+  where?: booking_channel_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "booking_channel".
  */
 export type booking_channel_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -1172,7 +1172,7 @@ export enum booking_channel_select_column {
  * input type for updating data in table "booking_channel"
  */
 export type booking_channel_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -1199,7 +1199,7 @@ export enum booking_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type booking_delete_at_path_input = {
-  metadata: Array<string> | undefined
+  metadata?: Array<string> | undefined
 }
 
 /**
@@ -1207,58 +1207,58 @@ export type booking_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type booking_delete_elem_input = {
-  metadata: number | undefined
+  metadata?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type booking_delete_key_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
  * input type for incrementing numeric columns in table "booking"
  */
 export type booking_inc_input = {
-  guests: number | undefined
-  nights: number | undefined
+  guests?: number | undefined
+  nights?: number | undefined
 }
 
 /**
  * input type for inserting data into table "booking"
  */
 export type booking_insert_input = {
-  bookedAt: string | undefined
-  bookerName: string | undefined
-  bookingChannel: booking_channel_enum | undefined
-  checkIn: string | undefined
-  checkOut: string | undefined
-  confirmationCode: string | undefined
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  currency: currency_enum | undefined
-  entity: entity_obj_rel_insert_input | undefined
-  entityId: string | undefined
-  guestName: string | undefined
-  guests: number | undefined
-  id: string | undefined
-  isOTA: boolean | undefined
-  lines: line_arr_rel_insert_input | undefined
-  metadata: string | undefined
-  nights: number | undefined
-  otaBooking: booking_obj_rel_insert_input | undefined
-  otaBookingId: string | undefined
-  relatedBookings: booking_arr_rel_insert_input | undefined
-  status: booking_status_enum | undefined
-  tags: tag_arr_rel_insert_input | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  uniqueRef: string | undefined
-  unit: unit_obj_rel_insert_input | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
+  bookedAt?: string | undefined
+  bookerName?: string | undefined
+  bookingChannel?: booking_channel_enum | undefined
+  checkIn?: string | undefined
+  checkOut?: string | undefined
+  confirmationCode?: string | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  currency?: currency_enum | undefined
+  entity?: entity_obj_rel_insert_input | undefined
+  entityId?: string | undefined
+  guestName?: string | undefined
+  guests?: number | undefined
+  id?: string | undefined
+  isOTA?: boolean | undefined
+  lines?: line_arr_rel_insert_input | undefined
+  metadata?: string | undefined
+  nights?: number | undefined
+  otaBooking?: booking_obj_rel_insert_input | undefined
+  otaBookingId?: string | undefined
+  relatedBookings?: booking_arr_rel_insert_input | undefined
+  status?: booking_status_enum | undefined
+  tags?: tag_arr_rel_insert_input | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  uniqueRef?: string | undefined
+  unit?: unit_obj_rel_insert_input | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -1342,23 +1342,23 @@ export class booking_max_fields extends $Base<'booking_max_fields'> {
  * order by max() on columns of table "booking"
  */
 export type booking_max_order_by = {
-  bookedAt: order_by | undefined
-  bookerName: order_by | undefined
-  checkIn: order_by | undefined
-  checkOut: order_by | undefined
-  confirmationCode: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  entityId: order_by | undefined
-  guestName: order_by | undefined
-  guests: order_by | undefined
-  id: order_by | undefined
-  nights: order_by | undefined
-  otaBookingId: order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  bookedAt?: order_by | undefined
+  bookerName?: order_by | undefined
+  checkIn?: order_by | undefined
+  checkOut?: order_by | undefined
+  confirmationCode?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  entityId?: order_by | undefined
+  guestName?: order_by | undefined
+  guests?: order_by | undefined
+  id?: order_by | undefined
+  nights?: order_by | undefined
+  otaBookingId?: order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -1442,23 +1442,23 @@ export class booking_min_fields extends $Base<'booking_min_fields'> {
  * order by min() on columns of table "booking"
  */
 export type booking_min_order_by = {
-  bookedAt: order_by | undefined
-  bookerName: order_by | undefined
-  checkIn: order_by | undefined
-  checkOut: order_by | undefined
-  confirmationCode: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  entityId: order_by | undefined
-  guestName: order_by | undefined
-  guests: order_by | undefined
-  id: order_by | undefined
-  nights: order_by | undefined
-  otaBookingId: order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  bookedAt?: order_by | undefined
+  bookerName?: order_by | undefined
+  checkIn?: order_by | undefined
+  checkOut?: order_by | undefined
+  confirmationCode?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  entityId?: order_by | undefined
+  guestName?: order_by | undefined
+  guests?: order_by | undefined
+  id?: order_by | undefined
+  nights?: order_by | undefined
+  otaBookingId?: order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -1494,7 +1494,7 @@ export class booking_mutation_response extends $Base<'booking_mutation_response'
  */
 export type booking_obj_rel_insert_input = {
   data: booking_insert_input
-  on_conflict: booking_on_conflict | undefined
+  on_conflict?: booking_on_conflict | undefined
 }
 
 /**
@@ -1503,43 +1503,43 @@ export type booking_obj_rel_insert_input = {
 export type booking_on_conflict = {
   constraint: booking_constraint
   update_columns: Array<booking_update_column>
-  where: booking_bool_exp | undefined
+  where?: booking_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "booking".
  */
 export type booking_order_by = {
-  bookedAt: order_by | undefined
-  bookerName: order_by | undefined
-  bookingChannel: order_by | undefined
-  checkIn: order_by | undefined
-  checkOut: order_by | undefined
-  confirmationCode: order_by | undefined
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  currency: order_by | undefined
-  entity: entity_order_by | undefined
-  entityId: order_by | undefined
-  guestName: order_by | undefined
-  guests: order_by | undefined
-  id: order_by | undefined
-  isOTA: order_by | undefined
-  lines_aggregate: line_aggregate_order_by | undefined
-  metadata: order_by | undefined
-  nights: order_by | undefined
-  otaBooking: booking_order_by | undefined
-  otaBookingId: order_by | undefined
-  relatedBookings_aggregate: booking_aggregate_order_by | undefined
-  status: order_by | undefined
-  tags_aggregate: tag_aggregate_order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
-  unit: unit_order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  bookedAt?: order_by | undefined
+  bookerName?: order_by | undefined
+  bookingChannel?: order_by | undefined
+  checkIn?: order_by | undefined
+  checkOut?: order_by | undefined
+  confirmationCode?: order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  currency?: order_by | undefined
+  entity?: entity_order_by | undefined
+  entityId?: order_by | undefined
+  guestName?: order_by | undefined
+  guests?: order_by | undefined
+  id?: order_by | undefined
+  isOTA?: order_by | undefined
+  lines_aggregate?: line_aggregate_order_by | undefined
+  metadata?: order_by | undefined
+  nights?: order_by | undefined
+  otaBooking?: booking_order_by | undefined
+  otaBookingId?: order_by | undefined
+  relatedBookings_aggregate?: booking_aggregate_order_by | undefined
+  status?: order_by | undefined
+  tags_aggregate?: tag_aggregate_order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unit?: unit_order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -1553,7 +1553,7 @@ export type booking_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type booking_prepend_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -1675,28 +1675,28 @@ export enum booking_select_column {
  * input type for updating data in table "booking"
  */
 export type booking_set_input = {
-  bookedAt: string | undefined
-  bookerName: string | undefined
-  bookingChannel: booking_channel_enum | undefined
-  checkIn: string | undefined
-  checkOut: string | undefined
-  confirmationCode: string | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  currency: currency_enum | undefined
-  entityId: string | undefined
-  guestName: string | undefined
-  guests: number | undefined
-  id: string | undefined
-  isOTA: boolean | undefined
-  metadata: string | undefined
-  nights: number | undefined
-  otaBookingId: string | undefined
-  status: booking_status_enum | undefined
-  teamId: string | undefined
-  uniqueRef: string | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
+  bookedAt?: string | undefined
+  bookerName?: string | undefined
+  bookingChannel?: booking_channel_enum | undefined
+  checkIn?: string | undefined
+  checkOut?: string | undefined
+  confirmationCode?: string | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  currency?: currency_enum | undefined
+  entityId?: string | undefined
+  guestName?: string | undefined
+  guests?: number | undefined
+  id?: string | undefined
+  isOTA?: boolean | undefined
+  metadata?: string | undefined
+  nights?: number | undefined
+  otaBookingId?: string | undefined
+  status?: booking_status_enum | undefined
+  teamId?: string | undefined
+  uniqueRef?: string | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 export enum booking_status_enum {
@@ -1715,11 +1715,11 @@ export enum booking_status_enum {
  * Boolean expression to compare columns of type "booking_status_enum". All fields are combined with logical 'AND'.
  */
 export type booking_status_enum_comparison_exp = {
-  _eq: booking_status_enum | undefined
-  _in: Array<booking_status_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: booking_status_enum | undefined
-  _nin: Array<booking_status_enum> | undefined
+  _eq?: booking_status_enum | undefined
+  _in?: Array<booking_status_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: booking_status_enum | undefined
+  _nin?: Array<booking_status_enum> | undefined
 }
 
 /**
@@ -1743,8 +1743,8 @@ export class booking_stddev_fields extends $Base<'booking_stddev_fields'> {
  * order by stddev() on columns of table "booking"
  */
 export type booking_stddev_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
@@ -1768,8 +1768,8 @@ export class booking_stddev_pop_fields extends $Base<'booking_stddev_pop_fields'
  * order by stddev_pop() on columns of table "booking"
  */
 export type booking_stddev_pop_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
@@ -1793,8 +1793,8 @@ export class booking_stddev_samp_fields extends $Base<'booking_stddev_samp_field
  * order by stddev_samp() on columns of table "booking"
  */
 export type booking_stddev_samp_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
@@ -1818,8 +1818,8 @@ export class booking_sum_fields extends $Base<'booking_sum_fields'> {
  * order by sum() on columns of table "booking"
  */
 export type booking_sum_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
@@ -1958,8 +1958,8 @@ export class booking_var_pop_fields extends $Base<'booking_var_pop_fields'> {
  * order by var_pop() on columns of table "booking"
  */
 export type booking_var_pop_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
@@ -1983,8 +1983,8 @@ export class booking_var_samp_fields extends $Base<'booking_var_samp_fields'> {
  * order by var_samp() on columns of table "booking"
  */
 export type booking_var_samp_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
@@ -2008,8 +2008,8 @@ export class booking_variance_fields extends $Base<'booking_variance_fields'> {
  * order by variance() on columns of table "booking"
  */
 export type booking_variance_order_by = {
-  guests: order_by | undefined
-  nights: order_by | undefined
+  guests?: order_by | undefined
+  nights?: order_by | undefined
 }
 
 /**
@@ -2062,8 +2062,8 @@ export class bookingStatus_aggregate_fields extends $Base<'bookingStatus_aggrega
 
   count<
     Args extends VariabledInput<{
-      columns: Array<bookingStatus_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<bookingStatus_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -2099,10 +2099,10 @@ export class bookingStatus_aggregate_fields extends $Base<'bookingStatus_aggrega
  * Boolean expression to filter rows from the table "booking_status". All fields are combined with a logical 'AND'.
  */
 export type bookingStatus_bool_exp = {
-  _and: Array<bookingStatus_bool_exp> | undefined
-  _not: bookingStatus_bool_exp | undefined
-  _or: Array<bookingStatus_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<bookingStatus_bool_exp> | undefined
+  _not?: bookingStatus_bool_exp | undefined
+  _or?: Array<bookingStatus_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -2119,7 +2119,7 @@ export enum bookingStatus_constraint {
  * input type for inserting data into table "booking_status"
  */
 export type bookingStatus_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -2182,14 +2182,14 @@ export class bookingStatus_mutation_response extends $Base<'bookingStatus_mutati
 export type bookingStatus_on_conflict = {
   constraint: bookingStatus_constraint
   update_columns: Array<bookingStatus_update_column>
-  where: bookingStatus_bool_exp | undefined
+  where?: bookingStatus_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "booking_status".
  */
 export type bookingStatus_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -2213,7 +2213,7 @@ export enum bookingStatus_select_column {
  * input type for updating data in table "booking_status"
  */
 export type bookingStatus_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -2230,15 +2230,15 @@ export enum bookingStatus_update_column {
  * Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
  */
 export type Boolean_comparison_exp = {
-  _eq: boolean | undefined
-  _gt: boolean | undefined
-  _gte: boolean | undefined
-  _in: Array<boolean> | undefined
-  _is_null: boolean | undefined
-  _lt: boolean | undefined
-  _lte: boolean | undefined
-  _neq: boolean | undefined
-  _nin: Array<boolean> | undefined
+  _eq?: boolean | undefined
+  _gt?: boolean | undefined
+  _gte?: boolean | undefined
+  _in?: Array<boolean> | undefined
+  _is_null?: boolean | undefined
+  _lt?: boolean | undefined
+  _lte?: boolean | undefined
+  _neq?: boolean | undefined
+  _nin?: Array<boolean> | undefined
 }
 
 /**
@@ -2291,8 +2291,8 @@ export class classification_aggregate_fields extends $Base<'classification_aggre
 
   count<
     Args extends VariabledInput<{
-      columns: Array<classification_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<classification_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -2328,10 +2328,10 @@ export class classification_aggregate_fields extends $Base<'classification_aggre
  * Boolean expression to filter rows from the table "classification". All fields are combined with a logical 'AND'.
  */
 export type classification_bool_exp = {
-  _and: Array<classification_bool_exp> | undefined
-  _not: classification_bool_exp | undefined
-  _or: Array<classification_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<classification_bool_exp> | undefined
+  _not?: classification_bool_exp | undefined
+  _or?: Array<classification_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -2364,18 +2364,18 @@ export enum classification_enum {
  * Boolean expression to compare columns of type "classification_enum". All fields are combined with logical 'AND'.
  */
 export type classification_enum_comparison_exp = {
-  _eq: classification_enum | undefined
-  _in: Array<classification_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: classification_enum | undefined
-  _nin: Array<classification_enum> | undefined
+  _eq?: classification_enum | undefined
+  _in?: Array<classification_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: classification_enum | undefined
+  _nin?: Array<classification_enum> | undefined
 }
 
 /**
  * input type for inserting data into table "classification"
  */
 export type classification_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -2438,14 +2438,14 @@ export class classification_mutation_response extends $Base<'classification_muta
 export type classification_on_conflict = {
   constraint: classification_constraint
   update_columns: Array<classification_update_column>
-  where: classification_bool_exp | undefined
+  where?: classification_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "classification".
  */
 export type classification_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -2469,7 +2469,7 @@ export enum classification_select_column {
  * input type for updating data in table "classification"
  */
 export type classification_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -2495,11 +2495,11 @@ export class connection extends $Base<'connection'> {
    */
   bookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -2526,11 +2526,11 @@ export class connection extends $Base<'connection'> {
    */
   bookings_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking_aggregate>
   >(
@@ -2558,7 +2558,7 @@ export class connection extends $Base<'connection'> {
 
   credentials<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'credentials', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -2575,11 +2575,11 @@ export class connection extends $Base<'connection'> {
    */
   entities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity>
   >(
@@ -2606,11 +2606,11 @@ export class connection extends $Base<'connection'> {
    */
   entities_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity_aggregate>
   >(
@@ -2657,11 +2657,11 @@ export class connection extends $Base<'connection'> {
    */
   jobs<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job>
   >(
@@ -2688,11 +2688,11 @@ export class connection extends $Base<'connection'> {
    */
   jobs_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job_aggregate>
   >(
@@ -2719,11 +2719,11 @@ export class connection extends $Base<'connection'> {
    */
   lines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -2750,11 +2750,11 @@ export class connection extends $Base<'connection'> {
    */
   lines_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line_aggregate>
   >(
@@ -2781,11 +2781,11 @@ export class connection extends $Base<'connection'> {
    */
   metrics<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric>
   >(
@@ -2812,11 +2812,11 @@ export class connection extends $Base<'connection'> {
    */
   metrics_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric_aggregate>
   >(
@@ -2847,11 +2847,11 @@ export class connection extends $Base<'connection'> {
    */
   payments<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment>
   >(
@@ -2878,11 +2878,11 @@ export class connection extends $Base<'connection'> {
    */
   payments_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment_aggregate>
   >(
@@ -2906,7 +2906,7 @@ export class connection extends $Base<'connection'> {
 
   persistentState<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'persistentState', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -2927,11 +2927,11 @@ export class connection extends $Base<'connection'> {
    */
   tags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -2958,11 +2958,11 @@ export class connection extends $Base<'connection'> {
    */
   tags_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag_aggregate>
   >(
@@ -3005,11 +3005,11 @@ export class connection extends $Base<'connection'> {
    */
   units<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit>
   >(
@@ -3036,11 +3036,11 @@ export class connection extends $Base<'connection'> {
    */
   units_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit_aggregate>
   >(
@@ -3104,8 +3104,8 @@ export class connection_aggregate_fields extends $Base<'connection_aggregate_fie
 
   count<
     Args extends VariabledInput<{
-      columns: Array<connection_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<connection_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -3141,17 +3141,17 @@ export class connection_aggregate_fields extends $Base<'connection_aggregate_fie
  * order by aggregate values of table "connection"
  */
 export type connection_aggregate_order_by = {
-  count: order_by | undefined
-  max: connection_max_order_by | undefined
-  min: connection_min_order_by | undefined
+  count?: order_by | undefined
+  max?: connection_max_order_by | undefined
+  min?: connection_min_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type connection_append_input = {
-  credentials: string | undefined
-  persistentState: string | undefined
+  credentials?: string | undefined
+  persistentState?: string | undefined
 }
 
 /**
@@ -3159,35 +3159,35 @@ export type connection_append_input = {
  */
 export type connection_arr_rel_insert_input = {
   data: Array<connection_insert_input>
-  on_conflict: connection_on_conflict | undefined
+  on_conflict?: connection_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "connection". All fields are combined with a logical 'AND'.
  */
 export type connection_bool_exp = {
-  _and: Array<connection_bool_exp> | undefined
-  _not: connection_bool_exp | undefined
-  _or: Array<connection_bool_exp> | undefined
-  bookings: booking_bool_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  credentials: jsonb_comparison_exp | undefined
-  entities: entity_bool_exp | undefined
-  id: uuid_comparison_exp | undefined
-  integration: integration_bool_exp | undefined
-  integrationId: uuid_comparison_exp | undefined
-  jobs: job_bool_exp | undefined
-  lines: line_bool_exp | undefined
-  metrics: metric_bool_exp | undefined
-  name: String_comparison_exp | undefined
-  payments: payment_bool_exp | undefined
-  persistentState: jsonb_comparison_exp | undefined
-  status: String_comparison_exp | undefined
-  tags: tag_bool_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  units: unit_bool_exp | undefined
-  webhookKey: String_comparison_exp | undefined
+  _and?: Array<connection_bool_exp> | undefined
+  _not?: connection_bool_exp | undefined
+  _or?: Array<connection_bool_exp> | undefined
+  bookings?: booking_bool_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  credentials?: jsonb_comparison_exp | undefined
+  entities?: entity_bool_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  integration?: integration_bool_exp | undefined
+  integrationId?: uuid_comparison_exp | undefined
+  jobs?: job_bool_exp | undefined
+  lines?: line_bool_exp | undefined
+  metrics?: metric_bool_exp | undefined
+  name?: String_comparison_exp | undefined
+  payments?: payment_bool_exp | undefined
+  persistentState?: jsonb_comparison_exp | undefined
+  status?: String_comparison_exp | undefined
+  tags?: tag_bool_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  units?: unit_bool_exp | undefined
+  webhookKey?: String_comparison_exp | undefined
 }
 
 /**
@@ -3204,8 +3204,8 @@ export enum connection_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type connection_delete_at_path_input = {
-  credentials: Array<string> | undefined
-  persistentState: Array<string> | undefined
+  credentials?: Array<string> | undefined
+  persistentState?: Array<string> | undefined
 }
 
 /**
@@ -3213,41 +3213,41 @@ export type connection_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type connection_delete_elem_input = {
-  credentials: number | undefined
-  persistentState: number | undefined
+  credentials?: number | undefined
+  persistentState?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type connection_delete_key_input = {
-  credentials: string | undefined
-  persistentState: string | undefined
+  credentials?: string | undefined
+  persistentState?: string | undefined
 }
 
 /**
  * input type for inserting data into table "connection"
  */
 export type connection_insert_input = {
-  bookings: booking_arr_rel_insert_input | undefined
-  createdAt: string | undefined
-  credentials: string | undefined
-  entities: entity_arr_rel_insert_input | undefined
-  id: string | undefined
-  integration: integration_obj_rel_insert_input | undefined
-  integrationId: string | undefined
-  jobs: job_arr_rel_insert_input | undefined
-  lines: line_arr_rel_insert_input | undefined
-  metrics: metric_arr_rel_insert_input | undefined
-  name: string | undefined
-  payments: payment_arr_rel_insert_input | undefined
-  persistentState: string | undefined
-  status: string | undefined
-  tags: tag_arr_rel_insert_input | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  units: unit_arr_rel_insert_input | undefined
-  webhookKey: string | undefined
+  bookings?: booking_arr_rel_insert_input | undefined
+  createdAt?: string | undefined
+  credentials?: string | undefined
+  entities?: entity_arr_rel_insert_input | undefined
+  id?: string | undefined
+  integration?: integration_obj_rel_insert_input | undefined
+  integrationId?: string | undefined
+  jobs?: job_arr_rel_insert_input | undefined
+  lines?: line_arr_rel_insert_input | undefined
+  metrics?: metric_arr_rel_insert_input | undefined
+  name?: string | undefined
+  payments?: payment_arr_rel_insert_input | undefined
+  persistentState?: string | undefined
+  status?: string | undefined
+  tags?: tag_arr_rel_insert_input | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  units?: unit_arr_rel_insert_input | undefined
+  webhookKey?: string | undefined
 }
 
 /**
@@ -3291,13 +3291,13 @@ export class connection_max_fields extends $Base<'connection_max_fields'> {
  * order by max() on columns of table "connection"
  */
 export type connection_max_order_by = {
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  integrationId: order_by | undefined
-  name: order_by | undefined
-  status: order_by | undefined
-  teamId: order_by | undefined
-  webhookKey: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  integrationId?: order_by | undefined
+  name?: order_by | undefined
+  status?: order_by | undefined
+  teamId?: order_by | undefined
+  webhookKey?: order_by | undefined
 }
 
 /**
@@ -3341,13 +3341,13 @@ export class connection_min_fields extends $Base<'connection_min_fields'> {
  * order by min() on columns of table "connection"
  */
 export type connection_min_order_by = {
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  integrationId: order_by | undefined
-  name: order_by | undefined
-  status: order_by | undefined
-  teamId: order_by | undefined
-  webhookKey: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  integrationId?: order_by | undefined
+  name?: order_by | undefined
+  status?: order_by | undefined
+  teamId?: order_by | undefined
+  webhookKey?: order_by | undefined
 }
 
 /**
@@ -3383,7 +3383,7 @@ export class connection_mutation_response extends $Base<'connection_mutation_res
  */
 export type connection_obj_rel_insert_input = {
   data: connection_insert_input
-  on_conflict: connection_on_conflict | undefined
+  on_conflict?: connection_on_conflict | undefined
 }
 
 /**
@@ -3392,32 +3392,32 @@ export type connection_obj_rel_insert_input = {
 export type connection_on_conflict = {
   constraint: connection_constraint
   update_columns: Array<connection_update_column>
-  where: connection_bool_exp | undefined
+  where?: connection_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "connection".
  */
 export type connection_order_by = {
-  bookings_aggregate: booking_aggregate_order_by | undefined
-  createdAt: order_by | undefined
-  credentials: order_by | undefined
-  entities_aggregate: entity_aggregate_order_by | undefined
-  id: order_by | undefined
-  integration: integration_order_by | undefined
-  integrationId: order_by | undefined
-  jobs_aggregate: job_aggregate_order_by | undefined
-  lines_aggregate: line_aggregate_order_by | undefined
-  metrics_aggregate: metric_aggregate_order_by | undefined
-  name: order_by | undefined
-  payments_aggregate: payment_aggregate_order_by | undefined
-  persistentState: order_by | undefined
-  status: order_by | undefined
-  tags_aggregate: tag_aggregate_order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  units_aggregate: unit_aggregate_order_by | undefined
-  webhookKey: order_by | undefined
+  bookings_aggregate?: booking_aggregate_order_by | undefined
+  createdAt?: order_by | undefined
+  credentials?: order_by | undefined
+  entities_aggregate?: entity_aggregate_order_by | undefined
+  id?: order_by | undefined
+  integration?: integration_order_by | undefined
+  integrationId?: order_by | undefined
+  jobs_aggregate?: job_aggregate_order_by | undefined
+  lines_aggregate?: line_aggregate_order_by | undefined
+  metrics_aggregate?: metric_aggregate_order_by | undefined
+  name?: order_by | undefined
+  payments_aggregate?: payment_aggregate_order_by | undefined
+  persistentState?: order_by | undefined
+  status?: order_by | undefined
+  tags_aggregate?: tag_aggregate_order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  units_aggregate?: unit_aggregate_order_by | undefined
+  webhookKey?: order_by | undefined
 }
 
 /**
@@ -3431,8 +3431,8 @@ export type connection_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type connection_prepend_input = {
-  credentials: string | undefined
-  persistentState: string | undefined
+  credentials?: string | undefined
+  persistentState?: string | undefined
 }
 
 /**
@@ -3489,15 +3489,15 @@ export enum connection_select_column {
  * input type for updating data in table "connection"
  */
 export type connection_set_input = {
-  createdAt: string | undefined
-  credentials: string | undefined
-  id: string | undefined
-  integrationId: string | undefined
-  name: string | undefined
-  persistentState: string | undefined
-  status: string | undefined
-  teamId: string | undefined
-  webhookKey: string | undefined
+  createdAt?: string | undefined
+  credentials?: string | undefined
+  id?: string | undefined
+  integrationId?: string | undefined
+  name?: string | undefined
+  persistentState?: string | undefined
+  status?: string | undefined
+  teamId?: string | undefined
+  webhookKey?: string | undefined
 }
 
 /**
@@ -3600,8 +3600,8 @@ export class currency_aggregate_fields extends $Base<'currency_aggregate_fields'
 
   count<
     Args extends VariabledInput<{
-      columns: Array<currency_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<currency_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -3637,10 +3637,10 @@ export class currency_aggregate_fields extends $Base<'currency_aggregate_fields'
  * Boolean expression to filter rows from the table "currency". All fields are combined with a logical 'AND'.
  */
 export type currency_bool_exp = {
-  _and: Array<currency_bool_exp> | undefined
-  _not: currency_bool_exp | undefined
-  _or: Array<currency_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<currency_bool_exp> | undefined
+  _not?: currency_bool_exp | undefined
+  _or?: Array<currency_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -4015,18 +4015,18 @@ export enum currency_enum {
  * Boolean expression to compare columns of type "currency_enum". All fields are combined with logical 'AND'.
  */
 export type currency_enum_comparison_exp = {
-  _eq: currency_enum | undefined
-  _in: Array<currency_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: currency_enum | undefined
-  _nin: Array<currency_enum> | undefined
+  _eq?: currency_enum | undefined
+  _in?: Array<currency_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: currency_enum | undefined
+  _nin?: Array<currency_enum> | undefined
 }
 
 /**
  * input type for inserting data into table "currency"
  */
 export type currency_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -4089,14 +4089,14 @@ export class currency_mutation_response extends $Base<'currency_mutation_respons
 export type currency_on_conflict = {
   constraint: currency_constraint
   update_columns: Array<currency_update_column>
-  where: currency_bool_exp | undefined
+  where?: currency_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "currency".
  */
 export type currency_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -4120,7 +4120,7 @@ export enum currency_select_column {
  * input type for updating data in table "currency"
  */
 export type currency_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -4146,11 +4146,11 @@ export class entity extends $Base<'entity'> {
    */
   bookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -4177,11 +4177,11 @@ export class entity extends $Base<'entity'> {
    */
   bookings_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking_aggregate>
   >(
@@ -4229,7 +4229,7 @@ export class entity extends $Base<'entity'> {
 
   diffJson<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'diffJson', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -4267,7 +4267,7 @@ export class entity extends $Base<'entity'> {
 
   json<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'json', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -4281,7 +4281,7 @@ export class entity extends $Base<'entity'> {
 
   normalizedJson<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'normalizedJson', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -4306,11 +4306,11 @@ export class entity extends $Base<'entity'> {
    */
   payments<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment>
   >(
@@ -4337,11 +4337,11 @@ export class entity extends $Base<'entity'> {
    */
   payments_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment_aggregate>
   >(
@@ -4392,11 +4392,11 @@ export class entity extends $Base<'entity'> {
    */
   successorEntities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity>
   >(
@@ -4423,11 +4423,11 @@ export class entity extends $Base<'entity'> {
    */
   successorEntities_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity_aggregate>
   >(
@@ -4478,11 +4478,11 @@ export class entity extends $Base<'entity'> {
    */
   units<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit>
   >(
@@ -4509,11 +4509,11 @@ export class entity extends $Base<'entity'> {
    */
   units_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit_aggregate>
   >(
@@ -4577,8 +4577,8 @@ export class entity_aggregate_fields extends $Base<'entity_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<entity_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<entity_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -4614,18 +4614,18 @@ export class entity_aggregate_fields extends $Base<'entity_aggregate_fields'> {
  * order by aggregate values of table "entity"
  */
 export type entity_aggregate_order_by = {
-  count: order_by | undefined
-  max: entity_max_order_by | undefined
-  min: entity_min_order_by | undefined
+  count?: order_by | undefined
+  max?: entity_max_order_by | undefined
+  min?: entity_min_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type entity_append_input = {
-  diffJson: string | undefined
-  json: string | undefined
-  normalizedJson: string | undefined
+  diffJson?: string | undefined
+  json?: string | undefined
+  normalizedJson?: string | undefined
 }
 
 /**
@@ -4633,42 +4633,42 @@ export type entity_append_input = {
  */
 export type entity_arr_rel_insert_input = {
   data: Array<entity_insert_input>
-  on_conflict: entity_on_conflict | undefined
+  on_conflict?: entity_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "entity". All fields are combined with a logical 'AND'.
  */
 export type entity_bool_exp = {
-  _and: Array<entity_bool_exp> | undefined
-  _not: entity_bool_exp | undefined
-  _or: Array<entity_bool_exp> | undefined
-  bookings: booking_bool_exp | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  description: String_comparison_exp | undefined
-  diffJson: jsonb_comparison_exp | undefined
-  hash: String_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  job: job_bool_exp | undefined
-  jobId: uuid_comparison_exp | undefined
-  json: jsonb_comparison_exp | undefined
-  normalizedJson: jsonb_comparison_exp | undefined
-  normalizedType: normalized_type_enum_comparison_exp | undefined
-  parsedAt: timestamptz_comparison_exp | undefined
-  payments: payment_bool_exp | undefined
-  predecessorEntity: entity_bool_exp | undefined
-  predecessorEntityId: uuid_comparison_exp | undefined
-  status: entity_status_enum_comparison_exp | undefined
-  statusText: String_comparison_exp | undefined
-  successorEntities: entity_bool_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  type: String_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
-  units: unit_bool_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<entity_bool_exp> | undefined
+  _not?: entity_bool_exp | undefined
+  _or?: Array<entity_bool_exp> | undefined
+  bookings?: booking_bool_exp | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  description?: String_comparison_exp | undefined
+  diffJson?: jsonb_comparison_exp | undefined
+  hash?: String_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  job?: job_bool_exp | undefined
+  jobId?: uuid_comparison_exp | undefined
+  json?: jsonb_comparison_exp | undefined
+  normalizedJson?: jsonb_comparison_exp | undefined
+  normalizedType?: normalized_type_enum_comparison_exp | undefined
+  parsedAt?: timestamptz_comparison_exp | undefined
+  payments?: payment_bool_exp | undefined
+  predecessorEntity?: entity_bool_exp | undefined
+  predecessorEntityId?: uuid_comparison_exp | undefined
+  status?: entity_status_enum_comparison_exp | undefined
+  statusText?: String_comparison_exp | undefined
+  successorEntities?: entity_bool_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  type?: String_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
+  units?: unit_bool_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -4690,9 +4690,9 @@ export enum entity_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type entity_delete_at_path_input = {
-  diffJson: Array<string> | undefined
-  json: Array<string> | undefined
-  normalizedJson: Array<string> | undefined
+  diffJson?: Array<string> | undefined
+  json?: Array<string> | undefined
+  normalizedJson?: Array<string> | undefined
 }
 
 /**
@@ -4700,50 +4700,50 @@ export type entity_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type entity_delete_elem_input = {
-  diffJson: number | undefined
-  json: number | undefined
-  normalizedJson: number | undefined
+  diffJson?: number | undefined
+  json?: number | undefined
+  normalizedJson?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type entity_delete_key_input = {
-  diffJson: string | undefined
-  json: string | undefined
-  normalizedJson: string | undefined
+  diffJson?: string | undefined
+  json?: string | undefined
+  normalizedJson?: string | undefined
 }
 
 /**
  * input type for inserting data into table "entity"
  */
 export type entity_insert_input = {
-  bookings: booking_arr_rel_insert_input | undefined
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  description: string | undefined
-  diffJson: string | undefined
-  hash: string | undefined
-  id: string | undefined
-  job: job_obj_rel_insert_input | undefined
-  jobId: string | undefined
-  json: string | undefined
-  normalizedJson: string | undefined
-  normalizedType: normalized_type_enum | undefined
-  parsedAt: string | undefined
-  payments: payment_arr_rel_insert_input | undefined
-  predecessorEntity: entity_obj_rel_insert_input | undefined
-  predecessorEntityId: string | undefined
-  status: entity_status_enum | undefined
-  statusText: string | undefined
-  successorEntities: entity_arr_rel_insert_input | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  units: unit_arr_rel_insert_input | undefined
-  updatedAt: string | undefined
+  bookings?: booking_arr_rel_insert_input | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  description?: string | undefined
+  diffJson?: string | undefined
+  hash?: string | undefined
+  id?: string | undefined
+  job?: job_obj_rel_insert_input | undefined
+  jobId?: string | undefined
+  json?: string | undefined
+  normalizedJson?: string | undefined
+  normalizedType?: normalized_type_enum | undefined
+  parsedAt?: string | undefined
+  payments?: payment_arr_rel_insert_input | undefined
+  predecessorEntity?: entity_obj_rel_insert_input | undefined
+  predecessorEntityId?: string | undefined
+  status?: entity_status_enum | undefined
+  statusText?: string | undefined
+  successorEntities?: entity_arr_rel_insert_input | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  units?: unit_arr_rel_insert_input | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -4811,19 +4811,19 @@ export class entity_max_fields extends $Base<'entity_max_fields'> {
  * order by max() on columns of table "entity"
  */
 export type entity_max_order_by = {
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  hash: order_by | undefined
-  id: order_by | undefined
-  jobId: order_by | undefined
-  parsedAt: order_by | undefined
-  predecessorEntityId: order_by | undefined
-  statusText: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  hash?: order_by | undefined
+  id?: order_by | undefined
+  jobId?: order_by | undefined
+  parsedAt?: order_by | undefined
+  predecessorEntityId?: order_by | undefined
+  statusText?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -4891,19 +4891,19 @@ export class entity_min_fields extends $Base<'entity_min_fields'> {
  * order by min() on columns of table "entity"
  */
 export type entity_min_order_by = {
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  hash: order_by | undefined
-  id: order_by | undefined
-  jobId: order_by | undefined
-  parsedAt: order_by | undefined
-  predecessorEntityId: order_by | undefined
-  statusText: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  hash?: order_by | undefined
+  id?: order_by | undefined
+  jobId?: order_by | undefined
+  parsedAt?: order_by | undefined
+  predecessorEntityId?: order_by | undefined
+  statusText?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -4939,7 +4939,7 @@ export class entity_mutation_response extends $Base<'entity_mutation_response'> 
  */
 export type entity_obj_rel_insert_input = {
   data: entity_insert_input
-  on_conflict: entity_on_conflict | undefined
+  on_conflict?: entity_on_conflict | undefined
 }
 
 /**
@@ -4948,39 +4948,39 @@ export type entity_obj_rel_insert_input = {
 export type entity_on_conflict = {
   constraint: entity_constraint
   update_columns: Array<entity_update_column>
-  where: entity_bool_exp | undefined
+  where?: entity_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "entity".
  */
 export type entity_order_by = {
-  bookings_aggregate: booking_aggregate_order_by | undefined
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  diffJson: order_by | undefined
-  hash: order_by | undefined
-  id: order_by | undefined
-  job: job_order_by | undefined
-  jobId: order_by | undefined
-  json: order_by | undefined
-  normalizedJson: order_by | undefined
-  normalizedType: order_by | undefined
-  parsedAt: order_by | undefined
-  payments_aggregate: payment_aggregate_order_by | undefined
-  predecessorEntity: entity_order_by | undefined
-  predecessorEntityId: order_by | undefined
-  status: order_by | undefined
-  statusText: order_by | undefined
-  successorEntities_aggregate: entity_aggregate_order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  units_aggregate: unit_aggregate_order_by | undefined
-  updatedAt: order_by | undefined
+  bookings_aggregate?: booking_aggregate_order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  diffJson?: order_by | undefined
+  hash?: order_by | undefined
+  id?: order_by | undefined
+  job?: job_order_by | undefined
+  jobId?: order_by | undefined
+  json?: order_by | undefined
+  normalizedJson?: order_by | undefined
+  normalizedType?: order_by | undefined
+  parsedAt?: order_by | undefined
+  payments_aggregate?: payment_aggregate_order_by | undefined
+  predecessorEntity?: entity_order_by | undefined
+  predecessorEntityId?: order_by | undefined
+  status?: order_by | undefined
+  statusText?: order_by | undefined
+  successorEntities_aggregate?: entity_aggregate_order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  units_aggregate?: unit_aggregate_order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -4994,9 +4994,9 @@ export type entity_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type entity_prepend_input = {
-  diffJson: string | undefined
-  json: string | undefined
-  normalizedJson: string | undefined
+  diffJson?: string | undefined
+  json?: string | undefined
+  normalizedJson?: string | undefined
 }
 
 /**
@@ -5098,24 +5098,24 @@ export enum entity_select_column {
  * input type for updating data in table "entity"
  */
 export type entity_set_input = {
-  connectionId: string | undefined
-  createdAt: string | undefined
-  description: string | undefined
-  diffJson: string | undefined
-  hash: string | undefined
-  id: string | undefined
-  jobId: string | undefined
-  json: string | undefined
-  normalizedJson: string | undefined
-  normalizedType: normalized_type_enum | undefined
-  parsedAt: string | undefined
-  predecessorEntityId: string | undefined
-  status: entity_status_enum | undefined
-  statusText: string | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  updatedAt: string | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  description?: string | undefined
+  diffJson?: string | undefined
+  hash?: string | undefined
+  id?: string | undefined
+  jobId?: string | undefined
+  json?: string | undefined
+  normalizedJson?: string | undefined
+  normalizedType?: normalized_type_enum | undefined
+  parsedAt?: string | undefined
+  predecessorEntityId?: string | undefined
+  status?: entity_status_enum | undefined
+  statusText?: string | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  updatedAt?: string | undefined
 }
 
 export enum entity_status_enum {
@@ -5134,11 +5134,11 @@ export enum entity_status_enum {
  * Boolean expression to compare columns of type "entity_status_enum". All fields are combined with logical 'AND'.
  */
 export type entity_status_enum_comparison_exp = {
-  _eq: entity_status_enum | undefined
-  _in: Array<entity_status_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: entity_status_enum | undefined
-  _nin: Array<entity_status_enum> | undefined
+  _eq?: entity_status_enum | undefined
+  _in?: Array<entity_status_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: entity_status_enum | undefined
+  _nin?: Array<entity_status_enum> | undefined
 }
 
 /**
@@ -5286,8 +5286,8 @@ export class entityStatus_aggregate_fields extends $Base<'entityStatus_aggregate
 
   count<
     Args extends VariabledInput<{
-      columns: Array<entityStatus_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<entityStatus_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -5323,10 +5323,10 @@ export class entityStatus_aggregate_fields extends $Base<'entityStatus_aggregate
  * Boolean expression to filter rows from the table "entity_status". All fields are combined with a logical 'AND'.
  */
 export type entityStatus_bool_exp = {
-  _and: Array<entityStatus_bool_exp> | undefined
-  _not: entityStatus_bool_exp | undefined
-  _or: Array<entityStatus_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<entityStatus_bool_exp> | undefined
+  _not?: entityStatus_bool_exp | undefined
+  _or?: Array<entityStatus_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -5343,7 +5343,7 @@ export enum entityStatus_constraint {
  * input type for inserting data into table "entity_status"
  */
 export type entityStatus_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -5406,14 +5406,14 @@ export class entityStatus_mutation_response extends $Base<'entityStatus_mutation
 export type entityStatus_on_conflict = {
   constraint: entityStatus_constraint
   update_columns: Array<entityStatus_update_column>
-  where: entityStatus_bool_exp | undefined
+  where?: entityStatus_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "entity_status".
  */
 export type entityStatus_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -5437,7 +5437,7 @@ export enum entityStatus_select_column {
  * input type for updating data in table "entity_status"
  */
 export type entityStatus_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -5456,30 +5456,30 @@ export type float8 = unknown
  * Boolean expression to compare columns of type "float8". All fields are combined with logical 'AND'.
  */
 export type float8_comparison_exp = {
-  _eq: string | undefined
-  _gt: string | undefined
-  _gte: string | undefined
-  _in: Array<string> | undefined
-  _is_null: boolean | undefined
-  _lt: string | undefined
-  _lte: string | undefined
-  _neq: string | undefined
-  _nin: Array<string> | undefined
+  _eq?: string | undefined
+  _gt?: string | undefined
+  _gte?: string | undefined
+  _in?: Array<string> | undefined
+  _is_null?: boolean | undefined
+  _lt?: string | undefined
+  _lte?: string | undefined
+  _neq?: string | undefined
+  _nin?: Array<string> | undefined
 }
 
 /**
  * Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
  */
 export type Int_comparison_exp = {
-  _eq: number | undefined
-  _gt: number | undefined
-  _gte: number | undefined
-  _in: Array<number> | undefined
-  _is_null: boolean | undefined
-  _lt: number | undefined
-  _lte: number | undefined
-  _neq: number | undefined
-  _nin: Array<number> | undefined
+  _eq?: number | undefined
+  _gt?: number | undefined
+  _gte?: number | undefined
+  _in?: Array<number> | undefined
+  _is_null?: boolean | undefined
+  _lt?: number | undefined
+  _lte?: number | undefined
+  _neq?: number | undefined
+  _nin?: Array<number> | undefined
 }
 
 /**
@@ -5503,11 +5503,11 @@ export class integration extends $Base<'integration'> {
    */
   connections<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection>
   >(
@@ -5534,11 +5534,11 @@ export class integration extends $Base<'integration'> {
    */
   connections_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection_aggregate>
   >(
@@ -5581,11 +5581,11 @@ export class integration extends $Base<'integration'> {
    */
   jobs<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job>
   >(
@@ -5612,11 +5612,11 @@ export class integration extends $Base<'integration'> {
    */
   jobs_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job_aggregate>
   >(
@@ -5704,8 +5704,8 @@ export class integration_aggregate_fields extends $Base<'integration_aggregate_f
 
   count<
     Args extends VariabledInput<{
-      columns: Array<integration_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<integration_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -5741,9 +5741,9 @@ export class integration_aggregate_fields extends $Base<'integration_aggregate_f
  * order by aggregate values of table "integration"
  */
 export type integration_aggregate_order_by = {
-  count: order_by | undefined
-  max: integration_max_order_by | undefined
-  min: integration_min_order_by | undefined
+  count?: order_by | undefined
+  max?: integration_max_order_by | undefined
+  min?: integration_min_order_by | undefined
 }
 
 /**
@@ -5751,29 +5751,29 @@ export type integration_aggregate_order_by = {
  */
 export type integration_arr_rel_insert_input = {
   data: Array<integration_insert_input>
-  on_conflict: integration_on_conflict | undefined
+  on_conflict?: integration_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "integration". All fields are combined with a logical 'AND'.
  */
 export type integration_bool_exp = {
-  _and: Array<integration_bool_exp> | undefined
-  _not: integration_bool_exp | undefined
-  _or: Array<integration_bool_exp> | undefined
-  apiDevUrl: String_comparison_exp | undefined
-  apiUrl: String_comparison_exp | undefined
-  connections: connection_bool_exp | undefined
-  icon: String_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  isApproved: Boolean_comparison_exp | undefined
-  isPrivate: Boolean_comparison_exp | undefined
-  jobs: job_bool_exp | undefined
-  name: String_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  type: integration_type_enum_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
+  _and?: Array<integration_bool_exp> | undefined
+  _not?: integration_bool_exp | undefined
+  _or?: Array<integration_bool_exp> | undefined
+  apiDevUrl?: String_comparison_exp | undefined
+  apiUrl?: String_comparison_exp | undefined
+  connections?: connection_bool_exp | undefined
+  icon?: String_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  isApproved?: Boolean_comparison_exp | undefined
+  isPrivate?: Boolean_comparison_exp | undefined
+  jobs?: job_bool_exp | undefined
+  name?: String_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  type?: integration_type_enum_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
 }
 
 /**
@@ -5790,19 +5790,19 @@ export enum integration_constraint {
  * input type for inserting data into table "integration"
  */
 export type integration_insert_input = {
-  apiDevUrl: string | undefined
-  apiUrl: string | undefined
-  connections: connection_arr_rel_insert_input | undefined
-  icon: string | undefined
-  id: string | undefined
-  isApproved: boolean | undefined
-  isPrivate: boolean | undefined
-  jobs: job_arr_rel_insert_input | undefined
-  name: string | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  type: integration_type_enum | undefined
-  uniqueRef: string | undefined
+  apiDevUrl?: string | undefined
+  apiUrl?: string | undefined
+  connections?: connection_arr_rel_insert_input | undefined
+  icon?: string | undefined
+  id?: string | undefined
+  isApproved?: boolean | undefined
+  isPrivate?: boolean | undefined
+  jobs?: job_arr_rel_insert_input | undefined
+  name?: string | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  type?: integration_type_enum | undefined
+  uniqueRef?: string | undefined
 }
 
 /**
@@ -5846,13 +5846,13 @@ export class integration_max_fields extends $Base<'integration_max_fields'> {
  * order by max() on columns of table "integration"
  */
 export type integration_max_order_by = {
-  apiDevUrl: order_by | undefined
-  apiUrl: order_by | undefined
-  icon: order_by | undefined
-  id: order_by | undefined
-  name: order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
+  apiDevUrl?: order_by | undefined
+  apiUrl?: order_by | undefined
+  icon?: order_by | undefined
+  id?: order_by | undefined
+  name?: order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
 }
 
 /**
@@ -5896,13 +5896,13 @@ export class integration_min_fields extends $Base<'integration_min_fields'> {
  * order by min() on columns of table "integration"
  */
 export type integration_min_order_by = {
-  apiDevUrl: order_by | undefined
-  apiUrl: order_by | undefined
-  icon: order_by | undefined
-  id: order_by | undefined
-  name: order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
+  apiDevUrl?: order_by | undefined
+  apiUrl?: order_by | undefined
+  icon?: order_by | undefined
+  id?: order_by | undefined
+  name?: order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
 }
 
 /**
@@ -5938,7 +5938,7 @@ export class integration_mutation_response extends $Base<'integration_mutation_r
  */
 export type integration_obj_rel_insert_input = {
   data: integration_insert_input
-  on_conflict: integration_on_conflict | undefined
+  on_conflict?: integration_on_conflict | undefined
 }
 
 /**
@@ -5947,26 +5947,26 @@ export type integration_obj_rel_insert_input = {
 export type integration_on_conflict = {
   constraint: integration_constraint
   update_columns: Array<integration_update_column>
-  where: integration_bool_exp | undefined
+  where?: integration_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "integration".
  */
 export type integration_order_by = {
-  apiDevUrl: order_by | undefined
-  apiUrl: order_by | undefined
-  connections_aggregate: connection_aggregate_order_by | undefined
-  icon: order_by | undefined
-  id: order_by | undefined
-  isApproved: order_by | undefined
-  isPrivate: order_by | undefined
-  jobs_aggregate: job_aggregate_order_by | undefined
-  name: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
+  apiDevUrl?: order_by | undefined
+  apiUrl?: order_by | undefined
+  connections_aggregate?: connection_aggregate_order_by | undefined
+  icon?: order_by | undefined
+  id?: order_by | undefined
+  isApproved?: order_by | undefined
+  isPrivate?: order_by | undefined
+  jobs_aggregate?: job_aggregate_order_by | undefined
+  name?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
 }
 
 /**
@@ -6035,16 +6035,16 @@ export enum integration_select_column {
  * input type for updating data in table "integration"
  */
 export type integration_set_input = {
-  apiDevUrl: string | undefined
-  apiUrl: string | undefined
-  icon: string | undefined
-  id: string | undefined
-  isApproved: boolean | undefined
-  isPrivate: boolean | undefined
-  name: string | undefined
-  teamId: string | undefined
-  type: integration_type_enum | undefined
-  uniqueRef: string | undefined
+  apiDevUrl?: string | undefined
+  apiUrl?: string | undefined
+  icon?: string | undefined
+  id?: string | undefined
+  isApproved?: boolean | undefined
+  isPrivate?: boolean | undefined
+  name?: string | undefined
+  teamId?: string | undefined
+  type?: integration_type_enum | undefined
+  uniqueRef?: string | undefined
 }
 
 export enum integration_type_enum {
@@ -6063,11 +6063,11 @@ export enum integration_type_enum {
  * Boolean expression to compare columns of type "integration_type_enum". All fields are combined with logical 'AND'.
  */
 export type integration_type_enum_comparison_exp = {
-  _eq: integration_type_enum | undefined
-  _in: Array<integration_type_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: integration_type_enum | undefined
-  _nin: Array<integration_type_enum> | undefined
+  _eq?: integration_type_enum | undefined
+  _in?: Array<integration_type_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: integration_type_enum | undefined
+  _nin?: Array<integration_type_enum> | undefined
 }
 
 /**
@@ -6175,8 +6175,8 @@ export class integrationType_aggregate_fields extends $Base<'integrationType_agg
 
   count<
     Args extends VariabledInput<{
-      columns: Array<integrationType_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<integrationType_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -6212,10 +6212,10 @@ export class integrationType_aggregate_fields extends $Base<'integrationType_agg
  * Boolean expression to filter rows from the table "integration_type". All fields are combined with a logical 'AND'.
  */
 export type integrationType_bool_exp = {
-  _and: Array<integrationType_bool_exp> | undefined
-  _not: integrationType_bool_exp | undefined
-  _or: Array<integrationType_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<integrationType_bool_exp> | undefined
+  _not?: integrationType_bool_exp | undefined
+  _or?: Array<integrationType_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -6232,7 +6232,7 @@ export enum integrationType_constraint {
  * input type for inserting data into table "integration_type"
  */
 export type integrationType_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -6295,14 +6295,14 @@ export class integrationType_mutation_response extends $Base<'integrationType_mu
 export type integrationType_on_conflict = {
   constraint: integrationType_constraint
   update_columns: Array<integrationType_update_column>
-  where: integrationType_bool_exp | undefined
+  where?: integrationType_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "integration_type".
  */
 export type integrationType_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -6326,7 +6326,7 @@ export enum integrationType_select_column {
  * input type for updating data in table "integration_type"
  */
 export type integrationType_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -6387,7 +6387,7 @@ export class issue extends $Base<'issue'> {
 
   requestParams<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'requestParams', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -6401,7 +6401,7 @@ export class issue extends $Base<'issue'> {
 
   resolveParams<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'resolveParams', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -6475,8 +6475,8 @@ export class issue_aggregate_fields extends $Base<'issue_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<issue_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<issue_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -6512,17 +6512,17 @@ export class issue_aggregate_fields extends $Base<'issue_aggregate_fields'> {
  * order by aggregate values of table "issue"
  */
 export type issue_aggregate_order_by = {
-  count: order_by | undefined
-  max: issue_max_order_by | undefined
-  min: issue_min_order_by | undefined
+  count?: order_by | undefined
+  max?: issue_max_order_by | undefined
+  min?: issue_min_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type issue_append_input = {
-  requestParams: string | undefined
-  resolveParams: string | undefined
+  requestParams?: string | undefined
+  resolveParams?: string | undefined
 }
 
 /**
@@ -6530,30 +6530,30 @@ export type issue_append_input = {
  */
 export type issue_arr_rel_insert_input = {
   data: Array<issue_insert_input>
-  on_conflict: issue_on_conflict | undefined
+  on_conflict?: issue_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "issue". All fields are combined with a logical 'AND'.
  */
 export type issue_bool_exp = {
-  _and: Array<issue_bool_exp> | undefined
-  _not: issue_bool_exp | undefined
-  _or: Array<issue_bool_exp> | undefined
-  code: String_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  isPublic: Boolean_comparison_exp | undefined
-  isResolved: Boolean_comparison_exp | undefined
-  job: job_bool_exp | undefined
-  jobId: uuid_comparison_exp | undefined
-  message: String_comparison_exp | undefined
-  requestParams: jsonb_comparison_exp | undefined
-  resolveParams: jsonb_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  type: String_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<issue_bool_exp> | undefined
+  _not?: issue_bool_exp | undefined
+  _or?: Array<issue_bool_exp> | undefined
+  code?: String_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  isPublic?: Boolean_comparison_exp | undefined
+  isResolved?: Boolean_comparison_exp | undefined
+  job?: job_bool_exp | undefined
+  jobId?: uuid_comparison_exp | undefined
+  message?: String_comparison_exp | undefined
+  requestParams?: jsonb_comparison_exp | undefined
+  resolveParams?: jsonb_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  type?: String_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -6570,8 +6570,8 @@ export enum issue_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type issue_delete_at_path_input = {
-  requestParams: Array<string> | undefined
-  resolveParams: Array<string> | undefined
+  requestParams?: Array<string> | undefined
+  resolveParams?: Array<string> | undefined
 }
 
 /**
@@ -6579,36 +6579,36 @@ export type issue_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type issue_delete_elem_input = {
-  requestParams: number | undefined
-  resolveParams: number | undefined
+  requestParams?: number | undefined
+  resolveParams?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type issue_delete_key_input = {
-  requestParams: string | undefined
-  resolveParams: string | undefined
+  requestParams?: string | undefined
+  resolveParams?: string | undefined
 }
 
 /**
  * input type for inserting data into table "issue"
  */
 export type issue_insert_input = {
-  code: string | undefined
-  createdAt: string | undefined
-  id: string | undefined
-  isPublic: boolean | undefined
-  isResolved: boolean | undefined
-  job: job_obj_rel_insert_input | undefined
-  jobId: string | undefined
-  message: string | undefined
-  requestParams: string | undefined
-  resolveParams: string | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  type: string | undefined
-  updatedAt: string | undefined
+  code?: string | undefined
+  createdAt?: string | undefined
+  id?: string | undefined
+  isPublic?: boolean | undefined
+  isResolved?: boolean | undefined
+  job?: job_obj_rel_insert_input | undefined
+  jobId?: string | undefined
+  message?: string | undefined
+  requestParams?: string | undefined
+  resolveParams?: string | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -6656,14 +6656,14 @@ export class issue_max_fields extends $Base<'issue_max_fields'> {
  * order by max() on columns of table "issue"
  */
 export type issue_max_order_by = {
-  code: order_by | undefined
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  jobId: order_by | undefined
-  message: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  updatedAt: order_by | undefined
+  code?: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  jobId?: order_by | undefined
+  message?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -6711,14 +6711,14 @@ export class issue_min_fields extends $Base<'issue_min_fields'> {
  * order by min() on columns of table "issue"
  */
 export type issue_min_order_by = {
-  code: order_by | undefined
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  jobId: order_by | undefined
-  message: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  updatedAt: order_by | undefined
+  code?: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  jobId?: order_by | undefined
+  message?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -6755,27 +6755,27 @@ export class issue_mutation_response extends $Base<'issue_mutation_response'> {
 export type issue_on_conflict = {
   constraint: issue_constraint
   update_columns: Array<issue_update_column>
-  where: issue_bool_exp | undefined
+  where?: issue_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "issue".
  */
 export type issue_order_by = {
-  code: order_by | undefined
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  isPublic: order_by | undefined
-  isResolved: order_by | undefined
-  job: job_order_by | undefined
-  jobId: order_by | undefined
-  message: order_by | undefined
-  requestParams: order_by | undefined
-  resolveParams: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  updatedAt: order_by | undefined
+  code?: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  isPublic?: order_by | undefined
+  isResolved?: order_by | undefined
+  job?: job_order_by | undefined
+  jobId?: order_by | undefined
+  message?: order_by | undefined
+  requestParams?: order_by | undefined
+  resolveParams?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -6789,8 +6789,8 @@ export type issue_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type issue_prepend_input = {
-  requestParams: string | undefined
-  resolveParams: string | undefined
+  requestParams?: string | undefined
+  resolveParams?: string | undefined
 }
 
 /**
@@ -6862,18 +6862,18 @@ export enum issue_select_column {
  * input type for updating data in table "issue"
  */
 export type issue_set_input = {
-  code: string | undefined
-  createdAt: string | undefined
-  id: string | undefined
-  isPublic: boolean | undefined
-  isResolved: boolean | undefined
-  jobId: string | undefined
-  message: string | undefined
-  requestParams: string | undefined
-  resolveParams: string | undefined
-  teamId: string | undefined
-  type: string | undefined
-  updatedAt: string | undefined
+  code?: string | undefined
+  createdAt?: string | undefined
+  id?: string | undefined
+  isPublic?: boolean | undefined
+  isResolved?: boolean | undefined
+  jobId?: string | undefined
+  message?: string | undefined
+  requestParams?: string | undefined
+  resolveParams?: string | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -6982,11 +6982,11 @@ export class job extends $Base<'job'> {
    */
   entities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity>
   >(
@@ -7013,11 +7013,11 @@ export class job extends $Base<'job'> {
    */
   entities_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity_aggregate>
   >(
@@ -7072,11 +7072,11 @@ export class job extends $Base<'job'> {
    */
   issues<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue>
   >(
@@ -7103,11 +7103,11 @@ export class job extends $Base<'job'> {
    */
   issues_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue_aggregate>
   >(
@@ -7139,7 +7139,7 @@ export class job extends $Base<'job'> {
 
   logs<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'logs', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -7157,7 +7157,7 @@ export class job extends $Base<'job'> {
 
   params<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'params', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -7175,7 +7175,7 @@ export class job extends $Base<'job'> {
 
   response<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'response', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -7257,8 +7257,8 @@ export class job_aggregate_fields extends $Base<'job_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<job_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<job_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -7294,18 +7294,18 @@ export class job_aggregate_fields extends $Base<'job_aggregate_fields'> {
  * order by aggregate values of table "job"
  */
 export type job_aggregate_order_by = {
-  count: order_by | undefined
-  max: job_max_order_by | undefined
-  min: job_min_order_by | undefined
+  count?: order_by | undefined
+  max?: job_max_order_by | undefined
+  min?: job_min_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type job_append_input = {
-  logs: string | undefined
-  params: string | undefined
-  response: string | undefined
+  logs?: string | undefined
+  params?: string | undefined
+  response?: string | undefined
 }
 
 /**
@@ -7313,41 +7313,41 @@ export type job_append_input = {
  */
 export type job_arr_rel_insert_input = {
   data: Array<job_insert_input>
-  on_conflict: job_on_conflict | undefined
+  on_conflict?: job_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "job". All fields are combined with a logical 'AND'.
  */
 export type job_bool_exp = {
-  _and: Array<job_bool_exp> | undefined
-  _not: job_bool_exp | undefined
-  _or: Array<job_bool_exp> | undefined
-  apiVersion: String_comparison_exp | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  endedAt: timestamptz_comparison_exp | undefined
-  entities: entity_bool_exp | undefined
-  id: uuid_comparison_exp | undefined
-  integration: integration_bool_exp | undefined
-  integrationId: uuid_comparison_exp | undefined
-  integrationSdkVersion: String_comparison_exp | undefined
-  integrationVersion: String_comparison_exp | undefined
-  issues: issue_bool_exp | undefined
-  logFile: String_comparison_exp | undefined
-  logLink: String_comparison_exp | undefined
-  logs: jsonb_comparison_exp | undefined
-  method: job_method_enum_comparison_exp | undefined
-  params: jsonb_comparison_exp | undefined
-  requestId: String_comparison_exp | undefined
-  response: jsonb_comparison_exp | undefined
-  sdkVersion: String_comparison_exp | undefined
-  startedAt: timestamptz_comparison_exp | undefined
-  status: job_status_enum_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<job_bool_exp> | undefined
+  _not?: job_bool_exp | undefined
+  _or?: Array<job_bool_exp> | undefined
+  apiVersion?: String_comparison_exp | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  endedAt?: timestamptz_comparison_exp | undefined
+  entities?: entity_bool_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  integration?: integration_bool_exp | undefined
+  integrationId?: uuid_comparison_exp | undefined
+  integrationSdkVersion?: String_comparison_exp | undefined
+  integrationVersion?: String_comparison_exp | undefined
+  issues?: issue_bool_exp | undefined
+  logFile?: String_comparison_exp | undefined
+  logLink?: String_comparison_exp | undefined
+  logs?: jsonb_comparison_exp | undefined
+  method?: job_method_enum_comparison_exp | undefined
+  params?: jsonb_comparison_exp | undefined
+  requestId?: String_comparison_exp | undefined
+  response?: jsonb_comparison_exp | undefined
+  sdkVersion?: String_comparison_exp | undefined
+  startedAt?: timestamptz_comparison_exp | undefined
+  status?: job_status_enum_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -7364,9 +7364,9 @@ export enum job_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type job_delete_at_path_input = {
-  logs: Array<string> | undefined
-  params: Array<string> | undefined
-  response: Array<string> | undefined
+  logs?: Array<string> | undefined
+  params?: Array<string> | undefined
+  response?: Array<string> | undefined
 }
 
 /**
@@ -7374,49 +7374,49 @@ export type job_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type job_delete_elem_input = {
-  logs: number | undefined
-  params: number | undefined
-  response: number | undefined
+  logs?: number | undefined
+  params?: number | undefined
+  response?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type job_delete_key_input = {
-  logs: string | undefined
-  params: string | undefined
-  response: string | undefined
+  logs?: string | undefined
+  params?: string | undefined
+  response?: string | undefined
 }
 
 /**
  * input type for inserting data into table "job"
  */
 export type job_insert_input = {
-  apiVersion: string | undefined
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  endedAt: string | undefined
-  entities: entity_arr_rel_insert_input | undefined
-  id: string | undefined
-  integration: integration_obj_rel_insert_input | undefined
-  integrationId: string | undefined
-  integrationSdkVersion: string | undefined
-  integrationVersion: string | undefined
-  issues: issue_arr_rel_insert_input | undefined
-  logFile: string | undefined
-  logLink: string | undefined
-  logs: string | undefined
-  method: job_method_enum | undefined
-  params: string | undefined
-  requestId: string | undefined
-  response: string | undefined
-  sdkVersion: string | undefined
-  startedAt: string | undefined
-  status: job_status_enum | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  updatedAt: string | undefined
+  apiVersion?: string | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  endedAt?: string | undefined
+  entities?: entity_arr_rel_insert_input | undefined
+  id?: string | undefined
+  integration?: integration_obj_rel_insert_input | undefined
+  integrationId?: string | undefined
+  integrationSdkVersion?: string | undefined
+  integrationVersion?: string | undefined
+  issues?: issue_arr_rel_insert_input | undefined
+  logFile?: string | undefined
+  logLink?: string | undefined
+  logs?: string | undefined
+  method?: job_method_enum | undefined
+  params?: string | undefined
+  requestId?: string | undefined
+  response?: string | undefined
+  sdkVersion?: string | undefined
+  startedAt?: string | undefined
+  status?: job_status_enum | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -7492,21 +7492,21 @@ export class job_max_fields extends $Base<'job_max_fields'> {
  * order by max() on columns of table "job"
  */
 export type job_max_order_by = {
-  apiVersion: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  endedAt: order_by | undefined
-  id: order_by | undefined
-  integrationId: order_by | undefined
-  integrationSdkVersion: order_by | undefined
-  integrationVersion: order_by | undefined
-  logFile: order_by | undefined
-  logLink: order_by | undefined
-  requestId: order_by | undefined
-  sdkVersion: order_by | undefined
-  startedAt: order_by | undefined
-  teamId: order_by | undefined
-  updatedAt: order_by | undefined
+  apiVersion?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  endedAt?: order_by | undefined
+  id?: order_by | undefined
+  integrationId?: order_by | undefined
+  integrationSdkVersion?: order_by | undefined
+  integrationVersion?: order_by | undefined
+  logFile?: order_by | undefined
+  logLink?: order_by | undefined
+  requestId?: order_by | undefined
+  sdkVersion?: order_by | undefined
+  startedAt?: order_by | undefined
+  teamId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 export enum job_method_enum {
@@ -7533,11 +7533,11 @@ export enum job_method_enum {
  * Boolean expression to compare columns of type "job_method_enum". All fields are combined with logical 'AND'.
  */
 export type job_method_enum_comparison_exp = {
-  _eq: job_method_enum | undefined
-  _in: Array<job_method_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: job_method_enum | undefined
-  _nin: Array<job_method_enum> | undefined
+  _eq?: job_method_enum | undefined
+  _in?: Array<job_method_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: job_method_enum | undefined
+  _nin?: Array<job_method_enum> | undefined
 }
 
 /**
@@ -7613,21 +7613,21 @@ export class job_min_fields extends $Base<'job_min_fields'> {
  * order by min() on columns of table "job"
  */
 export type job_min_order_by = {
-  apiVersion: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  endedAt: order_by | undefined
-  id: order_by | undefined
-  integrationId: order_by | undefined
-  integrationSdkVersion: order_by | undefined
-  integrationVersion: order_by | undefined
-  logFile: order_by | undefined
-  logLink: order_by | undefined
-  requestId: order_by | undefined
-  sdkVersion: order_by | undefined
-  startedAt: order_by | undefined
-  teamId: order_by | undefined
-  updatedAt: order_by | undefined
+  apiVersion?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  endedAt?: order_by | undefined
+  id?: order_by | undefined
+  integrationId?: order_by | undefined
+  integrationSdkVersion?: order_by | undefined
+  integrationVersion?: order_by | undefined
+  logFile?: order_by | undefined
+  logLink?: order_by | undefined
+  requestId?: order_by | undefined
+  sdkVersion?: order_by | undefined
+  startedAt?: order_by | undefined
+  teamId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -7663,7 +7663,7 @@ export class job_mutation_response extends $Base<'job_mutation_response'> {
  */
 export type job_obj_rel_insert_input = {
   data: job_insert_input
-  on_conflict: job_on_conflict | undefined
+  on_conflict?: job_on_conflict | undefined
 }
 
 /**
@@ -7672,38 +7672,38 @@ export type job_obj_rel_insert_input = {
 export type job_on_conflict = {
   constraint: job_constraint
   update_columns: Array<job_update_column>
-  where: job_bool_exp | undefined
+  where?: job_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "job".
  */
 export type job_order_by = {
-  apiVersion: order_by | undefined
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  endedAt: order_by | undefined
-  entities_aggregate: entity_aggregate_order_by | undefined
-  id: order_by | undefined
-  integration: integration_order_by | undefined
-  integrationId: order_by | undefined
-  integrationSdkVersion: order_by | undefined
-  integrationVersion: order_by | undefined
-  issues_aggregate: issue_aggregate_order_by | undefined
-  logFile: order_by | undefined
-  logLink: order_by | undefined
-  logs: order_by | undefined
-  method: order_by | undefined
-  params: order_by | undefined
-  requestId: order_by | undefined
-  response: order_by | undefined
-  sdkVersion: order_by | undefined
-  startedAt: order_by | undefined
-  status: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  updatedAt: order_by | undefined
+  apiVersion?: order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  endedAt?: order_by | undefined
+  entities_aggregate?: entity_aggregate_order_by | undefined
+  id?: order_by | undefined
+  integration?: integration_order_by | undefined
+  integrationId?: order_by | undefined
+  integrationSdkVersion?: order_by | undefined
+  integrationVersion?: order_by | undefined
+  issues_aggregate?: issue_aggregate_order_by | undefined
+  logFile?: order_by | undefined
+  logLink?: order_by | undefined
+  logs?: order_by | undefined
+  method?: order_by | undefined
+  params?: order_by | undefined
+  requestId?: order_by | undefined
+  response?: order_by | undefined
+  sdkVersion?: order_by | undefined
+  startedAt?: order_by | undefined
+  status?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -7717,9 +7717,9 @@ export type job_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type job_prepend_input = {
-  logs: string | undefined
-  params: string | undefined
-  response: string | undefined
+  logs?: string | undefined
+  params?: string | undefined
+  response?: string | undefined
 }
 
 /**
@@ -7831,26 +7831,26 @@ export enum job_select_column {
  * input type for updating data in table "job"
  */
 export type job_set_input = {
-  apiVersion: string | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  endedAt: string | undefined
-  id: string | undefined
-  integrationId: string | undefined
-  integrationSdkVersion: string | undefined
-  integrationVersion: string | undefined
-  logFile: string | undefined
-  logLink: string | undefined
-  logs: string | undefined
-  method: job_method_enum | undefined
-  params: string | undefined
-  requestId: string | undefined
-  response: string | undefined
-  sdkVersion: string | undefined
-  startedAt: string | undefined
-  status: job_status_enum | undefined
-  teamId: string | undefined
-  updatedAt: string | undefined
+  apiVersion?: string | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  endedAt?: string | undefined
+  id?: string | undefined
+  integrationId?: string | undefined
+  integrationSdkVersion?: string | undefined
+  integrationVersion?: string | undefined
+  logFile?: string | undefined
+  logLink?: string | undefined
+  logs?: string | undefined
+  method?: job_method_enum | undefined
+  params?: string | undefined
+  requestId?: string | undefined
+  response?: string | undefined
+  sdkVersion?: string | undefined
+  startedAt?: string | undefined
+  status?: job_status_enum | undefined
+  teamId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 export enum job_status_enum {
@@ -7869,11 +7869,11 @@ export enum job_status_enum {
  * Boolean expression to compare columns of type "job_status_enum". All fields are combined with logical 'AND'.
  */
 export type job_status_enum_comparison_exp = {
-  _eq: job_status_enum | undefined
-  _in: Array<job_status_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: job_status_enum | undefined
-  _nin: Array<job_status_enum> | undefined
+  _eq?: job_status_enum | undefined
+  _in?: Array<job_status_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: job_status_enum | undefined
+  _nin?: Array<job_status_enum> | undefined
 }
 
 /**
@@ -8031,8 +8031,8 @@ export class jobMethod_aggregate_fields extends $Base<'jobMethod_aggregate_field
 
   count<
     Args extends VariabledInput<{
-      columns: Array<jobMethod_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<jobMethod_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -8068,10 +8068,10 @@ export class jobMethod_aggregate_fields extends $Base<'jobMethod_aggregate_field
  * Boolean expression to filter rows from the table "job_method". All fields are combined with a logical 'AND'.
  */
 export type jobMethod_bool_exp = {
-  _and: Array<jobMethod_bool_exp> | undefined
-  _not: jobMethod_bool_exp | undefined
-  _or: Array<jobMethod_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<jobMethod_bool_exp> | undefined
+  _not?: jobMethod_bool_exp | undefined
+  _or?: Array<jobMethod_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -8088,7 +8088,7 @@ export enum jobMethod_constraint {
  * input type for inserting data into table "job_method"
  */
 export type jobMethod_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -8151,14 +8151,14 @@ export class jobMethod_mutation_response extends $Base<'jobMethod_mutation_respo
 export type jobMethod_on_conflict = {
   constraint: jobMethod_constraint
   update_columns: Array<jobMethod_update_column>
-  where: jobMethod_bool_exp | undefined
+  where?: jobMethod_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "job_method".
  */
 export type jobMethod_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -8182,7 +8182,7 @@ export enum jobMethod_select_column {
  * input type for updating data in table "job_method"
  */
 export type jobMethod_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -8245,8 +8245,8 @@ export class jobStatus_aggregate_fields extends $Base<'jobStatus_aggregate_field
 
   count<
     Args extends VariabledInput<{
-      columns: Array<jobStatus_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<jobStatus_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -8282,10 +8282,10 @@ export class jobStatus_aggregate_fields extends $Base<'jobStatus_aggregate_field
  * Boolean expression to filter rows from the table "job_status". All fields are combined with a logical 'AND'.
  */
 export type jobStatus_bool_exp = {
-  _and: Array<jobStatus_bool_exp> | undefined
-  _not: jobStatus_bool_exp | undefined
-  _or: Array<jobStatus_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<jobStatus_bool_exp> | undefined
+  _not?: jobStatus_bool_exp | undefined
+  _or?: Array<jobStatus_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -8302,7 +8302,7 @@ export enum jobStatus_constraint {
  * input type for inserting data into table "job_status"
  */
 export type jobStatus_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -8365,14 +8365,14 @@ export class jobStatus_mutation_response extends $Base<'jobStatus_mutation_respo
 export type jobStatus_on_conflict = {
   constraint: jobStatus_constraint
   update_columns: Array<jobStatus_update_column>
-  where: jobStatus_bool_exp | undefined
+  where?: jobStatus_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "job_status".
  */
 export type jobStatus_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -8396,7 +8396,7 @@ export enum jobStatus_select_column {
  * input type for updating data in table "job_status"
  */
 export type jobStatus_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -8415,20 +8415,20 @@ export type jsonb = unknown
  * Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
  */
 export type jsonb_comparison_exp = {
-  _contained_in: string | undefined
-  _contains: string | undefined
-  _eq: string | undefined
-  _gt: string | undefined
-  _gte: string | undefined
-  _has_key: string | undefined
-  _has_keys_all: Array<string> | undefined
-  _has_keys_any: Array<string> | undefined
-  _in: Array<string> | undefined
-  _is_null: boolean | undefined
-  _lt: string | undefined
-  _lte: string | undefined
-  _neq: string | undefined
-  _nin: Array<string> | undefined
+  _contained_in?: string | undefined
+  _contains?: string | undefined
+  _eq?: string | undefined
+  _gt?: string | undefined
+  _gte?: string | undefined
+  _has_key?: string | undefined
+  _has_keys_all?: Array<string> | undefined
+  _has_keys_any?: Array<string> | undefined
+  _in?: Array<string> | undefined
+  _is_null?: boolean | undefined
+  _lt?: string | undefined
+  _lte?: string | undefined
+  _neq?: string | undefined
+  _nin?: Array<string> | undefined
 }
 
 /**
@@ -8492,11 +8492,11 @@ export class line extends $Base<'line'> {
    */
   enhancementLines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -8523,11 +8523,11 @@ export class line extends $Base<'line'> {
    */
   enhancementLines_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line_aggregate>
   >(
@@ -8579,7 +8579,7 @@ export class line extends $Base<'line'> {
 
   metadata<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'metadata', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -8702,8 +8702,8 @@ export class line_aggregate_fields extends $Base<'line_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<line_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<line_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -8802,24 +8802,24 @@ export class line_aggregate_fields extends $Base<'line_aggregate_fields'> {
  * order by aggregate values of table "line"
  */
 export type line_aggregate_order_by = {
-  avg: line_avg_order_by | undefined
-  count: order_by | undefined
-  max: line_max_order_by | undefined
-  min: line_min_order_by | undefined
-  stddev: line_stddev_order_by | undefined
-  stddev_pop: line_stddev_pop_order_by | undefined
-  stddev_samp: line_stddev_samp_order_by | undefined
-  sum: line_sum_order_by | undefined
-  var_pop: line_var_pop_order_by | undefined
-  var_samp: line_var_samp_order_by | undefined
-  variance: line_variance_order_by | undefined
+  avg?: line_avg_order_by | undefined
+  count?: order_by | undefined
+  max?: line_max_order_by | undefined
+  min?: line_min_order_by | undefined
+  stddev?: line_stddev_order_by | undefined
+  stddev_pop?: line_stddev_pop_order_by | undefined
+  stddev_samp?: line_stddev_samp_order_by | undefined
+  sum?: line_sum_order_by | undefined
+  var_pop?: line_var_pop_order_by | undefined
+  var_samp?: line_var_samp_order_by | undefined
+  variance?: line_variance_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type line_append_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -8827,7 +8827,7 @@ export type line_append_input = {
  */
 export type line_arr_rel_insert_input = {
   data: Array<line_insert_input>
-  on_conflict: line_on_conflict | undefined
+  on_conflict?: line_on_conflict | undefined
 }
 
 /**
@@ -8855,45 +8855,45 @@ export class line_avg_fields extends $Base<'line_avg_fields'> {
  * order by avg() on columns of table "line"
  */
 export type line_avg_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "line". All fields are combined with a logical 'AND'.
  */
 export type line_bool_exp = {
-  _and: Array<line_bool_exp> | undefined
-  _not: line_bool_exp | undefined
-  _or: Array<line_bool_exp> | undefined
-  booking: booking_bool_exp | undefined
-  bookingId: uuid_comparison_exp | undefined
-  centTotal: Int_comparison_exp | undefined
-  classification: classification_enum_comparison_exp | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  description: String_comparison_exp | undefined
-  enhancementLines: line_bool_exp | undefined
-  enhancingLine: line_bool_exp | undefined
-  enhancingLineId: uuid_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  invoiceStatus: String_comparison_exp | undefined
-  isEnhanced: Boolean_comparison_exp | undefined
-  metadata: jsonb_comparison_exp | undefined
-  originCentTotal: Int_comparison_exp | undefined
-  originCurrency: String_comparison_exp | undefined
-  originExchangeRate: numeric_comparison_exp | undefined
-  payment: payment_bool_exp | undefined
-  paymentId: uuid_comparison_exp | undefined
-  subclassification: subclassification_enum_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  type: String_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
-  unitId: uuid_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<line_bool_exp> | undefined
+  _not?: line_bool_exp | undefined
+  _or?: Array<line_bool_exp> | undefined
+  booking?: booking_bool_exp | undefined
+  bookingId?: uuid_comparison_exp | undefined
+  centTotal?: Int_comparison_exp | undefined
+  classification?: classification_enum_comparison_exp | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  description?: String_comparison_exp | undefined
+  enhancementLines?: line_bool_exp | undefined
+  enhancingLine?: line_bool_exp | undefined
+  enhancingLineId?: uuid_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  invoiceStatus?: String_comparison_exp | undefined
+  isEnhanced?: Boolean_comparison_exp | undefined
+  metadata?: jsonb_comparison_exp | undefined
+  originCentTotal?: Int_comparison_exp | undefined
+  originCurrency?: String_comparison_exp | undefined
+  originExchangeRate?: numeric_comparison_exp | undefined
+  payment?: payment_bool_exp | undefined
+  paymentId?: uuid_comparison_exp | undefined
+  subclassification?: subclassification_enum_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  type?: String_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
+  unitId?: uuid_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -8910,7 +8910,7 @@ export enum line_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type line_delete_at_path_input = {
-  metadata: Array<string> | undefined
+  metadata?: Array<string> | undefined
 }
 
 /**
@@ -8918,56 +8918,56 @@ export type line_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type line_delete_elem_input = {
-  metadata: number | undefined
+  metadata?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type line_delete_key_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
  * input type for incrementing numeric columns in table "line"
  */
 export type line_inc_input = {
-  centTotal: number | undefined
-  originCentTotal: number | undefined
-  originExchangeRate: string | undefined
+  centTotal?: number | undefined
+  originCentTotal?: number | undefined
+  originExchangeRate?: string | undefined
 }
 
 /**
  * input type for inserting data into table "line"
  */
 export type line_insert_input = {
-  booking: booking_obj_rel_insert_input | undefined
-  bookingId: string | undefined
-  centTotal: number | undefined
-  classification: classification_enum | undefined
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  description: string | undefined
-  enhancementLines: line_arr_rel_insert_input | undefined
-  enhancingLine: line_obj_rel_insert_input | undefined
-  enhancingLineId: string | undefined
-  id: string | undefined
-  invoiceStatus: string | undefined
-  isEnhanced: boolean | undefined
-  metadata: string | undefined
-  originCentTotal: number | undefined
-  originCurrency: string | undefined
-  originExchangeRate: string | undefined
-  payment: payment_obj_rel_insert_input | undefined
-  paymentId: string | undefined
-  subclassification: subclassification_enum | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
+  booking?: booking_obj_rel_insert_input | undefined
+  bookingId?: string | undefined
+  centTotal?: number | undefined
+  classification?: classification_enum | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  description?: string | undefined
+  enhancementLines?: line_arr_rel_insert_input | undefined
+  enhancingLine?: line_obj_rel_insert_input | undefined
+  enhancingLineId?: string | undefined
+  id?: string | undefined
+  invoiceStatus?: string | undefined
+  isEnhanced?: boolean | undefined
+  metadata?: string | undefined
+  originCentTotal?: number | undefined
+  originCurrency?: string | undefined
+  originExchangeRate?: string | undefined
+  payment?: payment_obj_rel_insert_input | undefined
+  paymentId?: string | undefined
+  subclassification?: subclassification_enum | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -9051,23 +9051,23 @@ export class line_max_fields extends $Base<'line_max_fields'> {
  * order by max() on columns of table "line"
  */
 export type line_max_order_by = {
-  bookingId: order_by | undefined
-  centTotal: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  enhancingLineId: order_by | undefined
-  id: order_by | undefined
-  invoiceStatus: order_by | undefined
-  originCentTotal: order_by | undefined
-  originCurrency: order_by | undefined
-  originExchangeRate: order_by | undefined
-  paymentId: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  bookingId?: order_by | undefined
+  centTotal?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  enhancingLineId?: order_by | undefined
+  id?: order_by | undefined
+  invoiceStatus?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originCurrency?: order_by | undefined
+  originExchangeRate?: order_by | undefined
+  paymentId?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -9151,23 +9151,23 @@ export class line_min_fields extends $Base<'line_min_fields'> {
  * order by min() on columns of table "line"
  */
 export type line_min_order_by = {
-  bookingId: order_by | undefined
-  centTotal: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  enhancingLineId: order_by | undefined
-  id: order_by | undefined
-  invoiceStatus: order_by | undefined
-  originCentTotal: order_by | undefined
-  originCurrency: order_by | undefined
-  originExchangeRate: order_by | undefined
-  paymentId: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  bookingId?: order_by | undefined
+  centTotal?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  enhancingLineId?: order_by | undefined
+  id?: order_by | undefined
+  invoiceStatus?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originCurrency?: order_by | undefined
+  originExchangeRate?: order_by | undefined
+  paymentId?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -9203,7 +9203,7 @@ export class line_mutation_response extends $Base<'line_mutation_response'> {
  */
 export type line_obj_rel_insert_input = {
   data: line_insert_input
-  on_conflict: line_on_conflict | undefined
+  on_conflict?: line_on_conflict | undefined
 }
 
 /**
@@ -9212,40 +9212,40 @@ export type line_obj_rel_insert_input = {
 export type line_on_conflict = {
   constraint: line_constraint
   update_columns: Array<line_update_column>
-  where: line_bool_exp | undefined
+  where?: line_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "line".
  */
 export type line_order_by = {
-  booking: booking_order_by | undefined
-  bookingId: order_by | undefined
-  centTotal: order_by | undefined
-  classification: order_by | undefined
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  enhancementLines_aggregate: line_aggregate_order_by | undefined
-  enhancingLine: line_order_by | undefined
-  enhancingLineId: order_by | undefined
-  id: order_by | undefined
-  invoiceStatus: order_by | undefined
-  isEnhanced: order_by | undefined
-  metadata: order_by | undefined
-  originCentTotal: order_by | undefined
-  originCurrency: order_by | undefined
-  originExchangeRate: order_by | undefined
-  payment: payment_order_by | undefined
-  paymentId: order_by | undefined
-  subclassification: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  booking?: booking_order_by | undefined
+  bookingId?: order_by | undefined
+  centTotal?: order_by | undefined
+  classification?: order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  enhancementLines_aggregate?: line_aggregate_order_by | undefined
+  enhancingLine?: line_order_by | undefined
+  enhancingLineId?: order_by | undefined
+  id?: order_by | undefined
+  invoiceStatus?: order_by | undefined
+  isEnhanced?: order_by | undefined
+  metadata?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originCurrency?: order_by | undefined
+  originExchangeRate?: order_by | undefined
+  payment?: payment_order_by | undefined
+  paymentId?: order_by | undefined
+  subclassification?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -9259,7 +9259,7 @@ export type line_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type line_prepend_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -9376,27 +9376,27 @@ export enum line_select_column {
  * input type for updating data in table "line"
  */
 export type line_set_input = {
-  bookingId: string | undefined
-  centTotal: number | undefined
-  classification: classification_enum | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  description: string | undefined
-  enhancingLineId: string | undefined
-  id: string | undefined
-  invoiceStatus: string | undefined
-  isEnhanced: boolean | undefined
-  metadata: string | undefined
-  originCentTotal: number | undefined
-  originCurrency: string | undefined
-  originExchangeRate: string | undefined
-  paymentId: string | undefined
-  subclassification: subclassification_enum | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
+  bookingId?: string | undefined
+  centTotal?: number | undefined
+  classification?: classification_enum | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  description?: string | undefined
+  enhancingLineId?: string | undefined
+  id?: string | undefined
+  invoiceStatus?: string | undefined
+  isEnhanced?: boolean | undefined
+  metadata?: string | undefined
+  originCentTotal?: number | undefined
+  originCurrency?: string | undefined
+  originExchangeRate?: string | undefined
+  paymentId?: string | undefined
+  subclassification?: subclassification_enum | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -9424,9 +9424,9 @@ export class line_stddev_fields extends $Base<'line_stddev_fields'> {
  * order by stddev() on columns of table "line"
  */
 export type line_stddev_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
@@ -9454,9 +9454,9 @@ export class line_stddev_pop_fields extends $Base<'line_stddev_pop_fields'> {
  * order by stddev_pop() on columns of table "line"
  */
 export type line_stddev_pop_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
@@ -9484,9 +9484,9 @@ export class line_stddev_samp_fields extends $Base<'line_stddev_samp_fields'> {
  * order by stddev_samp() on columns of table "line"
  */
 export type line_stddev_samp_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
@@ -9514,9 +9514,9 @@ export class line_sum_fields extends $Base<'line_sum_fields'> {
  * order by sum() on columns of table "line"
  */
 export type line_sum_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
@@ -9654,9 +9654,9 @@ export class line_var_pop_fields extends $Base<'line_var_pop_fields'> {
  * order by var_pop() on columns of table "line"
  */
 export type line_var_pop_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
@@ -9684,9 +9684,9 @@ export class line_var_samp_fields extends $Base<'line_var_samp_fields'> {
  * order by var_samp() on columns of table "line"
  */
 export type line_var_samp_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
@@ -9714,9 +9714,9 @@ export class line_variance_fields extends $Base<'line_variance_fields'> {
  * order by variance() on columns of table "line"
  */
 export type line_variance_order_by = {
-  centTotal: order_by | undefined
-  originCentTotal: order_by | undefined
-  originExchangeRate: order_by | undefined
+  centTotal?: order_by | undefined
+  originCentTotal?: order_by | undefined
+  originExchangeRate?: order_by | undefined
 }
 
 /**
@@ -9757,7 +9757,7 @@ export class metric extends $Base<'metric'> {
 
   metadata<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'metadata', string, GetVariables<[], Args>> {
     const options = {
@@ -9856,8 +9856,8 @@ export class metric_aggregate_fields extends $Base<'metric_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<metric_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<metric_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -9956,24 +9956,24 @@ export class metric_aggregate_fields extends $Base<'metric_aggregate_fields'> {
  * order by aggregate values of table "metric"
  */
 export type metric_aggregate_order_by = {
-  avg: metric_avg_order_by | undefined
-  count: order_by | undefined
-  max: metric_max_order_by | undefined
-  min: metric_min_order_by | undefined
-  stddev: metric_stddev_order_by | undefined
-  stddev_pop: metric_stddev_pop_order_by | undefined
-  stddev_samp: metric_stddev_samp_order_by | undefined
-  sum: metric_sum_order_by | undefined
-  var_pop: metric_var_pop_order_by | undefined
-  var_samp: metric_var_samp_order_by | undefined
-  variance: metric_variance_order_by | undefined
+  avg?: metric_avg_order_by | undefined
+  count?: order_by | undefined
+  max?: metric_max_order_by | undefined
+  min?: metric_min_order_by | undefined
+  stddev?: metric_stddev_order_by | undefined
+  stddev_pop?: metric_stddev_pop_order_by | undefined
+  stddev_samp?: metric_stddev_samp_order_by | undefined
+  sum?: metric_sum_order_by | undefined
+  var_pop?: metric_var_pop_order_by | undefined
+  var_samp?: metric_var_samp_order_by | undefined
+  variance?: metric_variance_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type metric_append_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -9981,7 +9981,7 @@ export type metric_append_input = {
  */
 export type metric_arr_rel_insert_input = {
   data: Array<metric_insert_input>
-  on_conflict: metric_on_conflict | undefined
+  on_conflict?: metric_on_conflict | undefined
 }
 
 /**
@@ -10001,30 +10001,30 @@ export class metric_avg_fields extends $Base<'metric_avg_fields'> {
  * order by avg() on columns of table "metric"
  */
 export type metric_avg_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "metric". All fields are combined with a logical 'AND'.
  */
 export type metric_bool_exp = {
-  _and: Array<metric_bool_exp> | undefined
-  _not: metric_bool_exp | undefined
-  _or: Array<metric_bool_exp> | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  ensuedAt: timestamptz_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  metadata: jsonb_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  text: String_comparison_exp | undefined
-  type: String_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
-  unitId: uuid_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
-  value: float8_comparison_exp | undefined
+  _and?: Array<metric_bool_exp> | undefined
+  _not?: metric_bool_exp | undefined
+  _or?: Array<metric_bool_exp> | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  ensuedAt?: timestamptz_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  metadata?: jsonb_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  text?: String_comparison_exp | undefined
+  type?: String_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
+  unitId?: uuid_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
+  value?: float8_comparison_exp | undefined
 }
 
 /**
@@ -10041,7 +10041,7 @@ export enum metric_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type metric_delete_at_path_input = {
-  metadata: Array<string> | undefined
+  metadata?: Array<string> | undefined
 }
 
 /**
@@ -10049,41 +10049,41 @@ export type metric_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type metric_delete_elem_input = {
-  metadata: number | undefined
+  metadata?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type metric_delete_key_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
  * input type for incrementing numeric columns in table "metric"
  */
 export type metric_inc_input = {
-  value: string | undefined
+  value?: string | undefined
 }
 
 /**
  * input type for inserting data into table "metric"
  */
 export type metric_insert_input = {
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  ensuedAt: string | undefined
-  id: string | undefined
-  metadata: string | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  text: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
-  value: string | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  ensuedAt?: string | undefined
+  id?: string | undefined
+  metadata?: string | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  text?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
+  value?: string | undefined
 }
 
 /**
@@ -10143,17 +10143,17 @@ export class metric_max_fields extends $Base<'metric_max_fields'> {
  * order by max() on columns of table "metric"
  */
 export type metric_max_order_by = {
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  ensuedAt: order_by | undefined
-  id: order_by | undefined
-  teamId: order_by | undefined
-  text: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
-  value: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  ensuedAt?: order_by | undefined
+  id?: order_by | undefined
+  teamId?: order_by | undefined
+  text?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10213,17 +10213,17 @@ export class metric_min_fields extends $Base<'metric_min_fields'> {
  * order by min() on columns of table "metric"
  */
 export type metric_min_order_by = {
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  ensuedAt: order_by | undefined
-  id: order_by | undefined
-  teamId: order_by | undefined
-  text: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
-  value: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  ensuedAt?: order_by | undefined
+  id?: order_by | undefined
+  teamId?: order_by | undefined
+  text?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10260,27 +10260,27 @@ export class metric_mutation_response extends $Base<'metric_mutation_response'> 
 export type metric_on_conflict = {
   constraint: metric_constraint
   update_columns: Array<metric_update_column>
-  where: metric_bool_exp | undefined
+  where?: metric_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "metric".
  */
 export type metric_order_by = {
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  ensuedAt: order_by | undefined
-  id: order_by | undefined
-  metadata: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  text: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
-  value: order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  ensuedAt?: order_by | undefined
+  id?: order_by | undefined
+  metadata?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  text?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10294,7 +10294,7 @@ export type metric_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type metric_prepend_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -10366,18 +10366,18 @@ export enum metric_select_column {
  * input type for updating data in table "metric"
  */
 export type metric_set_input = {
-  connectionId: string | undefined
-  createdAt: string | undefined
-  ensuedAt: string | undefined
-  id: string | undefined
-  metadata: string | undefined
-  teamId: string | undefined
-  text: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
-  value: string | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  ensuedAt?: string | undefined
+  id?: string | undefined
+  metadata?: string | undefined
+  teamId?: string | undefined
+  text?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
+  value?: string | undefined
 }
 
 /**
@@ -10397,7 +10397,7 @@ export class metric_stddev_fields extends $Base<'metric_stddev_fields'> {
  * order by stddev() on columns of table "metric"
  */
 export type metric_stddev_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10417,7 +10417,7 @@ export class metric_stddev_pop_fields extends $Base<'metric_stddev_pop_fields'> 
  * order by stddev_pop() on columns of table "metric"
  */
 export type metric_stddev_pop_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10437,7 +10437,7 @@ export class metric_stddev_samp_fields extends $Base<'metric_stddev_samp_fields'
  * order by stddev_samp() on columns of table "metric"
  */
 export type metric_stddev_samp_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10457,7 +10457,7 @@ export class metric_sum_fields extends $Base<'metric_sum_fields'> {
  * order by sum() on columns of table "metric"
  */
 export type metric_sum_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10542,7 +10542,7 @@ export class metric_var_pop_fields extends $Base<'metric_var_pop_fields'> {
  * order by var_pop() on columns of table "metric"
  */
 export type metric_var_pop_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10562,7 +10562,7 @@ export class metric_var_samp_fields extends $Base<'metric_var_samp_fields'> {
  * order by var_samp() on columns of table "metric"
  */
 export type metric_var_samp_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -10582,7 +10582,7 @@ export class metric_variance_fields extends $Base<'metric_variance_fields'> {
  * order by variance() on columns of table "metric"
  */
 export type metric_variance_order_by = {
-  value: order_by | undefined
+  value?: order_by | undefined
 }
 
 /**
@@ -11887,7 +11887,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertBooking<
     Args extends VariabledInput<{
       object: booking_insert_input
-      on_conflict: booking_on_conflict | undefined
+      on_conflict?: booking_on_conflict | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -11912,7 +11912,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertBookingStatus<
     Args extends VariabledInput<{
       object: bookingStatus_insert_input
-      on_conflict: bookingStatus_on_conflict | undefined
+      on_conflict?: bookingStatus_on_conflict | undefined
     }>,
     Sel extends Selection<bookingStatus>
   >(
@@ -11937,7 +11937,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertBookingStatuses<
     Args extends VariabledInput<{
       objects: Array<bookingStatus_insert_input>
-      on_conflict: bookingStatus_on_conflict | undefined
+      on_conflict?: bookingStatus_on_conflict | undefined
     }>,
     Sel extends Selection<bookingStatus_mutation_response>
   >(
@@ -11962,7 +11962,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertBookings<
     Args extends VariabledInput<{
       objects: Array<booking_insert_input>
-      on_conflict: booking_on_conflict | undefined
+      on_conflict?: booking_on_conflict | undefined
     }>,
     Sel extends Selection<booking_mutation_response>
   >(
@@ -11987,7 +11987,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertClassification<
     Args extends VariabledInput<{
       object: classification_insert_input
-      on_conflict: classification_on_conflict | undefined
+      on_conflict?: classification_on_conflict | undefined
     }>,
     Sel extends Selection<classification>
   >(
@@ -12012,7 +12012,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertClassifications<
     Args extends VariabledInput<{
       objects: Array<classification_insert_input>
-      on_conflict: classification_on_conflict | undefined
+      on_conflict?: classification_on_conflict | undefined
     }>,
     Sel extends Selection<classification_mutation_response>
   >(
@@ -12037,7 +12037,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertConnection<
     Args extends VariabledInput<{
       object: connection_insert_input
-      on_conflict: connection_on_conflict | undefined
+      on_conflict?: connection_on_conflict | undefined
     }>,
     Sel extends Selection<connection>
   >(
@@ -12062,7 +12062,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertConnections<
     Args extends VariabledInput<{
       objects: Array<connection_insert_input>
-      on_conflict: connection_on_conflict | undefined
+      on_conflict?: connection_on_conflict | undefined
     }>,
     Sel extends Selection<connection_mutation_response>
   >(
@@ -12087,7 +12087,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertCurrencies<
     Args extends VariabledInput<{
       objects: Array<currency_insert_input>
-      on_conflict: currency_on_conflict | undefined
+      on_conflict?: currency_on_conflict | undefined
     }>,
     Sel extends Selection<currency_mutation_response>
   >(
@@ -12112,7 +12112,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertCurrency<
     Args extends VariabledInput<{
       object: currency_insert_input
-      on_conflict: currency_on_conflict | undefined
+      on_conflict?: currency_on_conflict | undefined
     }>,
     Sel extends Selection<currency>
   >(
@@ -12137,7 +12137,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertEntities<
     Args extends VariabledInput<{
       objects: Array<entity_insert_input>
-      on_conflict: entity_on_conflict | undefined
+      on_conflict?: entity_on_conflict | undefined
     }>,
     Sel extends Selection<entity_mutation_response>
   >(
@@ -12162,7 +12162,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertEntity<
     Args extends VariabledInput<{
       object: entity_insert_input
-      on_conflict: entity_on_conflict | undefined
+      on_conflict?: entity_on_conflict | undefined
     }>,
     Sel extends Selection<entity>
   >(
@@ -12187,7 +12187,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertEntityStatus<
     Args extends VariabledInput<{
       object: entityStatus_insert_input
-      on_conflict: entityStatus_on_conflict | undefined
+      on_conflict?: entityStatus_on_conflict | undefined
     }>,
     Sel extends Selection<entityStatus>
   >(
@@ -12212,7 +12212,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertEntityStatuses<
     Args extends VariabledInput<{
       objects: Array<entityStatus_insert_input>
-      on_conflict: entityStatus_on_conflict | undefined
+      on_conflict?: entityStatus_on_conflict | undefined
     }>,
     Sel extends Selection<entityStatus_mutation_response>
   >(
@@ -12237,7 +12237,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertIntegration<
     Args extends VariabledInput<{
       object: integration_insert_input
-      on_conflict: integration_on_conflict | undefined
+      on_conflict?: integration_on_conflict | undefined
     }>,
     Sel extends Selection<integration>
   >(
@@ -12262,7 +12262,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertIntegrationType<
     Args extends VariabledInput<{
       object: integrationType_insert_input
-      on_conflict: integrationType_on_conflict | undefined
+      on_conflict?: integrationType_on_conflict | undefined
     }>,
     Sel extends Selection<integrationType>
   >(
@@ -12287,7 +12287,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertIntegrationTypes<
     Args extends VariabledInput<{
       objects: Array<integrationType_insert_input>
-      on_conflict: integrationType_on_conflict | undefined
+      on_conflict?: integrationType_on_conflict | undefined
     }>,
     Sel extends Selection<integrationType_mutation_response>
   >(
@@ -12312,7 +12312,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertIntegrations<
     Args extends VariabledInput<{
       objects: Array<integration_insert_input>
-      on_conflict: integration_on_conflict | undefined
+      on_conflict?: integration_on_conflict | undefined
     }>,
     Sel extends Selection<integration_mutation_response>
   >(
@@ -12337,7 +12337,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertIssue<
     Args extends VariabledInput<{
       object: issue_insert_input
-      on_conflict: issue_on_conflict | undefined
+      on_conflict?: issue_on_conflict | undefined
     }>,
     Sel extends Selection<issue>
   >(
@@ -12362,7 +12362,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertIssues<
     Args extends VariabledInput<{
       objects: Array<issue_insert_input>
-      on_conflict: issue_on_conflict | undefined
+      on_conflict?: issue_on_conflict | undefined
     }>,
     Sel extends Selection<issue_mutation_response>
   >(
@@ -12387,7 +12387,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertJob<
     Args extends VariabledInput<{
       object: job_insert_input
-      on_conflict: job_on_conflict | undefined
+      on_conflict?: job_on_conflict | undefined
     }>,
     Sel extends Selection<job>
   >(
@@ -12412,7 +12412,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertJobMethod<
     Args extends VariabledInput<{
       object: jobMethod_insert_input
-      on_conflict: jobMethod_on_conflict | undefined
+      on_conflict?: jobMethod_on_conflict | undefined
     }>,
     Sel extends Selection<jobMethod>
   >(
@@ -12437,7 +12437,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertJobMethods<
     Args extends VariabledInput<{
       objects: Array<jobMethod_insert_input>
-      on_conflict: jobMethod_on_conflict | undefined
+      on_conflict?: jobMethod_on_conflict | undefined
     }>,
     Sel extends Selection<jobMethod_mutation_response>
   >(
@@ -12462,7 +12462,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertJobStatus<
     Args extends VariabledInput<{
       object: jobStatus_insert_input
-      on_conflict: jobStatus_on_conflict | undefined
+      on_conflict?: jobStatus_on_conflict | undefined
     }>,
     Sel extends Selection<jobStatus>
   >(
@@ -12487,7 +12487,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertJobStatuses<
     Args extends VariabledInput<{
       objects: Array<jobStatus_insert_input>
-      on_conflict: jobStatus_on_conflict | undefined
+      on_conflict?: jobStatus_on_conflict | undefined
     }>,
     Sel extends Selection<jobStatus_mutation_response>
   >(
@@ -12512,7 +12512,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertJobs<
     Args extends VariabledInput<{
       objects: Array<job_insert_input>
-      on_conflict: job_on_conflict | undefined
+      on_conflict?: job_on_conflict | undefined
     }>,
     Sel extends Selection<job_mutation_response>
   >(
@@ -12537,7 +12537,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertLine<
     Args extends VariabledInput<{
       object: line_insert_input
-      on_conflict: line_on_conflict | undefined
+      on_conflict?: line_on_conflict | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -12562,7 +12562,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertLines<
     Args extends VariabledInput<{
       objects: Array<line_insert_input>
-      on_conflict: line_on_conflict | undefined
+      on_conflict?: line_on_conflict | undefined
     }>,
     Sel extends Selection<line_mutation_response>
   >(
@@ -12587,7 +12587,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertMetric<
     Args extends VariabledInput<{
       object: metric_insert_input
-      on_conflict: metric_on_conflict | undefined
+      on_conflict?: metric_on_conflict | undefined
     }>,
     Sel extends Selection<metric>
   >(
@@ -12612,7 +12612,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertMetrics<
     Args extends VariabledInput<{
       objects: Array<metric_insert_input>
-      on_conflict: metric_on_conflict | undefined
+      on_conflict?: metric_on_conflict | undefined
     }>,
     Sel extends Selection<metric_mutation_response>
   >(
@@ -12637,7 +12637,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertNormalizedType<
     Args extends VariabledInput<{
       object: normalizedType_insert_input
-      on_conflict: normalizedType_on_conflict | undefined
+      on_conflict?: normalizedType_on_conflict | undefined
     }>,
     Sel extends Selection<normalizedType>
   >(
@@ -12662,7 +12662,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertNormalizedTypes<
     Args extends VariabledInput<{
       objects: Array<normalizedType_insert_input>
-      on_conflict: normalizedType_on_conflict | undefined
+      on_conflict?: normalizedType_on_conflict | undefined
     }>,
     Sel extends Selection<normalizedType_mutation_response>
   >(
@@ -12687,7 +12687,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertPayment<
     Args extends VariabledInput<{
       object: payment_insert_input
-      on_conflict: payment_on_conflict | undefined
+      on_conflict?: payment_on_conflict | undefined
     }>,
     Sel extends Selection<payment>
   >(
@@ -12712,7 +12712,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertPaymentStatus<
     Args extends VariabledInput<{
       object: paymentStatus_insert_input
-      on_conflict: paymentStatus_on_conflict | undefined
+      on_conflict?: paymentStatus_on_conflict | undefined
     }>,
     Sel extends Selection<paymentStatus>
   >(
@@ -12737,7 +12737,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertPaymentStatuses<
     Args extends VariabledInput<{
       objects: Array<paymentStatus_insert_input>
-      on_conflict: paymentStatus_on_conflict | undefined
+      on_conflict?: paymentStatus_on_conflict | undefined
     }>,
     Sel extends Selection<paymentStatus_mutation_response>
   >(
@@ -12762,7 +12762,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertPaymentType<
     Args extends VariabledInput<{
       object: paymentType_insert_input
-      on_conflict: paymentType_on_conflict | undefined
+      on_conflict?: paymentType_on_conflict | undefined
     }>,
     Sel extends Selection<paymentType>
   >(
@@ -12787,7 +12787,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertPaymentTypes<
     Args extends VariabledInput<{
       objects: Array<paymentType_insert_input>
-      on_conflict: paymentType_on_conflict | undefined
+      on_conflict?: paymentType_on_conflict | undefined
     }>,
     Sel extends Selection<paymentType_mutation_response>
   >(
@@ -12812,7 +12812,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertPayments<
     Args extends VariabledInput<{
       objects: Array<payment_insert_input>
-      on_conflict: payment_on_conflict | undefined
+      on_conflict?: payment_on_conflict | undefined
     }>,
     Sel extends Selection<payment_mutation_response>
   >(
@@ -12837,7 +12837,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertSubclassification<
     Args extends VariabledInput<{
       object: subclassification_insert_input
-      on_conflict: subclassification_on_conflict | undefined
+      on_conflict?: subclassification_on_conflict | undefined
     }>,
     Sel extends Selection<subclassification>
   >(
@@ -12862,7 +12862,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertSubclassifications<
     Args extends VariabledInput<{
       objects: Array<subclassification_insert_input>
-      on_conflict: subclassification_on_conflict | undefined
+      on_conflict?: subclassification_on_conflict | undefined
     }>,
     Sel extends Selection<subclassification_mutation_response>
   >(
@@ -12887,7 +12887,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertTag<
     Args extends VariabledInput<{
       object: tag_insert_input
-      on_conflict: tag_on_conflict | undefined
+      on_conflict?: tag_on_conflict | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -12912,7 +12912,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertTags<
     Args extends VariabledInput<{
       objects: Array<tag_insert_input>
-      on_conflict: tag_on_conflict | undefined
+      on_conflict?: tag_on_conflict | undefined
     }>,
     Sel extends Selection<tag_mutation_response>
   >(
@@ -12937,7 +12937,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertTeam<
     Args extends VariabledInput<{
       object: team_insert_input
-      on_conflict: team_on_conflict | undefined
+      on_conflict?: team_on_conflict | undefined
     }>,
     Sel extends Selection<team>
   >(
@@ -12962,7 +12962,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertTeamUser<
     Args extends VariabledInput<{
       object: teamUser_insert_input
-      on_conflict: teamUser_on_conflict | undefined
+      on_conflict?: teamUser_on_conflict | undefined
     }>,
     Sel extends Selection<teamUser>
   >(
@@ -12987,7 +12987,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertTeamUsers<
     Args extends VariabledInput<{
       objects: Array<teamUser_insert_input>
-      on_conflict: teamUser_on_conflict | undefined
+      on_conflict?: teamUser_on_conflict | undefined
     }>,
     Sel extends Selection<teamUser_mutation_response>
   >(
@@ -13012,7 +13012,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertTeams<
     Args extends VariabledInput<{
       objects: Array<team_insert_input>
-      on_conflict: team_on_conflict | undefined
+      on_conflict?: team_on_conflict | undefined
     }>,
     Sel extends Selection<team_mutation_response>
   >(
@@ -13037,7 +13037,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertUnit<
     Args extends VariabledInput<{
       object: unit_insert_input
-      on_conflict: unit_on_conflict | undefined
+      on_conflict?: unit_on_conflict | undefined
     }>,
     Sel extends Selection<unit>
   >(
@@ -13062,7 +13062,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertUnits<
     Args extends VariabledInput<{
       objects: Array<unit_insert_input>
-      on_conflict: unit_on_conflict | undefined
+      on_conflict?: unit_on_conflict | undefined
     }>,
     Sel extends Selection<unit_mutation_response>
   >(
@@ -13087,7 +13087,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertUser<
     Args extends VariabledInput<{
       object: user_insert_input
-      on_conflict: user_on_conflict | undefined
+      on_conflict?: user_on_conflict | undefined
     }>,
     Sel extends Selection<user>
   >(
@@ -13112,7 +13112,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertUserStatus<
     Args extends VariabledInput<{
       object: userStatus_insert_input
-      on_conflict: userStatus_on_conflict | undefined
+      on_conflict?: userStatus_on_conflict | undefined
     }>,
     Sel extends Selection<userStatus>
   >(
@@ -13137,7 +13137,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertUserStatuses<
     Args extends VariabledInput<{
       objects: Array<userStatus_insert_input>
-      on_conflict: userStatus_on_conflict | undefined
+      on_conflict?: userStatus_on_conflict | undefined
     }>,
     Sel extends Selection<userStatus_mutation_response>
   >(
@@ -13162,7 +13162,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertUsers<
     Args extends VariabledInput<{
       objects: Array<user_insert_input>
-      on_conflict: user_on_conflict | undefined
+      on_conflict?: user_on_conflict | undefined
     }>,
     Sel extends Selection<user_mutation_response>
   >(
@@ -13187,7 +13187,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertWebhook<
     Args extends VariabledInput<{
       object: webhook_insert_input
-      on_conflict: webhook_on_conflict | undefined
+      on_conflict?: webhook_on_conflict | undefined
     }>,
     Sel extends Selection<webhook>
   >(
@@ -13212,7 +13212,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insertWebhooks<
     Args extends VariabledInput<{
       objects: Array<webhook_insert_input>
-      on_conflict: webhook_on_conflict | undefined
+      on_conflict?: webhook_on_conflict | undefined
     }>,
     Sel extends Selection<webhook_mutation_response>
   >(
@@ -13237,7 +13237,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insert_booking_channel<
     Args extends VariabledInput<{
       objects: Array<booking_channel_insert_input>
-      on_conflict: booking_channel_on_conflict | undefined
+      on_conflict?: booking_channel_on_conflict | undefined
     }>,
     Sel extends Selection<booking_channel_mutation_response>
   >(
@@ -13262,7 +13262,7 @@ export class mutation_root extends $Base<'mutation_root'> {
   insert_booking_channel_one<
     Args extends VariabledInput<{
       object: booking_channel_insert_input
-      on_conflict: booking_channel_on_conflict | undefined
+      on_conflict?: booking_channel_on_conflict | undefined
     }>,
     Sel extends Selection<booking_channel>
   >(
@@ -13286,13 +13286,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateBooking<
     Args extends VariabledInput<{
-      _append: booking_append_input | undefined
-      _delete_at_path: booking_delete_at_path_input | undefined
-      _delete_elem: booking_delete_elem_input | undefined
-      _delete_key: booking_delete_key_input | undefined
-      _inc: booking_inc_input | undefined
-      _prepend: booking_prepend_input | undefined
-      _set: booking_set_input | undefined
+      _append?: booking_append_input | undefined
+      _delete_at_path?: booking_delete_at_path_input | undefined
+      _delete_elem?: booking_delete_elem_input | undefined
+      _delete_key?: booking_delete_key_input | undefined
+      _inc?: booking_inc_input | undefined
+      _prepend?: booking_prepend_input | undefined
+      _set?: booking_set_input | undefined
       pk_columns: booking_pk_columns_input
     }>,
     Sel extends Selection<booking>
@@ -13323,7 +13323,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateBookingStatus<
     Args extends VariabledInput<{
-      _set: bookingStatus_set_input | undefined
+      _set?: bookingStatus_set_input | undefined
       pk_columns: bookingStatus_pk_columns_input
     }>,
     Sel extends Selection<bookingStatus>
@@ -13348,7 +13348,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateBookingStatuses<
     Args extends VariabledInput<{
-      _set: bookingStatus_set_input | undefined
+      _set?: bookingStatus_set_input | undefined
       where: bookingStatus_bool_exp
     }>,
     Sel extends Selection<bookingStatus_mutation_response>
@@ -13373,13 +13373,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateBookings<
     Args extends VariabledInput<{
-      _append: booking_append_input | undefined
-      _delete_at_path: booking_delete_at_path_input | undefined
-      _delete_elem: booking_delete_elem_input | undefined
-      _delete_key: booking_delete_key_input | undefined
-      _inc: booking_inc_input | undefined
-      _prepend: booking_prepend_input | undefined
-      _set: booking_set_input | undefined
+      _append?: booking_append_input | undefined
+      _delete_at_path?: booking_delete_at_path_input | undefined
+      _delete_elem?: booking_delete_elem_input | undefined
+      _delete_key?: booking_delete_key_input | undefined
+      _inc?: booking_inc_input | undefined
+      _prepend?: booking_prepend_input | undefined
+      _set?: booking_set_input | undefined
       where: booking_bool_exp
     }>,
     Sel extends Selection<booking_mutation_response>
@@ -13410,7 +13410,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateClassification<
     Args extends VariabledInput<{
-      _set: classification_set_input | undefined
+      _set?: classification_set_input | undefined
       pk_columns: classification_pk_columns_input
     }>,
     Sel extends Selection<classification>
@@ -13435,7 +13435,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateClassifications<
     Args extends VariabledInput<{
-      _set: classification_set_input | undefined
+      _set?: classification_set_input | undefined
       where: classification_bool_exp
     }>,
     Sel extends Selection<classification_mutation_response>
@@ -13460,12 +13460,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateConnection<
     Args extends VariabledInput<{
-      _append: connection_append_input | undefined
-      _delete_at_path: connection_delete_at_path_input | undefined
-      _delete_elem: connection_delete_elem_input | undefined
-      _delete_key: connection_delete_key_input | undefined
-      _prepend: connection_prepend_input | undefined
-      _set: connection_set_input | undefined
+      _append?: connection_append_input | undefined
+      _delete_at_path?: connection_delete_at_path_input | undefined
+      _delete_elem?: connection_delete_elem_input | undefined
+      _delete_key?: connection_delete_key_input | undefined
+      _prepend?: connection_prepend_input | undefined
+      _set?: connection_set_input | undefined
       pk_columns: connection_pk_columns_input
     }>,
     Sel extends Selection<connection>
@@ -13495,12 +13495,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateConnections<
     Args extends VariabledInput<{
-      _append: connection_append_input | undefined
-      _delete_at_path: connection_delete_at_path_input | undefined
-      _delete_elem: connection_delete_elem_input | undefined
-      _delete_key: connection_delete_key_input | undefined
-      _prepend: connection_prepend_input | undefined
-      _set: connection_set_input | undefined
+      _append?: connection_append_input | undefined
+      _delete_at_path?: connection_delete_at_path_input | undefined
+      _delete_elem?: connection_delete_elem_input | undefined
+      _delete_key?: connection_delete_key_input | undefined
+      _prepend?: connection_prepend_input | undefined
+      _set?: connection_set_input | undefined
       where: connection_bool_exp
     }>,
     Sel extends Selection<connection_mutation_response>
@@ -13530,7 +13530,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateCurrencies<
     Args extends VariabledInput<{
-      _set: currency_set_input | undefined
+      _set?: currency_set_input | undefined
       where: currency_bool_exp
     }>,
     Sel extends Selection<currency_mutation_response>
@@ -13555,7 +13555,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateCurrency<
     Args extends VariabledInput<{
-      _set: currency_set_input | undefined
+      _set?: currency_set_input | undefined
       pk_columns: currency_pk_columns_input
     }>,
     Sel extends Selection<currency>
@@ -13580,12 +13580,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateEntities<
     Args extends VariabledInput<{
-      _append: entity_append_input | undefined
-      _delete_at_path: entity_delete_at_path_input | undefined
-      _delete_elem: entity_delete_elem_input | undefined
-      _delete_key: entity_delete_key_input | undefined
-      _prepend: entity_prepend_input | undefined
-      _set: entity_set_input | undefined
+      _append?: entity_append_input | undefined
+      _delete_at_path?: entity_delete_at_path_input | undefined
+      _delete_elem?: entity_delete_elem_input | undefined
+      _delete_key?: entity_delete_key_input | undefined
+      _prepend?: entity_prepend_input | undefined
+      _set?: entity_set_input | undefined
       where: entity_bool_exp
     }>,
     Sel extends Selection<entity_mutation_response>
@@ -13615,12 +13615,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateEntity<
     Args extends VariabledInput<{
-      _append: entity_append_input | undefined
-      _delete_at_path: entity_delete_at_path_input | undefined
-      _delete_elem: entity_delete_elem_input | undefined
-      _delete_key: entity_delete_key_input | undefined
-      _prepend: entity_prepend_input | undefined
-      _set: entity_set_input | undefined
+      _append?: entity_append_input | undefined
+      _delete_at_path?: entity_delete_at_path_input | undefined
+      _delete_elem?: entity_delete_elem_input | undefined
+      _delete_key?: entity_delete_key_input | undefined
+      _prepend?: entity_prepend_input | undefined
+      _set?: entity_set_input | undefined
       pk_columns: entity_pk_columns_input
     }>,
     Sel extends Selection<entity>
@@ -13650,7 +13650,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateEntityStatus<
     Args extends VariabledInput<{
-      _set: entityStatus_set_input | undefined
+      _set?: entityStatus_set_input | undefined
       pk_columns: entityStatus_pk_columns_input
     }>,
     Sel extends Selection<entityStatus>
@@ -13675,7 +13675,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateEntityStatuses<
     Args extends VariabledInput<{
-      _set: entityStatus_set_input | undefined
+      _set?: entityStatus_set_input | undefined
       where: entityStatus_bool_exp
     }>,
     Sel extends Selection<entityStatus_mutation_response>
@@ -13700,7 +13700,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateIntegration<
     Args extends VariabledInput<{
-      _set: integration_set_input | undefined
+      _set?: integration_set_input | undefined
       pk_columns: integration_pk_columns_input
     }>,
     Sel extends Selection<integration>
@@ -13725,7 +13725,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateIntegrationType<
     Args extends VariabledInput<{
-      _set: integrationType_set_input | undefined
+      _set?: integrationType_set_input | undefined
       pk_columns: integrationType_pk_columns_input
     }>,
     Sel extends Selection<integrationType>
@@ -13750,7 +13750,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateIntegrationTypes<
     Args extends VariabledInput<{
-      _set: integrationType_set_input | undefined
+      _set?: integrationType_set_input | undefined
       where: integrationType_bool_exp
     }>,
     Sel extends Selection<integrationType_mutation_response>
@@ -13775,7 +13775,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateIntegrations<
     Args extends VariabledInput<{
-      _set: integration_set_input | undefined
+      _set?: integration_set_input | undefined
       where: integration_bool_exp
     }>,
     Sel extends Selection<integration_mutation_response>
@@ -13800,12 +13800,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateIssue<
     Args extends VariabledInput<{
-      _append: issue_append_input | undefined
-      _delete_at_path: issue_delete_at_path_input | undefined
-      _delete_elem: issue_delete_elem_input | undefined
-      _delete_key: issue_delete_key_input | undefined
-      _prepend: issue_prepend_input | undefined
-      _set: issue_set_input | undefined
+      _append?: issue_append_input | undefined
+      _delete_at_path?: issue_delete_at_path_input | undefined
+      _delete_elem?: issue_delete_elem_input | undefined
+      _delete_key?: issue_delete_key_input | undefined
+      _prepend?: issue_prepend_input | undefined
+      _set?: issue_set_input | undefined
       pk_columns: issue_pk_columns_input
     }>,
     Sel extends Selection<issue>
@@ -13835,12 +13835,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateIssues<
     Args extends VariabledInput<{
-      _append: issue_append_input | undefined
-      _delete_at_path: issue_delete_at_path_input | undefined
-      _delete_elem: issue_delete_elem_input | undefined
-      _delete_key: issue_delete_key_input | undefined
-      _prepend: issue_prepend_input | undefined
-      _set: issue_set_input | undefined
+      _append?: issue_append_input | undefined
+      _delete_at_path?: issue_delete_at_path_input | undefined
+      _delete_elem?: issue_delete_elem_input | undefined
+      _delete_key?: issue_delete_key_input | undefined
+      _prepend?: issue_prepend_input | undefined
+      _set?: issue_set_input | undefined
       where: issue_bool_exp
     }>,
     Sel extends Selection<issue_mutation_response>
@@ -13870,12 +13870,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateJob<
     Args extends VariabledInput<{
-      _append: job_append_input | undefined
-      _delete_at_path: job_delete_at_path_input | undefined
-      _delete_elem: job_delete_elem_input | undefined
-      _delete_key: job_delete_key_input | undefined
-      _prepend: job_prepend_input | undefined
-      _set: job_set_input | undefined
+      _append?: job_append_input | undefined
+      _delete_at_path?: job_delete_at_path_input | undefined
+      _delete_elem?: job_delete_elem_input | undefined
+      _delete_key?: job_delete_key_input | undefined
+      _prepend?: job_prepend_input | undefined
+      _set?: job_set_input | undefined
       pk_columns: job_pk_columns_input
     }>,
     Sel extends Selection<job>
@@ -13905,7 +13905,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateJobMethod<
     Args extends VariabledInput<{
-      _set: jobMethod_set_input | undefined
+      _set?: jobMethod_set_input | undefined
       pk_columns: jobMethod_pk_columns_input
     }>,
     Sel extends Selection<jobMethod>
@@ -13930,7 +13930,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateJobMethods<
     Args extends VariabledInput<{
-      _set: jobMethod_set_input | undefined
+      _set?: jobMethod_set_input | undefined
       where: jobMethod_bool_exp
     }>,
     Sel extends Selection<jobMethod_mutation_response>
@@ -13955,7 +13955,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateJobStatus<
     Args extends VariabledInput<{
-      _set: jobStatus_set_input | undefined
+      _set?: jobStatus_set_input | undefined
       pk_columns: jobStatus_pk_columns_input
     }>,
     Sel extends Selection<jobStatus>
@@ -13980,7 +13980,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateJobStatuses<
     Args extends VariabledInput<{
-      _set: jobStatus_set_input | undefined
+      _set?: jobStatus_set_input | undefined
       where: jobStatus_bool_exp
     }>,
     Sel extends Selection<jobStatus_mutation_response>
@@ -14005,12 +14005,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateJobs<
     Args extends VariabledInput<{
-      _append: job_append_input | undefined
-      _delete_at_path: job_delete_at_path_input | undefined
-      _delete_elem: job_delete_elem_input | undefined
-      _delete_key: job_delete_key_input | undefined
-      _prepend: job_prepend_input | undefined
-      _set: job_set_input | undefined
+      _append?: job_append_input | undefined
+      _delete_at_path?: job_delete_at_path_input | undefined
+      _delete_elem?: job_delete_elem_input | undefined
+      _delete_key?: job_delete_key_input | undefined
+      _prepend?: job_prepend_input | undefined
+      _set?: job_set_input | undefined
       where: job_bool_exp
     }>,
     Sel extends Selection<job_mutation_response>
@@ -14040,13 +14040,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateLine<
     Args extends VariabledInput<{
-      _append: line_append_input | undefined
-      _delete_at_path: line_delete_at_path_input | undefined
-      _delete_elem: line_delete_elem_input | undefined
-      _delete_key: line_delete_key_input | undefined
-      _inc: line_inc_input | undefined
-      _prepend: line_prepend_input | undefined
-      _set: line_set_input | undefined
+      _append?: line_append_input | undefined
+      _delete_at_path?: line_delete_at_path_input | undefined
+      _delete_elem?: line_delete_elem_input | undefined
+      _delete_key?: line_delete_key_input | undefined
+      _inc?: line_inc_input | undefined
+      _prepend?: line_prepend_input | undefined
+      _set?: line_set_input | undefined
       pk_columns: line_pk_columns_input
     }>,
     Sel extends Selection<line>
@@ -14077,13 +14077,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateLines<
     Args extends VariabledInput<{
-      _append: line_append_input | undefined
-      _delete_at_path: line_delete_at_path_input | undefined
-      _delete_elem: line_delete_elem_input | undefined
-      _delete_key: line_delete_key_input | undefined
-      _inc: line_inc_input | undefined
-      _prepend: line_prepend_input | undefined
-      _set: line_set_input | undefined
+      _append?: line_append_input | undefined
+      _delete_at_path?: line_delete_at_path_input | undefined
+      _delete_elem?: line_delete_elem_input | undefined
+      _delete_key?: line_delete_key_input | undefined
+      _inc?: line_inc_input | undefined
+      _prepend?: line_prepend_input | undefined
+      _set?: line_set_input | undefined
       where: line_bool_exp
     }>,
     Sel extends Selection<line_mutation_response>
@@ -14114,13 +14114,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateMetric<
     Args extends VariabledInput<{
-      _append: metric_append_input | undefined
-      _delete_at_path: metric_delete_at_path_input | undefined
-      _delete_elem: metric_delete_elem_input | undefined
-      _delete_key: metric_delete_key_input | undefined
-      _inc: metric_inc_input | undefined
-      _prepend: metric_prepend_input | undefined
-      _set: metric_set_input | undefined
+      _append?: metric_append_input | undefined
+      _delete_at_path?: metric_delete_at_path_input | undefined
+      _delete_elem?: metric_delete_elem_input | undefined
+      _delete_key?: metric_delete_key_input | undefined
+      _inc?: metric_inc_input | undefined
+      _prepend?: metric_prepend_input | undefined
+      _set?: metric_set_input | undefined
       pk_columns: metric_pk_columns_input
     }>,
     Sel extends Selection<metric>
@@ -14151,13 +14151,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateMetrics<
     Args extends VariabledInput<{
-      _append: metric_append_input | undefined
-      _delete_at_path: metric_delete_at_path_input | undefined
-      _delete_elem: metric_delete_elem_input | undefined
-      _delete_key: metric_delete_key_input | undefined
-      _inc: metric_inc_input | undefined
-      _prepend: metric_prepend_input | undefined
-      _set: metric_set_input | undefined
+      _append?: metric_append_input | undefined
+      _delete_at_path?: metric_delete_at_path_input | undefined
+      _delete_elem?: metric_delete_elem_input | undefined
+      _delete_key?: metric_delete_key_input | undefined
+      _inc?: metric_inc_input | undefined
+      _prepend?: metric_prepend_input | undefined
+      _set?: metric_set_input | undefined
       where: metric_bool_exp
     }>,
     Sel extends Selection<metric_mutation_response>
@@ -14188,7 +14188,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateNormalizedType<
     Args extends VariabledInput<{
-      _set: normalizedType_set_input | undefined
+      _set?: normalizedType_set_input | undefined
       pk_columns: normalizedType_pk_columns_input
     }>,
     Sel extends Selection<normalizedType>
@@ -14213,7 +14213,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateNormalizedTypes<
     Args extends VariabledInput<{
-      _set: normalizedType_set_input | undefined
+      _set?: normalizedType_set_input | undefined
       where: normalizedType_bool_exp
     }>,
     Sel extends Selection<normalizedType_mutation_response>
@@ -14238,13 +14238,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updatePayment<
     Args extends VariabledInput<{
-      _append: payment_append_input | undefined
-      _delete_at_path: payment_delete_at_path_input | undefined
-      _delete_elem: payment_delete_elem_input | undefined
-      _delete_key: payment_delete_key_input | undefined
-      _inc: payment_inc_input | undefined
-      _prepend: payment_prepend_input | undefined
-      _set: payment_set_input | undefined
+      _append?: payment_append_input | undefined
+      _delete_at_path?: payment_delete_at_path_input | undefined
+      _delete_elem?: payment_delete_elem_input | undefined
+      _delete_key?: payment_delete_key_input | undefined
+      _inc?: payment_inc_input | undefined
+      _prepend?: payment_prepend_input | undefined
+      _set?: payment_set_input | undefined
       pk_columns: payment_pk_columns_input
     }>,
     Sel extends Selection<payment>
@@ -14275,7 +14275,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updatePaymentStatus<
     Args extends VariabledInput<{
-      _set: paymentStatus_set_input | undefined
+      _set?: paymentStatus_set_input | undefined
       pk_columns: paymentStatus_pk_columns_input
     }>,
     Sel extends Selection<paymentStatus>
@@ -14300,7 +14300,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updatePaymentStatuses<
     Args extends VariabledInput<{
-      _set: paymentStatus_set_input | undefined
+      _set?: paymentStatus_set_input | undefined
       where: paymentStatus_bool_exp
     }>,
     Sel extends Selection<paymentStatus_mutation_response>
@@ -14325,7 +14325,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updatePaymentType<
     Args extends VariabledInput<{
-      _set: paymentType_set_input | undefined
+      _set?: paymentType_set_input | undefined
       pk_columns: paymentType_pk_columns_input
     }>,
     Sel extends Selection<paymentType>
@@ -14350,7 +14350,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updatePaymentTypes<
     Args extends VariabledInput<{
-      _set: paymentType_set_input | undefined
+      _set?: paymentType_set_input | undefined
       where: paymentType_bool_exp
     }>,
     Sel extends Selection<paymentType_mutation_response>
@@ -14375,13 +14375,13 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updatePayments<
     Args extends VariabledInput<{
-      _append: payment_append_input | undefined
-      _delete_at_path: payment_delete_at_path_input | undefined
-      _delete_elem: payment_delete_elem_input | undefined
-      _delete_key: payment_delete_key_input | undefined
-      _inc: payment_inc_input | undefined
-      _prepend: payment_prepend_input | undefined
-      _set: payment_set_input | undefined
+      _append?: payment_append_input | undefined
+      _delete_at_path?: payment_delete_at_path_input | undefined
+      _delete_elem?: payment_delete_elem_input | undefined
+      _delete_key?: payment_delete_key_input | undefined
+      _inc?: payment_inc_input | undefined
+      _prepend?: payment_prepend_input | undefined
+      _set?: payment_set_input | undefined
       where: payment_bool_exp
     }>,
     Sel extends Selection<payment_mutation_response>
@@ -14412,7 +14412,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateSubclassification<
     Args extends VariabledInput<{
-      _set: subclassification_set_input | undefined
+      _set?: subclassification_set_input | undefined
       pk_columns: subclassification_pk_columns_input
     }>,
     Sel extends Selection<subclassification>
@@ -14437,7 +14437,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateSubclassifications<
     Args extends VariabledInput<{
-      _set: subclassification_set_input | undefined
+      _set?: subclassification_set_input | undefined
       where: subclassification_bool_exp
     }>,
     Sel extends Selection<subclassification_mutation_response>
@@ -14462,12 +14462,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateTag<
     Args extends VariabledInput<{
-      _append: tag_append_input | undefined
-      _delete_at_path: tag_delete_at_path_input | undefined
-      _delete_elem: tag_delete_elem_input | undefined
-      _delete_key: tag_delete_key_input | undefined
-      _prepend: tag_prepend_input | undefined
-      _set: tag_set_input | undefined
+      _append?: tag_append_input | undefined
+      _delete_at_path?: tag_delete_at_path_input | undefined
+      _delete_elem?: tag_delete_elem_input | undefined
+      _delete_key?: tag_delete_key_input | undefined
+      _prepend?: tag_prepend_input | undefined
+      _set?: tag_set_input | undefined
       pk_columns: tag_pk_columns_input
     }>,
     Sel extends Selection<tag>
@@ -14497,12 +14497,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateTags<
     Args extends VariabledInput<{
-      _append: tag_append_input | undefined
-      _delete_at_path: tag_delete_at_path_input | undefined
-      _delete_elem: tag_delete_elem_input | undefined
-      _delete_key: tag_delete_key_input | undefined
-      _prepend: tag_prepend_input | undefined
-      _set: tag_set_input | undefined
+      _append?: tag_append_input | undefined
+      _delete_at_path?: tag_delete_at_path_input | undefined
+      _delete_elem?: tag_delete_elem_input | undefined
+      _delete_key?: tag_delete_key_input | undefined
+      _prepend?: tag_prepend_input | undefined
+      _set?: tag_set_input | undefined
       where: tag_bool_exp
     }>,
     Sel extends Selection<tag_mutation_response>
@@ -14532,8 +14532,8 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateTeam<
     Args extends VariabledInput<{
-      _inc: team_inc_input | undefined
-      _set: team_set_input | undefined
+      _inc?: team_inc_input | undefined
+      _set?: team_set_input | undefined
       pk_columns: team_pk_columns_input
     }>,
     Sel extends Selection<team>
@@ -14559,7 +14559,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateTeamUser<
     Args extends VariabledInput<{
-      _set: teamUser_set_input | undefined
+      _set?: teamUser_set_input | undefined
       pk_columns: teamUser_pk_columns_input
     }>,
     Sel extends Selection<teamUser>
@@ -14584,7 +14584,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateTeamUsers<
     Args extends VariabledInput<{
-      _set: teamUser_set_input | undefined
+      _set?: teamUser_set_input | undefined
       where: teamUser_bool_exp
     }>,
     Sel extends Selection<teamUser_mutation_response>
@@ -14609,8 +14609,8 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateTeams<
     Args extends VariabledInput<{
-      _inc: team_inc_input | undefined
-      _set: team_set_input | undefined
+      _inc?: team_inc_input | undefined
+      _set?: team_set_input | undefined
       where: team_bool_exp
     }>,
     Sel extends Selection<team_mutation_response>
@@ -14636,12 +14636,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateUnit<
     Args extends VariabledInput<{
-      _append: unit_append_input | undefined
-      _delete_at_path: unit_delete_at_path_input | undefined
-      _delete_elem: unit_delete_elem_input | undefined
-      _delete_key: unit_delete_key_input | undefined
-      _prepend: unit_prepend_input | undefined
-      _set: unit_set_input | undefined
+      _append?: unit_append_input | undefined
+      _delete_at_path?: unit_delete_at_path_input | undefined
+      _delete_elem?: unit_delete_elem_input | undefined
+      _delete_key?: unit_delete_key_input | undefined
+      _prepend?: unit_prepend_input | undefined
+      _set?: unit_set_input | undefined
       pk_columns: unit_pk_columns_input
     }>,
     Sel extends Selection<unit>
@@ -14671,12 +14671,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateUnits<
     Args extends VariabledInput<{
-      _append: unit_append_input | undefined
-      _delete_at_path: unit_delete_at_path_input | undefined
-      _delete_elem: unit_delete_elem_input | undefined
-      _delete_key: unit_delete_key_input | undefined
-      _prepend: unit_prepend_input | undefined
-      _set: unit_set_input | undefined
+      _append?: unit_append_input | undefined
+      _delete_at_path?: unit_delete_at_path_input | undefined
+      _delete_elem?: unit_delete_elem_input | undefined
+      _delete_key?: unit_delete_key_input | undefined
+      _prepend?: unit_prepend_input | undefined
+      _set?: unit_set_input | undefined
       where: unit_bool_exp
     }>,
     Sel extends Selection<unit_mutation_response>
@@ -14706,7 +14706,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateUser<
     Args extends VariabledInput<{
-      _set: user_set_input | undefined
+      _set?: user_set_input | undefined
       pk_columns: user_pk_columns_input
     }>,
     Sel extends Selection<user>
@@ -14731,7 +14731,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateUserStatus<
     Args extends VariabledInput<{
-      _set: userStatus_set_input | undefined
+      _set?: userStatus_set_input | undefined
       pk_columns: userStatus_pk_columns_input
     }>,
     Sel extends Selection<userStatus>
@@ -14756,7 +14756,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateUserStatuses<
     Args extends VariabledInput<{
-      _set: userStatus_set_input | undefined
+      _set?: userStatus_set_input | undefined
       where: userStatus_bool_exp
     }>,
     Sel extends Selection<userStatus_mutation_response>
@@ -14781,7 +14781,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateUsers<
     Args extends VariabledInput<{
-      _set: user_set_input | undefined
+      _set?: user_set_input | undefined
       where: user_bool_exp
     }>,
     Sel extends Selection<user_mutation_response>
@@ -14806,12 +14806,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateWebhook<
     Args extends VariabledInput<{
-      _append: webhook_append_input | undefined
-      _delete_at_path: webhook_delete_at_path_input | undefined
-      _delete_elem: webhook_delete_elem_input | undefined
-      _delete_key: webhook_delete_key_input | undefined
-      _prepend: webhook_prepend_input | undefined
-      _set: webhook_set_input | undefined
+      _append?: webhook_append_input | undefined
+      _delete_at_path?: webhook_delete_at_path_input | undefined
+      _delete_elem?: webhook_delete_elem_input | undefined
+      _delete_key?: webhook_delete_key_input | undefined
+      _prepend?: webhook_prepend_input | undefined
+      _set?: webhook_set_input | undefined
       pk_columns: webhook_pk_columns_input
     }>,
     Sel extends Selection<webhook>
@@ -14841,12 +14841,12 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   updateWebhooks<
     Args extends VariabledInput<{
-      _append: webhook_append_input | undefined
-      _delete_at_path: webhook_delete_at_path_input | undefined
-      _delete_elem: webhook_delete_elem_input | undefined
-      _delete_key: webhook_delete_key_input | undefined
-      _prepend: webhook_prepend_input | undefined
-      _set: webhook_set_input | undefined
+      _append?: webhook_append_input | undefined
+      _delete_at_path?: webhook_delete_at_path_input | undefined
+      _delete_elem?: webhook_delete_elem_input | undefined
+      _delete_key?: webhook_delete_key_input | undefined
+      _prepend?: webhook_prepend_input | undefined
+      _set?: webhook_set_input | undefined
       where: webhook_bool_exp
     }>,
     Sel extends Selection<webhook_mutation_response>
@@ -14876,7 +14876,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   update_booking_channel<
     Args extends VariabledInput<{
-      _set: booking_channel_set_input | undefined
+      _set?: booking_channel_set_input | undefined
       where: booking_channel_bool_exp
     }>,
     Sel extends Selection<booking_channel_mutation_response>
@@ -14901,7 +14901,7 @@ export class mutation_root extends $Base<'mutation_root'> {
    */
   update_booking_channel_by_pk<
     Args extends VariabledInput<{
-      _set: booking_channel_set_input | undefined
+      _set?: booking_channel_set_input | undefined
       pk_columns: booking_channel_pk_columns_input
     }>,
     Sel extends Selection<booking_channel>
@@ -14940,11 +14940,11 @@ export enum normalized_type_enum {
  * Boolean expression to compare columns of type "normalized_type_enum". All fields are combined with logical 'AND'.
  */
 export type normalized_type_enum_comparison_exp = {
-  _eq: normalized_type_enum | undefined
-  _in: Array<normalized_type_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: normalized_type_enum | undefined
-  _nin: Array<normalized_type_enum> | undefined
+  _eq?: normalized_type_enum | undefined
+  _in?: Array<normalized_type_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: normalized_type_enum | undefined
+  _nin?: Array<normalized_type_enum> | undefined
 }
 
 /**
@@ -14997,8 +14997,8 @@ export class normalizedType_aggregate_fields extends $Base<'normalizedType_aggre
 
   count<
     Args extends VariabledInput<{
-      columns: Array<normalizedType_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<normalizedType_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -15034,10 +15034,10 @@ export class normalizedType_aggregate_fields extends $Base<'normalizedType_aggre
  * Boolean expression to filter rows from the table "normalized_type". All fields are combined with a logical 'AND'.
  */
 export type normalizedType_bool_exp = {
-  _and: Array<normalizedType_bool_exp> | undefined
-  _not: normalizedType_bool_exp | undefined
-  _or: Array<normalizedType_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<normalizedType_bool_exp> | undefined
+  _not?: normalizedType_bool_exp | undefined
+  _or?: Array<normalizedType_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -15054,7 +15054,7 @@ export enum normalizedType_constraint {
  * input type for inserting data into table "normalized_type"
  */
 export type normalizedType_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -15117,14 +15117,14 @@ export class normalizedType_mutation_response extends $Base<'normalizedType_muta
 export type normalizedType_on_conflict = {
   constraint: normalizedType_constraint
   update_columns: Array<normalizedType_update_column>
-  where: normalizedType_bool_exp | undefined
+  where?: normalizedType_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "normalized_type".
  */
 export type normalizedType_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -15148,7 +15148,7 @@ export enum normalizedType_select_column {
  * input type for updating data in table "normalized_type"
  */
 export type normalizedType_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -15167,15 +15167,15 @@ export type numeric = unknown
  * Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'.
  */
 export type numeric_comparison_exp = {
-  _eq: string | undefined
-  _gt: string | undefined
-  _gte: string | undefined
-  _in: Array<string> | undefined
-  _is_null: boolean | undefined
-  _lt: string | undefined
-  _lte: string | undefined
-  _neq: string | undefined
-  _nin: Array<string> | undefined
+  _eq?: string | undefined
+  _gt?: string | undefined
+  _gte?: string | undefined
+  _in?: Array<string> | undefined
+  _is_null?: boolean | undefined
+  _lt?: string | undefined
+  _lte?: string | undefined
+  _neq?: string | undefined
+  _nin?: Array<string> | undefined
 }
 
 /**
@@ -15282,11 +15282,11 @@ export class payment extends $Base<'payment'> {
    */
   lines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -15313,11 +15313,11 @@ export class payment extends $Base<'payment'> {
    */
   lines_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line_aggregate>
   >(
@@ -15341,7 +15341,7 @@ export class payment extends $Base<'payment'> {
 
   metadata<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'metadata', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -15366,11 +15366,11 @@ export class payment extends $Base<'payment'> {
    */
   tags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -15397,11 +15397,11 @@ export class payment extends $Base<'payment'> {
    */
   tags_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag_aggregate>
   >(
@@ -15498,8 +15498,8 @@ export class payment_aggregate_fields extends $Base<'payment_aggregate_fields'> 
 
   count<
     Args extends VariabledInput<{
-      columns: Array<payment_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<payment_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -15598,24 +15598,24 @@ export class payment_aggregate_fields extends $Base<'payment_aggregate_fields'> 
  * order by aggregate values of table "payment"
  */
 export type payment_aggregate_order_by = {
-  avg: payment_avg_order_by | undefined
-  count: order_by | undefined
-  max: payment_max_order_by | undefined
-  min: payment_min_order_by | undefined
-  stddev: payment_stddev_order_by | undefined
-  stddev_pop: payment_stddev_pop_order_by | undefined
-  stddev_samp: payment_stddev_samp_order_by | undefined
-  sum: payment_sum_order_by | undefined
-  var_pop: payment_var_pop_order_by | undefined
-  var_samp: payment_var_samp_order_by | undefined
-  variance: payment_variance_order_by | undefined
+  avg?: payment_avg_order_by | undefined
+  count?: order_by | undefined
+  max?: payment_max_order_by | undefined
+  min?: payment_min_order_by | undefined
+  stddev?: payment_stddev_order_by | undefined
+  stddev_pop?: payment_stddev_pop_order_by | undefined
+  stddev_samp?: payment_stddev_samp_order_by | undefined
+  sum?: payment_sum_order_by | undefined
+  var_pop?: payment_var_pop_order_by | undefined
+  var_samp?: payment_var_samp_order_by | undefined
+  variance?: payment_variance_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type payment_append_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -15623,7 +15623,7 @@ export type payment_append_input = {
  */
 export type payment_arr_rel_insert_input = {
   data: Array<payment_insert_input>
-  on_conflict: payment_on_conflict | undefined
+  on_conflict?: payment_on_conflict | undefined
 }
 
 /**
@@ -15643,36 +15643,36 @@ export class payment_avg_fields extends $Base<'payment_avg_fields'> {
  * order by avg() on columns of table "payment"
  */
 export type payment_avg_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "payment". All fields are combined with a logical 'AND'.
  */
 export type payment_bool_exp = {
-  _and: Array<payment_bool_exp> | undefined
-  _not: payment_bool_exp | undefined
-  _or: Array<payment_bool_exp> | undefined
-  arrivesAt: timestamptz_comparison_exp | undefined
-  centTotal: Int_comparison_exp | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  currency: currency_enum_comparison_exp | undefined
-  description: String_comparison_exp | undefined
-  entity: entity_bool_exp | undefined
-  entityId: uuid_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  lines: line_bool_exp | undefined
-  metadata: jsonb_comparison_exp | undefined
-  paidAt: timestamptz_comparison_exp | undefined
-  status: payment_status_enum_comparison_exp | undefined
-  tags: tag_bool_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  type: String_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<payment_bool_exp> | undefined
+  _not?: payment_bool_exp | undefined
+  _or?: Array<payment_bool_exp> | undefined
+  arrivesAt?: timestamptz_comparison_exp | undefined
+  centTotal?: Int_comparison_exp | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  currency?: currency_enum_comparison_exp | undefined
+  description?: String_comparison_exp | undefined
+  entity?: entity_bool_exp | undefined
+  entityId?: uuid_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  lines?: line_bool_exp | undefined
+  metadata?: jsonb_comparison_exp | undefined
+  paidAt?: timestamptz_comparison_exp | undefined
+  status?: payment_status_enum_comparison_exp | undefined
+  tags?: tag_bool_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  type?: String_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -15689,7 +15689,7 @@ export enum payment_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type payment_delete_at_path_input = {
-  metadata: Array<string> | undefined
+  metadata?: Array<string> | undefined
 }
 
 /**
@@ -15697,47 +15697,47 @@ export type payment_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type payment_delete_elem_input = {
-  metadata: number | undefined
+  metadata?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type payment_delete_key_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
  * input type for incrementing numeric columns in table "payment"
  */
 export type payment_inc_input = {
-  centTotal: number | undefined
+  centTotal?: number | undefined
 }
 
 /**
  * input type for inserting data into table "payment"
  */
 export type payment_insert_input = {
-  arrivesAt: string | undefined
-  centTotal: number | undefined
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  currency: currency_enum | undefined
-  description: string | undefined
-  entity: entity_obj_rel_insert_input | undefined
-  entityId: string | undefined
-  id: string | undefined
-  lines: line_arr_rel_insert_input | undefined
-  metadata: string | undefined
-  paidAt: string | undefined
-  status: payment_status_enum | undefined
-  tags: tag_arr_rel_insert_input | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  updatedAt: string | undefined
+  arrivesAt?: string | undefined
+  centTotal?: number | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  currency?: currency_enum | undefined
+  description?: string | undefined
+  entity?: entity_obj_rel_insert_input | undefined
+  entityId?: string | undefined
+  id?: string | undefined
+  lines?: line_arr_rel_insert_input | undefined
+  metadata?: string | undefined
+  paidAt?: string | undefined
+  status?: payment_status_enum | undefined
+  tags?: tag_arr_rel_insert_input | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -15801,18 +15801,18 @@ export class payment_max_fields extends $Base<'payment_max_fields'> {
  * order by max() on columns of table "payment"
  */
 export type payment_max_order_by = {
-  arrivesAt: order_by | undefined
-  centTotal: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  entityId: order_by | undefined
-  id: order_by | undefined
-  paidAt: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  arrivesAt?: order_by | undefined
+  centTotal?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  entityId?: order_by | undefined
+  id?: order_by | undefined
+  paidAt?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -15876,18 +15876,18 @@ export class payment_min_fields extends $Base<'payment_min_fields'> {
  * order by min() on columns of table "payment"
  */
 export type payment_min_order_by = {
-  arrivesAt: order_by | undefined
-  centTotal: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  description: order_by | undefined
-  entityId: order_by | undefined
-  id: order_by | undefined
-  paidAt: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  arrivesAt?: order_by | undefined
+  centTotal?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  description?: order_by | undefined
+  entityId?: order_by | undefined
+  id?: order_by | undefined
+  paidAt?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -15923,7 +15923,7 @@ export class payment_mutation_response extends $Base<'payment_mutation_response'
  */
 export type payment_obj_rel_insert_input = {
   data: payment_insert_input
-  on_conflict: payment_on_conflict | undefined
+  on_conflict?: payment_on_conflict | undefined
 }
 
 /**
@@ -15932,33 +15932,33 @@ export type payment_obj_rel_insert_input = {
 export type payment_on_conflict = {
   constraint: payment_constraint
   update_columns: Array<payment_update_column>
-  where: payment_bool_exp | undefined
+  where?: payment_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "payment".
  */
 export type payment_order_by = {
-  arrivesAt: order_by | undefined
-  centTotal: order_by | undefined
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  currency: order_by | undefined
-  description: order_by | undefined
-  entity: entity_order_by | undefined
-  entityId: order_by | undefined
-  id: order_by | undefined
-  lines_aggregate: line_aggregate_order_by | undefined
-  metadata: order_by | undefined
-  paidAt: order_by | undefined
-  status: order_by | undefined
-  tags_aggregate: tag_aggregate_order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  arrivesAt?: order_by | undefined
+  centTotal?: order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  currency?: order_by | undefined
+  description?: order_by | undefined
+  entity?: entity_order_by | undefined
+  entityId?: order_by | undefined
+  id?: order_by | undefined
+  lines_aggregate?: line_aggregate_order_by | undefined
+  metadata?: order_by | undefined
+  paidAt?: order_by | undefined
+  status?: order_by | undefined
+  tags_aggregate?: tag_aggregate_order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -15972,7 +15972,7 @@ export type payment_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type payment_prepend_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -16059,21 +16059,21 @@ export enum payment_select_column {
  * input type for updating data in table "payment"
  */
 export type payment_set_input = {
-  arrivesAt: string | undefined
-  centTotal: number | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  currency: currency_enum | undefined
-  description: string | undefined
-  entityId: string | undefined
-  id: string | undefined
-  metadata: string | undefined
-  paidAt: string | undefined
-  status: payment_status_enum | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  updatedAt: string | undefined
+  arrivesAt?: string | undefined
+  centTotal?: number | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  currency?: currency_enum | undefined
+  description?: string | undefined
+  entityId?: string | undefined
+  id?: string | undefined
+  metadata?: string | undefined
+  paidAt?: string | undefined
+  status?: payment_status_enum | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  updatedAt?: string | undefined
 }
 
 export enum payment_status_enum {
@@ -16088,11 +16088,11 @@ export enum payment_status_enum {
  * Boolean expression to compare columns of type "payment_status_enum". All fields are combined with logical 'AND'.
  */
 export type payment_status_enum_comparison_exp = {
-  _eq: payment_status_enum | undefined
-  _in: Array<payment_status_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: payment_status_enum | undefined
-  _nin: Array<payment_status_enum> | undefined
+  _eq?: payment_status_enum | undefined
+  _in?: Array<payment_status_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: payment_status_enum | undefined
+  _nin?: Array<payment_status_enum> | undefined
 }
 
 /**
@@ -16112,7 +16112,7 @@ export class payment_stddev_fields extends $Base<'payment_stddev_fields'> {
  * order by stddev() on columns of table "payment"
  */
 export type payment_stddev_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
@@ -16132,7 +16132,7 @@ export class payment_stddev_pop_fields extends $Base<'payment_stddev_pop_fields'
  * order by stddev_pop() on columns of table "payment"
  */
 export type payment_stddev_pop_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
@@ -16152,7 +16152,7 @@ export class payment_stddev_samp_fields extends $Base<'payment_stddev_samp_field
  * order by stddev_samp() on columns of table "payment"
  */
 export type payment_stddev_samp_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
@@ -16172,7 +16172,7 @@ export class payment_sum_fields extends $Base<'payment_sum_fields'> {
  * order by sum() on columns of table "payment"
  */
 export type payment_sum_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
@@ -16272,7 +16272,7 @@ export class payment_var_pop_fields extends $Base<'payment_var_pop_fields'> {
  * order by var_pop() on columns of table "payment"
  */
 export type payment_var_pop_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
@@ -16292,7 +16292,7 @@ export class payment_var_samp_fields extends $Base<'payment_var_samp_fields'> {
  * order by var_samp() on columns of table "payment"
  */
 export type payment_var_samp_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
@@ -16312,7 +16312,7 @@ export class payment_variance_fields extends $Base<'payment_variance_fields'> {
  * order by variance() on columns of table "payment"
  */
 export type payment_variance_order_by = {
-  centTotal: order_by | undefined
+  centTotal?: order_by | undefined
 }
 
 /**
@@ -16365,8 +16365,8 @@ export class paymentStatus_aggregate_fields extends $Base<'paymentStatus_aggrega
 
   count<
     Args extends VariabledInput<{
-      columns: Array<paymentStatus_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<paymentStatus_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -16402,10 +16402,10 @@ export class paymentStatus_aggregate_fields extends $Base<'paymentStatus_aggrega
  * Boolean expression to filter rows from the table "payment_status". All fields are combined with a logical 'AND'.
  */
 export type paymentStatus_bool_exp = {
-  _and: Array<paymentStatus_bool_exp> | undefined
-  _not: paymentStatus_bool_exp | undefined
-  _or: Array<paymentStatus_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<paymentStatus_bool_exp> | undefined
+  _not?: paymentStatus_bool_exp | undefined
+  _or?: Array<paymentStatus_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -16422,7 +16422,7 @@ export enum paymentStatus_constraint {
  * input type for inserting data into table "payment_status"
  */
 export type paymentStatus_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -16485,14 +16485,14 @@ export class paymentStatus_mutation_response extends $Base<'paymentStatus_mutati
 export type paymentStatus_on_conflict = {
   constraint: paymentStatus_constraint
   update_columns: Array<paymentStatus_update_column>
-  where: paymentStatus_bool_exp | undefined
+  where?: paymentStatus_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "payment_status".
  */
 export type paymentStatus_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -16516,7 +16516,7 @@ export enum paymentStatus_select_column {
  * input type for updating data in table "payment_status"
  */
 export type paymentStatus_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -16579,8 +16579,8 @@ export class paymentType_aggregate_fields extends $Base<'paymentType_aggregate_f
 
   count<
     Args extends VariabledInput<{
-      columns: Array<paymentType_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<paymentType_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -16616,10 +16616,10 @@ export class paymentType_aggregate_fields extends $Base<'paymentType_aggregate_f
  * Boolean expression to filter rows from the table "payment_type". All fields are combined with a logical 'AND'.
  */
 export type paymentType_bool_exp = {
-  _and: Array<paymentType_bool_exp> | undefined
-  _not: paymentType_bool_exp | undefined
-  _or: Array<paymentType_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<paymentType_bool_exp> | undefined
+  _not?: paymentType_bool_exp | undefined
+  _or?: Array<paymentType_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -16636,7 +16636,7 @@ export enum paymentType_constraint {
  * input type for inserting data into table "payment_type"
  */
 export type paymentType_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -16699,14 +16699,14 @@ export class paymentType_mutation_response extends $Base<'paymentType_mutation_r
 export type paymentType_on_conflict = {
   constraint: paymentType_constraint
   update_columns: Array<paymentType_update_column>
-  where: paymentType_bool_exp | undefined
+  where?: paymentType_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "payment_type".
  */
 export type paymentType_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -16730,7 +16730,7 @@ export enum paymentType_select_column {
  * input type for updating data in table "payment_type"
  */
 export type paymentType_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -16753,11 +16753,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateBookingStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<bookingStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<bookingStatus_order_by> | undefined
-      where: bookingStatus_bool_exp | undefined
+      distinct_on?: Array<bookingStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<bookingStatus_order_by> | undefined
+      where?: bookingStatus_bool_exp | undefined
     }>,
     Sel extends Selection<bookingStatus_aggregate>
   >(
@@ -16784,11 +16784,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateBookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking_aggregate>
   >(
@@ -16815,11 +16815,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateClassifications<
     Args extends VariabledInput<{
-      distinct_on: Array<classification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<classification_order_by> | undefined
-      where: classification_bool_exp | undefined
+      distinct_on?: Array<classification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<classification_order_by> | undefined
+      where?: classification_bool_exp | undefined
     }>,
     Sel extends Selection<classification_aggregate>
   >(
@@ -16846,11 +16846,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateConnections<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection_aggregate>
   >(
@@ -16877,11 +16877,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateCurrencies<
     Args extends VariabledInput<{
-      distinct_on: Array<currency_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<currency_order_by> | undefined
-      where: currency_bool_exp | undefined
+      distinct_on?: Array<currency_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<currency_order_by> | undefined
+      where?: currency_bool_exp | undefined
     }>,
     Sel extends Selection<currency_aggregate>
   >(
@@ -16908,11 +16908,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateEntities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity_aggregate>
   >(
@@ -16939,11 +16939,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateEntityStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<entityStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entityStatus_order_by> | undefined
-      where: entityStatus_bool_exp | undefined
+      distinct_on?: Array<entityStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entityStatus_order_by> | undefined
+      where?: entityStatus_bool_exp | undefined
     }>,
     Sel extends Selection<entityStatus_aggregate>
   >(
@@ -16970,11 +16970,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateIntegrationTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<integrationType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integrationType_order_by> | undefined
-      where: integrationType_bool_exp | undefined
+      distinct_on?: Array<integrationType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integrationType_order_by> | undefined
+      where?: integrationType_bool_exp | undefined
     }>,
     Sel extends Selection<integrationType_aggregate>
   >(
@@ -17001,11 +17001,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateIntegrations<
     Args extends VariabledInput<{
-      distinct_on: Array<integration_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integration_order_by> | undefined
-      where: integration_bool_exp | undefined
+      distinct_on?: Array<integration_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integration_order_by> | undefined
+      where?: integration_bool_exp | undefined
     }>,
     Sel extends Selection<integration_aggregate>
   >(
@@ -17032,11 +17032,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateIssues<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue_aggregate>
   >(
@@ -17063,11 +17063,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateJobMethods<
     Args extends VariabledInput<{
-      distinct_on: Array<jobMethod_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobMethod_order_by> | undefined
-      where: jobMethod_bool_exp | undefined
+      distinct_on?: Array<jobMethod_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobMethod_order_by> | undefined
+      where?: jobMethod_bool_exp | undefined
     }>,
     Sel extends Selection<jobMethod_aggregate>
   >(
@@ -17094,11 +17094,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateJobStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<jobStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobStatus_order_by> | undefined
-      where: jobStatus_bool_exp | undefined
+      distinct_on?: Array<jobStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobStatus_order_by> | undefined
+      where?: jobStatus_bool_exp | undefined
     }>,
     Sel extends Selection<jobStatus_aggregate>
   >(
@@ -17125,11 +17125,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateJobs<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job_aggregate>
   >(
@@ -17156,11 +17156,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateLines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line_aggregate>
   >(
@@ -17187,11 +17187,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateMetrics<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric_aggregate>
   >(
@@ -17218,11 +17218,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateNormalizedTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<normalizedType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<normalizedType_order_by> | undefined
-      where: normalizedType_bool_exp | undefined
+      distinct_on?: Array<normalizedType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<normalizedType_order_by> | undefined
+      where?: normalizedType_bool_exp | undefined
     }>,
     Sel extends Selection<normalizedType_aggregate>
   >(
@@ -17249,11 +17249,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregatePaymentStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentStatus_order_by> | undefined
-      where: paymentStatus_bool_exp | undefined
+      distinct_on?: Array<paymentStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentStatus_order_by> | undefined
+      where?: paymentStatus_bool_exp | undefined
     }>,
     Sel extends Selection<paymentStatus_aggregate>
   >(
@@ -17280,11 +17280,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregatePaymentTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentType_order_by> | undefined
-      where: paymentType_bool_exp | undefined
+      distinct_on?: Array<paymentType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentType_order_by> | undefined
+      where?: paymentType_bool_exp | undefined
     }>,
     Sel extends Selection<paymentType_aggregate>
   >(
@@ -17311,11 +17311,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregatePayments<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment_aggregate>
   >(
@@ -17342,11 +17342,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateSubclassifications<
     Args extends VariabledInput<{
-      distinct_on: Array<subclassification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<subclassification_order_by> | undefined
-      where: subclassification_bool_exp | undefined
+      distinct_on?: Array<subclassification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<subclassification_order_by> | undefined
+      where?: subclassification_bool_exp | undefined
     }>,
     Sel extends Selection<subclassification_aggregate>
   >(
@@ -17373,11 +17373,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateTags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag_aggregate>
   >(
@@ -17404,11 +17404,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateTeamUsers<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser_aggregate>
   >(
@@ -17435,11 +17435,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateTeams<
     Args extends VariabledInput<{
-      distinct_on: Array<team_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<team_order_by> | undefined
-      where: team_bool_exp | undefined
+      distinct_on?: Array<team_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<team_order_by> | undefined
+      where?: team_bool_exp | undefined
     }>,
     Sel extends Selection<team_aggregate>
   >(
@@ -17466,11 +17466,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateUnits<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit_aggregate>
   >(
@@ -17497,11 +17497,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateUserStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<userStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<userStatus_order_by> | undefined
-      where: userStatus_bool_exp | undefined
+      distinct_on?: Array<userStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<userStatus_order_by> | undefined
+      where?: userStatus_bool_exp | undefined
     }>,
     Sel extends Selection<userStatus_aggregate>
   >(
@@ -17528,11 +17528,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateUsers<
     Args extends VariabledInput<{
-      distinct_on: Array<user_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<user_order_by> | undefined
-      where: user_bool_exp | undefined
+      distinct_on?: Array<user_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<user_order_by> | undefined
+      where?: user_bool_exp | undefined
     }>,
     Sel extends Selection<user_aggregate>
   >(
@@ -17559,11 +17559,11 @@ export class query_root extends $Base<'query_root'> {
    */
   aggregateWebhooks<
     Args extends VariabledInput<{
-      distinct_on: Array<webhook_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<webhook_order_by> | undefined
-      where: webhook_bool_exp | undefined
+      distinct_on?: Array<webhook_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<webhook_order_by> | undefined
+      where?: webhook_bool_exp | undefined
     }>,
     Sel extends Selection<webhook_aggregate>
   >(
@@ -17636,11 +17636,11 @@ export class query_root extends $Base<'query_root'> {
    */
   bookingStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<bookingStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<bookingStatus_order_by> | undefined
-      where: bookingStatus_bool_exp | undefined
+      distinct_on?: Array<bookingStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<bookingStatus_order_by> | undefined
+      where?: bookingStatus_bool_exp | undefined
     }>,
     Sel extends Selection<bookingStatus>
   >(
@@ -17667,11 +17667,11 @@ export class query_root extends $Base<'query_root'> {
    */
   booking_channel<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_channel_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_channel_order_by> | undefined
-      where: booking_channel_bool_exp | undefined
+      distinct_on?: Array<booking_channel_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_channel_order_by> | undefined
+      where?: booking_channel_bool_exp | undefined
     }>,
     Sel extends Selection<booking_channel>
   >(
@@ -17698,11 +17698,11 @@ export class query_root extends $Base<'query_root'> {
    */
   booking_channel_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_channel_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_channel_order_by> | undefined
-      where: booking_channel_bool_exp | undefined
+      distinct_on?: Array<booking_channel_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_channel_order_by> | undefined
+      where?: booking_channel_bool_exp | undefined
     }>,
     Sel extends Selection<booking_channel_aggregate>
   >(
@@ -17752,11 +17752,11 @@ export class query_root extends $Base<'query_root'> {
    */
   bookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -17806,11 +17806,11 @@ export class query_root extends $Base<'query_root'> {
    */
   classifications<
     Args extends VariabledInput<{
-      distinct_on: Array<classification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<classification_order_by> | undefined
-      where: classification_bool_exp | undefined
+      distinct_on?: Array<classification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<classification_order_by> | undefined
+      where?: classification_bool_exp | undefined
     }>,
     Sel extends Selection<classification>
   >(
@@ -17860,11 +17860,11 @@ export class query_root extends $Base<'query_root'> {
    */
   connections<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection>
   >(
@@ -17891,11 +17891,11 @@ export class query_root extends $Base<'query_root'> {
    */
   currencies<
     Args extends VariabledInput<{
-      distinct_on: Array<currency_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<currency_order_by> | undefined
-      where: currency_bool_exp | undefined
+      distinct_on?: Array<currency_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<currency_order_by> | undefined
+      where?: currency_bool_exp | undefined
     }>,
     Sel extends Selection<currency>
   >(
@@ -17945,11 +17945,11 @@ export class query_root extends $Base<'query_root'> {
    */
   entities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity>
   >(
@@ -18022,11 +18022,11 @@ export class query_root extends $Base<'query_root'> {
    */
   entityStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<entityStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entityStatus_order_by> | undefined
-      where: entityStatus_bool_exp | undefined
+      distinct_on?: Array<entityStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entityStatus_order_by> | undefined
+      where?: entityStatus_bool_exp | undefined
     }>,
     Sel extends Selection<entityStatus>
   >(
@@ -18099,11 +18099,11 @@ export class query_root extends $Base<'query_root'> {
    */
   integrationTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<integrationType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integrationType_order_by> | undefined
-      where: integrationType_bool_exp | undefined
+      distinct_on?: Array<integrationType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integrationType_order_by> | undefined
+      where?: integrationType_bool_exp | undefined
     }>,
     Sel extends Selection<integrationType>
   >(
@@ -18130,11 +18130,11 @@ export class query_root extends $Base<'query_root'> {
    */
   integrations<
     Args extends VariabledInput<{
-      distinct_on: Array<integration_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integration_order_by> | undefined
-      where: integration_bool_exp | undefined
+      distinct_on?: Array<integration_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integration_order_by> | undefined
+      where?: integration_bool_exp | undefined
     }>,
     Sel extends Selection<integration>
   >(
@@ -18184,11 +18184,11 @@ export class query_root extends $Base<'query_root'> {
    */
   issues<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue>
   >(
@@ -18261,11 +18261,11 @@ export class query_root extends $Base<'query_root'> {
    */
   jobMethods<
     Args extends VariabledInput<{
-      distinct_on: Array<jobMethod_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobMethod_order_by> | undefined
-      where: jobMethod_bool_exp | undefined
+      distinct_on?: Array<jobMethod_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobMethod_order_by> | undefined
+      where?: jobMethod_bool_exp | undefined
     }>,
     Sel extends Selection<jobMethod>
   >(
@@ -18315,11 +18315,11 @@ export class query_root extends $Base<'query_root'> {
    */
   jobStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<jobStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobStatus_order_by> | undefined
-      where: jobStatus_bool_exp | undefined
+      distinct_on?: Array<jobStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobStatus_order_by> | undefined
+      where?: jobStatus_bool_exp | undefined
     }>,
     Sel extends Selection<jobStatus>
   >(
@@ -18346,11 +18346,11 @@ export class query_root extends $Base<'query_root'> {
    */
   jobs<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job>
   >(
@@ -18400,11 +18400,11 @@ export class query_root extends $Base<'query_root'> {
    */
   lines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -18454,11 +18454,11 @@ export class query_root extends $Base<'query_root'> {
    */
   metrics<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric>
   >(
@@ -18508,11 +18508,11 @@ export class query_root extends $Base<'query_root'> {
    */
   normalizedTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<normalizedType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<normalizedType_order_by> | undefined
-      where: normalizedType_bool_exp | undefined
+      distinct_on?: Array<normalizedType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<normalizedType_order_by> | undefined
+      where?: normalizedType_bool_exp | undefined
     }>,
     Sel extends Selection<normalizedType>
   >(
@@ -18585,11 +18585,11 @@ export class query_root extends $Base<'query_root'> {
    */
   paymentStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentStatus_order_by> | undefined
-      where: paymentStatus_bool_exp | undefined
+      distinct_on?: Array<paymentStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentStatus_order_by> | undefined
+      where?: paymentStatus_bool_exp | undefined
     }>,
     Sel extends Selection<paymentStatus>
   >(
@@ -18639,11 +18639,11 @@ export class query_root extends $Base<'query_root'> {
    */
   paymentTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentType_order_by> | undefined
-      where: paymentType_bool_exp | undefined
+      distinct_on?: Array<paymentType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentType_order_by> | undefined
+      where?: paymentType_bool_exp | undefined
     }>,
     Sel extends Selection<paymentType>
   >(
@@ -18670,11 +18670,11 @@ export class query_root extends $Base<'query_root'> {
    */
   payments<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment>
   >(
@@ -18724,11 +18724,11 @@ export class query_root extends $Base<'query_root'> {
    */
   subclassifications<
     Args extends VariabledInput<{
-      distinct_on: Array<subclassification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<subclassification_order_by> | undefined
-      where: subclassification_bool_exp | undefined
+      distinct_on?: Array<subclassification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<subclassification_order_by> | undefined
+      where?: subclassification_bool_exp | undefined
     }>,
     Sel extends Selection<subclassification>
   >(
@@ -18778,11 +18778,11 @@ export class query_root extends $Base<'query_root'> {
    */
   tags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -18855,11 +18855,11 @@ export class query_root extends $Base<'query_root'> {
    */
   teamUsers<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser>
   >(
@@ -18886,11 +18886,11 @@ export class query_root extends $Base<'query_root'> {
    */
   teams<
     Args extends VariabledInput<{
-      distinct_on: Array<team_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<team_order_by> | undefined
-      where: team_bool_exp | undefined
+      distinct_on?: Array<team_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<team_order_by> | undefined
+      where?: team_bool_exp | undefined
     }>,
     Sel extends Selection<team>
   >(
@@ -18940,11 +18940,11 @@ export class query_root extends $Base<'query_root'> {
    */
   units<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit>
   >(
@@ -19017,11 +19017,11 @@ export class query_root extends $Base<'query_root'> {
    */
   userStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<userStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<userStatus_order_by> | undefined
-      where: userStatus_bool_exp | undefined
+      distinct_on?: Array<userStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<userStatus_order_by> | undefined
+      where?: userStatus_bool_exp | undefined
     }>,
     Sel extends Selection<userStatus>
   >(
@@ -19048,11 +19048,11 @@ export class query_root extends $Base<'query_root'> {
    */
   users<
     Args extends VariabledInput<{
-      distinct_on: Array<user_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<user_order_by> | undefined
-      where: user_bool_exp | undefined
+      distinct_on?: Array<user_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<user_order_by> | undefined
+      where?: user_bool_exp | undefined
     }>,
     Sel extends Selection<user>
   >(
@@ -19102,11 +19102,11 @@ export class query_root extends $Base<'query_root'> {
    */
   webhooks<
     Args extends VariabledInput<{
-      distinct_on: Array<webhook_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<webhook_order_by> | undefined
-      where: webhook_bool_exp | undefined
+      distinct_on?: Array<webhook_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<webhook_order_by> | undefined
+      where?: webhook_bool_exp | undefined
     }>,
     Sel extends Selection<webhook>
   >(
@@ -19133,25 +19133,25 @@ export class query_root extends $Base<'query_root'> {
  * Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
  */
 export type String_comparison_exp = {
-  _eq: string | undefined
-  _gt: string | undefined
-  _gte: string | undefined
-  _ilike: string | undefined
-  _in: Array<string> | undefined
-  _iregex: string | undefined
-  _is_null: boolean | undefined
-  _like: string | undefined
-  _lt: string | undefined
-  _lte: string | undefined
-  _neq: string | undefined
-  _nilike: string | undefined
-  _nin: Array<string> | undefined
-  _niregex: string | undefined
-  _nlike: string | undefined
-  _nregex: string | undefined
-  _nsimilar: string | undefined
-  _regex: string | undefined
-  _similar: string | undefined
+  _eq?: string | undefined
+  _gt?: string | undefined
+  _gte?: string | undefined
+  _ilike?: string | undefined
+  _in?: Array<string> | undefined
+  _iregex?: string | undefined
+  _is_null?: boolean | undefined
+  _like?: string | undefined
+  _lt?: string | undefined
+  _lte?: string | undefined
+  _neq?: string | undefined
+  _nilike?: string | undefined
+  _nin?: Array<string> | undefined
+  _niregex?: string | undefined
+  _nlike?: string | undefined
+  _nregex?: string | undefined
+  _nsimilar?: string | undefined
+  _regex?: string | undefined
+  _similar?: string | undefined
 }
 
 /**
@@ -19204,8 +19204,8 @@ export class subclassification_aggregate_fields extends $Base<'subclassification
 
   count<
     Args extends VariabledInput<{
-      columns: Array<subclassification_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<subclassification_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -19241,10 +19241,10 @@ export class subclassification_aggregate_fields extends $Base<'subclassification
  * Boolean expression to filter rows from the table "subclassification". All fields are combined with a logical 'AND'.
  */
 export type subclassification_bool_exp = {
-  _and: Array<subclassification_bool_exp> | undefined
-  _not: subclassification_bool_exp | undefined
-  _or: Array<subclassification_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<subclassification_bool_exp> | undefined
+  _not?: subclassification_bool_exp | undefined
+  _or?: Array<subclassification_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -19317,18 +19317,18 @@ export enum subclassification_enum {
  * Boolean expression to compare columns of type "subclassification_enum". All fields are combined with logical 'AND'.
  */
 export type subclassification_enum_comparison_exp = {
-  _eq: subclassification_enum | undefined
-  _in: Array<subclassification_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: subclassification_enum | undefined
-  _nin: Array<subclassification_enum> | undefined
+  _eq?: subclassification_enum | undefined
+  _in?: Array<subclassification_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: subclassification_enum | undefined
+  _nin?: Array<subclassification_enum> | undefined
 }
 
 /**
  * input type for inserting data into table "subclassification"
  */
 export type subclassification_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -19391,14 +19391,14 @@ export class subclassification_mutation_response extends $Base<'subclassificatio
 export type subclassification_on_conflict = {
   constraint: subclassification_constraint
   update_columns: Array<subclassification_update_column>
-  where: subclassification_bool_exp | undefined
+  where?: subclassification_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "subclassification".
  */
 export type subclassification_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -19422,7 +19422,7 @@ export enum subclassification_select_column {
  * input type for updating data in table "subclassification"
  */
 export type subclassification_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -19445,11 +19445,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateBookingStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<bookingStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<bookingStatus_order_by> | undefined
-      where: bookingStatus_bool_exp | undefined
+      distinct_on?: Array<bookingStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<bookingStatus_order_by> | undefined
+      where?: bookingStatus_bool_exp | undefined
     }>,
     Sel extends Selection<bookingStatus_aggregate>
   >(
@@ -19476,11 +19476,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateBookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking_aggregate>
   >(
@@ -19507,11 +19507,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateClassifications<
     Args extends VariabledInput<{
-      distinct_on: Array<classification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<classification_order_by> | undefined
-      where: classification_bool_exp | undefined
+      distinct_on?: Array<classification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<classification_order_by> | undefined
+      where?: classification_bool_exp | undefined
     }>,
     Sel extends Selection<classification_aggregate>
   >(
@@ -19538,11 +19538,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateConnections<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection_aggregate>
   >(
@@ -19569,11 +19569,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateCurrencies<
     Args extends VariabledInput<{
-      distinct_on: Array<currency_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<currency_order_by> | undefined
-      where: currency_bool_exp | undefined
+      distinct_on?: Array<currency_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<currency_order_by> | undefined
+      where?: currency_bool_exp | undefined
     }>,
     Sel extends Selection<currency_aggregate>
   >(
@@ -19600,11 +19600,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateEntities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity_aggregate>
   >(
@@ -19631,11 +19631,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateEntityStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<entityStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entityStatus_order_by> | undefined
-      where: entityStatus_bool_exp | undefined
+      distinct_on?: Array<entityStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entityStatus_order_by> | undefined
+      where?: entityStatus_bool_exp | undefined
     }>,
     Sel extends Selection<entityStatus_aggregate>
   >(
@@ -19662,11 +19662,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateIntegrationTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<integrationType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integrationType_order_by> | undefined
-      where: integrationType_bool_exp | undefined
+      distinct_on?: Array<integrationType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integrationType_order_by> | undefined
+      where?: integrationType_bool_exp | undefined
     }>,
     Sel extends Selection<integrationType_aggregate>
   >(
@@ -19693,11 +19693,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateIntegrations<
     Args extends VariabledInput<{
-      distinct_on: Array<integration_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integration_order_by> | undefined
-      where: integration_bool_exp | undefined
+      distinct_on?: Array<integration_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integration_order_by> | undefined
+      where?: integration_bool_exp | undefined
     }>,
     Sel extends Selection<integration_aggregate>
   >(
@@ -19724,11 +19724,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateIssues<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue_aggregate>
   >(
@@ -19755,11 +19755,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateJobMethods<
     Args extends VariabledInput<{
-      distinct_on: Array<jobMethod_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobMethod_order_by> | undefined
-      where: jobMethod_bool_exp | undefined
+      distinct_on?: Array<jobMethod_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobMethod_order_by> | undefined
+      where?: jobMethod_bool_exp | undefined
     }>,
     Sel extends Selection<jobMethod_aggregate>
   >(
@@ -19786,11 +19786,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateJobStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<jobStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobStatus_order_by> | undefined
-      where: jobStatus_bool_exp | undefined
+      distinct_on?: Array<jobStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobStatus_order_by> | undefined
+      where?: jobStatus_bool_exp | undefined
     }>,
     Sel extends Selection<jobStatus_aggregate>
   >(
@@ -19817,11 +19817,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateJobs<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job_aggregate>
   >(
@@ -19848,11 +19848,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateLines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line_aggregate>
   >(
@@ -19879,11 +19879,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateMetrics<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric_aggregate>
   >(
@@ -19910,11 +19910,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateNormalizedTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<normalizedType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<normalizedType_order_by> | undefined
-      where: normalizedType_bool_exp | undefined
+      distinct_on?: Array<normalizedType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<normalizedType_order_by> | undefined
+      where?: normalizedType_bool_exp | undefined
     }>,
     Sel extends Selection<normalizedType_aggregate>
   >(
@@ -19941,11 +19941,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregatePaymentStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentStatus_order_by> | undefined
-      where: paymentStatus_bool_exp | undefined
+      distinct_on?: Array<paymentStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentStatus_order_by> | undefined
+      where?: paymentStatus_bool_exp | undefined
     }>,
     Sel extends Selection<paymentStatus_aggregate>
   >(
@@ -19972,11 +19972,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregatePaymentTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentType_order_by> | undefined
-      where: paymentType_bool_exp | undefined
+      distinct_on?: Array<paymentType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentType_order_by> | undefined
+      where?: paymentType_bool_exp | undefined
     }>,
     Sel extends Selection<paymentType_aggregate>
   >(
@@ -20003,11 +20003,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregatePayments<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment_aggregate>
   >(
@@ -20034,11 +20034,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateSubclassifications<
     Args extends VariabledInput<{
-      distinct_on: Array<subclassification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<subclassification_order_by> | undefined
-      where: subclassification_bool_exp | undefined
+      distinct_on?: Array<subclassification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<subclassification_order_by> | undefined
+      where?: subclassification_bool_exp | undefined
     }>,
     Sel extends Selection<subclassification_aggregate>
   >(
@@ -20065,11 +20065,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateTags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag_aggregate>
   >(
@@ -20096,11 +20096,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateTeamUsers<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser_aggregate>
   >(
@@ -20127,11 +20127,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateTeams<
     Args extends VariabledInput<{
-      distinct_on: Array<team_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<team_order_by> | undefined
-      where: team_bool_exp | undefined
+      distinct_on?: Array<team_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<team_order_by> | undefined
+      where?: team_bool_exp | undefined
     }>,
     Sel extends Selection<team_aggregate>
   >(
@@ -20158,11 +20158,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateUnits<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit_aggregate>
   >(
@@ -20189,11 +20189,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateUserStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<userStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<userStatus_order_by> | undefined
-      where: userStatus_bool_exp | undefined
+      distinct_on?: Array<userStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<userStatus_order_by> | undefined
+      where?: userStatus_bool_exp | undefined
     }>,
     Sel extends Selection<userStatus_aggregate>
   >(
@@ -20220,11 +20220,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateUsers<
     Args extends VariabledInput<{
-      distinct_on: Array<user_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<user_order_by> | undefined
-      where: user_bool_exp | undefined
+      distinct_on?: Array<user_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<user_order_by> | undefined
+      where?: user_bool_exp | undefined
     }>,
     Sel extends Selection<user_aggregate>
   >(
@@ -20251,11 +20251,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   aggregateWebhooks<
     Args extends VariabledInput<{
-      distinct_on: Array<webhook_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<webhook_order_by> | undefined
-      where: webhook_bool_exp | undefined
+      distinct_on?: Array<webhook_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<webhook_order_by> | undefined
+      where?: webhook_bool_exp | undefined
     }>,
     Sel extends Selection<webhook_aggregate>
   >(
@@ -20328,11 +20328,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   bookingStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<bookingStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<bookingStatus_order_by> | undefined
-      where: bookingStatus_bool_exp | undefined
+      distinct_on?: Array<bookingStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<bookingStatus_order_by> | undefined
+      where?: bookingStatus_bool_exp | undefined
     }>,
     Sel extends Selection<bookingStatus>
   >(
@@ -20359,11 +20359,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   booking_channel<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_channel_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_channel_order_by> | undefined
-      where: booking_channel_bool_exp | undefined
+      distinct_on?: Array<booking_channel_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_channel_order_by> | undefined
+      where?: booking_channel_bool_exp | undefined
     }>,
     Sel extends Selection<booking_channel>
   >(
@@ -20390,11 +20390,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   booking_channel_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_channel_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_channel_order_by> | undefined
-      where: booking_channel_bool_exp | undefined
+      distinct_on?: Array<booking_channel_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_channel_order_by> | undefined
+      where?: booking_channel_bool_exp | undefined
     }>,
     Sel extends Selection<booking_channel_aggregate>
   >(
@@ -20444,11 +20444,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   bookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -20498,11 +20498,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   classifications<
     Args extends VariabledInput<{
-      distinct_on: Array<classification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<classification_order_by> | undefined
-      where: classification_bool_exp | undefined
+      distinct_on?: Array<classification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<classification_order_by> | undefined
+      where?: classification_bool_exp | undefined
     }>,
     Sel extends Selection<classification>
   >(
@@ -20552,11 +20552,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   connections<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection>
   >(
@@ -20583,11 +20583,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   currencies<
     Args extends VariabledInput<{
-      distinct_on: Array<currency_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<currency_order_by> | undefined
-      where: currency_bool_exp | undefined
+      distinct_on?: Array<currency_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<currency_order_by> | undefined
+      where?: currency_bool_exp | undefined
     }>,
     Sel extends Selection<currency>
   >(
@@ -20637,11 +20637,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   entities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity>
   >(
@@ -20714,11 +20714,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   entityStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<entityStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entityStatus_order_by> | undefined
-      where: entityStatus_bool_exp | undefined
+      distinct_on?: Array<entityStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entityStatus_order_by> | undefined
+      where?: entityStatus_bool_exp | undefined
     }>,
     Sel extends Selection<entityStatus>
   >(
@@ -20791,11 +20791,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   integrationTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<integrationType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integrationType_order_by> | undefined
-      where: integrationType_bool_exp | undefined
+      distinct_on?: Array<integrationType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integrationType_order_by> | undefined
+      where?: integrationType_bool_exp | undefined
     }>,
     Sel extends Selection<integrationType>
   >(
@@ -20822,11 +20822,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   integrations<
     Args extends VariabledInput<{
-      distinct_on: Array<integration_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integration_order_by> | undefined
-      where: integration_bool_exp | undefined
+      distinct_on?: Array<integration_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integration_order_by> | undefined
+      where?: integration_bool_exp | undefined
     }>,
     Sel extends Selection<integration>
   >(
@@ -20876,11 +20876,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   issues<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue>
   >(
@@ -20953,11 +20953,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   jobMethods<
     Args extends VariabledInput<{
-      distinct_on: Array<jobMethod_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobMethod_order_by> | undefined
-      where: jobMethod_bool_exp | undefined
+      distinct_on?: Array<jobMethod_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobMethod_order_by> | undefined
+      where?: jobMethod_bool_exp | undefined
     }>,
     Sel extends Selection<jobMethod>
   >(
@@ -21007,11 +21007,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   jobStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<jobStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<jobStatus_order_by> | undefined
-      where: jobStatus_bool_exp | undefined
+      distinct_on?: Array<jobStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<jobStatus_order_by> | undefined
+      where?: jobStatus_bool_exp | undefined
     }>,
     Sel extends Selection<jobStatus>
   >(
@@ -21038,11 +21038,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   jobs<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job>
   >(
@@ -21092,11 +21092,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   lines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -21146,11 +21146,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   metrics<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric>
   >(
@@ -21200,11 +21200,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   normalizedTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<normalizedType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<normalizedType_order_by> | undefined
-      where: normalizedType_bool_exp | undefined
+      distinct_on?: Array<normalizedType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<normalizedType_order_by> | undefined
+      where?: normalizedType_bool_exp | undefined
     }>,
     Sel extends Selection<normalizedType>
   >(
@@ -21277,11 +21277,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   paymentStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentStatus_order_by> | undefined
-      where: paymentStatus_bool_exp | undefined
+      distinct_on?: Array<paymentStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentStatus_order_by> | undefined
+      where?: paymentStatus_bool_exp | undefined
     }>,
     Sel extends Selection<paymentStatus>
   >(
@@ -21331,11 +21331,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   paymentTypes<
     Args extends VariabledInput<{
-      distinct_on: Array<paymentType_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<paymentType_order_by> | undefined
-      where: paymentType_bool_exp | undefined
+      distinct_on?: Array<paymentType_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<paymentType_order_by> | undefined
+      where?: paymentType_bool_exp | undefined
     }>,
     Sel extends Selection<paymentType>
   >(
@@ -21362,11 +21362,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   payments<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment>
   >(
@@ -21416,11 +21416,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   subclassifications<
     Args extends VariabledInput<{
-      distinct_on: Array<subclassification_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<subclassification_order_by> | undefined
-      where: subclassification_bool_exp | undefined
+      distinct_on?: Array<subclassification_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<subclassification_order_by> | undefined
+      where?: subclassification_bool_exp | undefined
     }>,
     Sel extends Selection<subclassification>
   >(
@@ -21470,11 +21470,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   tags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -21547,11 +21547,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   teamUsers<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser>
   >(
@@ -21578,11 +21578,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   teams<
     Args extends VariabledInput<{
-      distinct_on: Array<team_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<team_order_by> | undefined
-      where: team_bool_exp | undefined
+      distinct_on?: Array<team_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<team_order_by> | undefined
+      where?: team_bool_exp | undefined
     }>,
     Sel extends Selection<team>
   >(
@@ -21632,11 +21632,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   units<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit>
   >(
@@ -21709,11 +21709,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   userStatuses<
     Args extends VariabledInput<{
-      distinct_on: Array<userStatus_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<userStatus_order_by> | undefined
-      where: userStatus_bool_exp | undefined
+      distinct_on?: Array<userStatus_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<userStatus_order_by> | undefined
+      where?: userStatus_bool_exp | undefined
     }>,
     Sel extends Selection<userStatus>
   >(
@@ -21740,11 +21740,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   users<
     Args extends VariabledInput<{
-      distinct_on: Array<user_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<user_order_by> | undefined
-      where: user_bool_exp | undefined
+      distinct_on?: Array<user_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<user_order_by> | undefined
+      where?: user_bool_exp | undefined
     }>,
     Sel extends Selection<user>
   >(
@@ -21794,11 +21794,11 @@ export class subscription_root extends $Base<'subscription_root'> {
    */
   webhooks<
     Args extends VariabledInput<{
-      distinct_on: Array<webhook_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<webhook_order_by> | undefined
-      where: webhook_bool_exp | undefined
+      distinct_on?: Array<webhook_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<webhook_order_by> | undefined
+      where?: webhook_bool_exp | undefined
     }>,
     Sel extends Selection<webhook>
   >(
@@ -21871,7 +21871,7 @@ export class tag extends $Base<'tag'> {
 
   json<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'json', string, GetVariables<[], Args>> {
     const options = {
@@ -21981,8 +21981,8 @@ export class tag_aggregate_fields extends $Base<'tag_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<tag_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<tag_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -22018,16 +22018,16 @@ export class tag_aggregate_fields extends $Base<'tag_aggregate_fields'> {
  * order by aggregate values of table "tag"
  */
 export type tag_aggregate_order_by = {
-  count: order_by | undefined
-  max: tag_max_order_by | undefined
-  min: tag_min_order_by | undefined
+  count?: order_by | undefined
+  max?: tag_max_order_by | undefined
+  min?: tag_min_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type tag_append_input = {
-  json: string | undefined
+  json?: string | undefined
 }
 
 /**
@@ -22035,32 +22035,32 @@ export type tag_append_input = {
  */
 export type tag_arr_rel_insert_input = {
   data: Array<tag_insert_input>
-  on_conflict: tag_on_conflict | undefined
+  on_conflict?: tag_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "tag". All fields are combined with a logical 'AND'.
  */
 export type tag_bool_exp = {
-  _and: Array<tag_bool_exp> | undefined
-  _not: tag_bool_exp | undefined
-  _or: Array<tag_bool_exp> | undefined
-  booking: booking_bool_exp | undefined
-  bookingId: uuid_comparison_exp | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  json: jsonb_comparison_exp | undefined
-  payment: payment_bool_exp | undefined
-  paymentId: uuid_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  type: String_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
-  unit: unit_bool_exp | undefined
-  unitId: uuid_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<tag_bool_exp> | undefined
+  _not?: tag_bool_exp | undefined
+  _or?: Array<tag_bool_exp> | undefined
+  booking?: booking_bool_exp | undefined
+  bookingId?: uuid_comparison_exp | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  json?: jsonb_comparison_exp | undefined
+  payment?: payment_bool_exp | undefined
+  paymentId?: uuid_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  type?: String_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
+  unit?: unit_bool_exp | undefined
+  unitId?: uuid_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -22077,7 +22077,7 @@ export enum tag_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type tag_delete_at_path_input = {
-  json: Array<string> | undefined
+  json?: Array<string> | undefined
 }
 
 /**
@@ -22085,36 +22085,36 @@ export type tag_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type tag_delete_elem_input = {
-  json: number | undefined
+  json?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type tag_delete_key_input = {
-  json: string | undefined
+  json?: string | undefined
 }
 
 /**
  * input type for inserting data into table "tag"
  */
 export type tag_insert_input = {
-  booking: booking_obj_rel_insert_input | undefined
-  bookingId: string | undefined
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  id: string | undefined
-  json: string | undefined
-  payment: payment_obj_rel_insert_input | undefined
-  paymentId: string | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  unit: unit_obj_rel_insert_input | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
+  booking?: booking_obj_rel_insert_input | undefined
+  bookingId?: string | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  id?: string | undefined
+  json?: string | undefined
+  payment?: payment_obj_rel_insert_input | undefined
+  paymentId?: string | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  unit?: unit_obj_rel_insert_input | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -22170,16 +22170,16 @@ export class tag_max_fields extends $Base<'tag_max_fields'> {
  * order by max() on columns of table "tag"
  */
 export type tag_max_order_by = {
-  bookingId: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  paymentId: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  bookingId?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  paymentId?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -22235,16 +22235,16 @@ export class tag_min_fields extends $Base<'tag_min_fields'> {
  * order by min() on columns of table "tag"
  */
 export type tag_min_order_by = {
-  bookingId: order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  paymentId: order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  bookingId?: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  paymentId?: order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -22281,29 +22281,29 @@ export class tag_mutation_response extends $Base<'tag_mutation_response'> {
 export type tag_on_conflict = {
   constraint: tag_constraint
   update_columns: Array<tag_update_column>
-  where: tag_bool_exp | undefined
+  where?: tag_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "tag".
  */
 export type tag_order_by = {
-  booking: booking_order_by | undefined
-  bookingId: order_by | undefined
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  json: order_by | undefined
-  payment: payment_order_by | undefined
-  paymentId: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  type: order_by | undefined
-  uniqueRef: order_by | undefined
-  unit: unit_order_by | undefined
-  unitId: order_by | undefined
-  updatedAt: order_by | undefined
+  booking?: booking_order_by | undefined
+  bookingId?: order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  json?: order_by | undefined
+  payment?: payment_order_by | undefined
+  paymentId?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  type?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  unit?: unit_order_by | undefined
+  unitId?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -22317,7 +22317,7 @@ export type tag_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type tag_prepend_input = {
-  json: string | undefined
+  json?: string | undefined
 }
 
 /**
@@ -22384,17 +22384,17 @@ export enum tag_select_column {
  * input type for updating data in table "tag"
  */
 export type tag_set_input = {
-  bookingId: string | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  id: string | undefined
-  json: string | undefined
-  paymentId: string | undefined
-  teamId: string | undefined
-  type: string | undefined
-  uniqueRef: string | undefined
-  unitId: string | undefined
-  updatedAt: string | undefined
+  bookingId?: string | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  id?: string | undefined
+  json?: string | undefined
+  paymentId?: string | undefined
+  teamId?: string | undefined
+  type?: string | undefined
+  uniqueRef?: string | undefined
+  unitId?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -22474,11 +22474,11 @@ export class team extends $Base<'team'> {
    */
   bookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -22505,11 +22505,11 @@ export class team extends $Base<'team'> {
    */
   bookings_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking_aggregate>
   >(
@@ -22540,11 +22540,11 @@ export class team extends $Base<'team'> {
    */
   connections<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection>
   >(
@@ -22571,11 +22571,11 @@ export class team extends $Base<'team'> {
    */
   connections_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<connection_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<connection_order_by> | undefined
-      where: connection_bool_exp | undefined
+      distinct_on?: Array<connection_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<connection_order_by> | undefined
+      where?: connection_bool_exp | undefined
     }>,
     Sel extends Selection<connection_aggregate>
   >(
@@ -22610,11 +22610,11 @@ export class team extends $Base<'team'> {
    */
   entities<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity>
   >(
@@ -22641,11 +22641,11 @@ export class team extends $Base<'team'> {
    */
   entities_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<entity_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<entity_order_by> | undefined
-      where: entity_bool_exp | undefined
+      distinct_on?: Array<entity_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<entity_order_by> | undefined
+      where?: entity_bool_exp | undefined
     }>,
     Sel extends Selection<entity_aggregate>
   >(
@@ -22676,11 +22676,11 @@ export class team extends $Base<'team'> {
    */
   integrations<
     Args extends VariabledInput<{
-      distinct_on: Array<integration_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integration_order_by> | undefined
-      where: integration_bool_exp | undefined
+      distinct_on?: Array<integration_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integration_order_by> | undefined
+      where?: integration_bool_exp | undefined
     }>,
     Sel extends Selection<integration>
   >(
@@ -22707,11 +22707,11 @@ export class team extends $Base<'team'> {
    */
   integrations_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<integration_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<integration_order_by> | undefined
-      where: integration_bool_exp | undefined
+      distinct_on?: Array<integration_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<integration_order_by> | undefined
+      where?: integration_bool_exp | undefined
     }>,
     Sel extends Selection<integration_aggregate>
   >(
@@ -22746,11 +22746,11 @@ export class team extends $Base<'team'> {
    */
   issues<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue>
   >(
@@ -22777,11 +22777,11 @@ export class team extends $Base<'team'> {
    */
   issues_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<issue_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<issue_order_by> | undefined
-      where: issue_bool_exp | undefined
+      distinct_on?: Array<issue_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<issue_order_by> | undefined
+      where?: issue_bool_exp | undefined
     }>,
     Sel extends Selection<issue_aggregate>
   >(
@@ -22808,11 +22808,11 @@ export class team extends $Base<'team'> {
    */
   jobs<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job>
   >(
@@ -22839,11 +22839,11 @@ export class team extends $Base<'team'> {
    */
   jobs_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<job_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<job_order_by> | undefined
-      where: job_bool_exp | undefined
+      distinct_on?: Array<job_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<job_order_by> | undefined
+      where?: job_bool_exp | undefined
     }>,
     Sel extends Selection<job_aggregate>
   >(
@@ -22870,11 +22870,11 @@ export class team extends $Base<'team'> {
    */
   lines<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line>
   >(
@@ -22901,11 +22901,11 @@ export class team extends $Base<'team'> {
    */
   lines_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<line_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<line_order_by> | undefined
-      where: line_bool_exp | undefined
+      distinct_on?: Array<line_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<line_order_by> | undefined
+      where?: line_bool_exp | undefined
     }>,
     Sel extends Selection<line_aggregate>
   >(
@@ -22932,11 +22932,11 @@ export class team extends $Base<'team'> {
    */
   members<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser>
   >(
@@ -22963,11 +22963,11 @@ export class team extends $Base<'team'> {
    */
   members_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser_aggregate>
   >(
@@ -22994,11 +22994,11 @@ export class team extends $Base<'team'> {
    */
   metrics<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric>
   >(
@@ -23025,11 +23025,11 @@ export class team extends $Base<'team'> {
    */
   metrics_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<metric_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<metric_order_by> | undefined
-      where: metric_bool_exp | undefined
+      distinct_on?: Array<metric_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<metric_order_by> | undefined
+      where?: metric_bool_exp | undefined
     }>,
     Sel extends Selection<metric_aggregate>
   >(
@@ -23060,11 +23060,11 @@ export class team extends $Base<'team'> {
    */
   payments<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment>
   >(
@@ -23091,11 +23091,11 @@ export class team extends $Base<'team'> {
    */
   payments_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<payment_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<payment_order_by> | undefined
-      where: payment_bool_exp | undefined
+      distinct_on?: Array<payment_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<payment_order_by> | undefined
+      where?: payment_bool_exp | undefined
     }>,
     Sel extends Selection<payment_aggregate>
   >(
@@ -23138,11 +23138,11 @@ export class team extends $Base<'team'> {
    */
   tags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -23169,11 +23169,11 @@ export class team extends $Base<'team'> {
    */
   tags_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag_aggregate>
   >(
@@ -23200,11 +23200,11 @@ export class team extends $Base<'team'> {
    */
   units<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit>
   >(
@@ -23231,11 +23231,11 @@ export class team extends $Base<'team'> {
    */
   units_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<unit_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<unit_order_by> | undefined
-      where: unit_bool_exp | undefined
+      distinct_on?: Array<unit_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<unit_order_by> | undefined
+      where?: unit_bool_exp | undefined
     }>,
     Sel extends Selection<unit_aggregate>
   >(
@@ -23262,11 +23262,11 @@ export class team extends $Base<'team'> {
    */
   webhooks<
     Args extends VariabledInput<{
-      distinct_on: Array<webhook_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<webhook_order_by> | undefined
-      where: webhook_bool_exp | undefined
+      distinct_on?: Array<webhook_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<webhook_order_by> | undefined
+      where?: webhook_bool_exp | undefined
     }>,
     Sel extends Selection<webhook>
   >(
@@ -23293,11 +23293,11 @@ export class team extends $Base<'team'> {
    */
   webhooks_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<webhook_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<webhook_order_by> | undefined
-      where: webhook_bool_exp | undefined
+      distinct_on?: Array<webhook_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<webhook_order_by> | undefined
+      where?: webhook_bool_exp | undefined
     }>,
     Sel extends Selection<webhook_aggregate>
   >(
@@ -23370,8 +23370,8 @@ export class team_aggregate_fields extends $Base<'team_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<team_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<team_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -23483,35 +23483,35 @@ export class team_avg_fields extends $Base<'team_avg_fields'> {
  * Boolean expression to filter rows from the table "team". All fields are combined with a logical 'AND'.
  */
 export type team_bool_exp = {
-  _and: Array<team_bool_exp> | undefined
-  _not: team_bool_exp | undefined
-  _or: Array<team_bool_exp> | undefined
-  address: String_comparison_exp | undefined
-  bookings: booking_bool_exp | undefined
-  commissionPercentage: numeric_comparison_exp | undefined
-  connections: connection_bool_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  email: String_comparison_exp | undefined
-  entities: entity_bool_exp | undefined
-  id: uuid_comparison_exp | undefined
-  integrations: integration_bool_exp | undefined
-  isActive: Boolean_comparison_exp | undefined
-  isTest: Boolean_comparison_exp | undefined
-  issues: issue_bool_exp | undefined
-  jobs: job_bool_exp | undefined
-  lines: line_bool_exp | undefined
-  members: teamUser_bool_exp | undefined
-  metrics: metric_bool_exp | undefined
-  name: String_comparison_exp | undefined
-  payments: payment_bool_exp | undefined
-  stripeId: String_comparison_exp | undefined
-  stripeSubscriptionItemId: String_comparison_exp | undefined
-  supportEmail: String_comparison_exp | undefined
-  supportPhone: String_comparison_exp | undefined
-  tags: tag_bool_exp | undefined
-  units: unit_bool_exp | undefined
-  webhooks: webhook_bool_exp | undefined
-  website: String_comparison_exp | undefined
+  _and?: Array<team_bool_exp> | undefined
+  _not?: team_bool_exp | undefined
+  _or?: Array<team_bool_exp> | undefined
+  address?: String_comparison_exp | undefined
+  bookings?: booking_bool_exp | undefined
+  commissionPercentage?: numeric_comparison_exp | undefined
+  connections?: connection_bool_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  email?: String_comparison_exp | undefined
+  entities?: entity_bool_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  integrations?: integration_bool_exp | undefined
+  isActive?: Boolean_comparison_exp | undefined
+  isTest?: Boolean_comparison_exp | undefined
+  issues?: issue_bool_exp | undefined
+  jobs?: job_bool_exp | undefined
+  lines?: line_bool_exp | undefined
+  members?: teamUser_bool_exp | undefined
+  metrics?: metric_bool_exp | undefined
+  name?: String_comparison_exp | undefined
+  payments?: payment_bool_exp | undefined
+  stripeId?: String_comparison_exp | undefined
+  stripeSubscriptionItemId?: String_comparison_exp | undefined
+  supportEmail?: String_comparison_exp | undefined
+  supportPhone?: String_comparison_exp | undefined
+  tags?: tag_bool_exp | undefined
+  units?: unit_bool_exp | undefined
+  webhooks?: webhook_bool_exp | undefined
+  website?: String_comparison_exp | undefined
 }
 
 /**
@@ -23528,39 +23528,39 @@ export enum team_constraint {
  * input type for incrementing numeric columns in table "team"
  */
 export type team_inc_input = {
-  commissionPercentage: string | undefined
+  commissionPercentage?: string | undefined
 }
 
 /**
  * input type for inserting data into table "team"
  */
 export type team_insert_input = {
-  address: string | undefined
-  bookings: booking_arr_rel_insert_input | undefined
-  commissionPercentage: string | undefined
-  connections: connection_arr_rel_insert_input | undefined
-  createdAt: string | undefined
-  email: string | undefined
-  entities: entity_arr_rel_insert_input | undefined
-  id: string | undefined
-  integrations: integration_arr_rel_insert_input | undefined
-  isActive: boolean | undefined
-  isTest: boolean | undefined
-  issues: issue_arr_rel_insert_input | undefined
-  jobs: job_arr_rel_insert_input | undefined
-  lines: line_arr_rel_insert_input | undefined
-  members: teamUser_arr_rel_insert_input | undefined
-  metrics: metric_arr_rel_insert_input | undefined
-  name: string | undefined
-  payments: payment_arr_rel_insert_input | undefined
-  stripeId: string | undefined
-  stripeSubscriptionItemId: string | undefined
-  supportEmail: string | undefined
-  supportPhone: string | undefined
-  tags: tag_arr_rel_insert_input | undefined
-  units: unit_arr_rel_insert_input | undefined
-  webhooks: webhook_arr_rel_insert_input | undefined
-  website: string | undefined
+  address?: string | undefined
+  bookings?: booking_arr_rel_insert_input | undefined
+  commissionPercentage?: string | undefined
+  connections?: connection_arr_rel_insert_input | undefined
+  createdAt?: string | undefined
+  email?: string | undefined
+  entities?: entity_arr_rel_insert_input | undefined
+  id?: string | undefined
+  integrations?: integration_arr_rel_insert_input | undefined
+  isActive?: boolean | undefined
+  isTest?: boolean | undefined
+  issues?: issue_arr_rel_insert_input | undefined
+  jobs?: job_arr_rel_insert_input | undefined
+  lines?: line_arr_rel_insert_input | undefined
+  members?: teamUser_arr_rel_insert_input | undefined
+  metrics?: metric_arr_rel_insert_input | undefined
+  name?: string | undefined
+  payments?: payment_arr_rel_insert_input | undefined
+  stripeId?: string | undefined
+  stripeSubscriptionItemId?: string | undefined
+  supportEmail?: string | undefined
+  supportPhone?: string | undefined
+  tags?: tag_arr_rel_insert_input | undefined
+  units?: unit_arr_rel_insert_input | undefined
+  webhooks?: webhook_arr_rel_insert_input | undefined
+  website?: string | undefined
 }
 
 /**
@@ -23702,7 +23702,7 @@ export class team_mutation_response extends $Base<'team_mutation_response'> {
  */
 export type team_obj_rel_insert_input = {
   data: team_insert_input
-  on_conflict: team_on_conflict | undefined
+  on_conflict?: team_on_conflict | undefined
 }
 
 /**
@@ -23711,39 +23711,39 @@ export type team_obj_rel_insert_input = {
 export type team_on_conflict = {
   constraint: team_constraint
   update_columns: Array<team_update_column>
-  where: team_bool_exp | undefined
+  where?: team_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "team".
  */
 export type team_order_by = {
-  address: order_by | undefined
-  bookings_aggregate: booking_aggregate_order_by | undefined
-  commissionPercentage: order_by | undefined
-  connections_aggregate: connection_aggregate_order_by | undefined
-  createdAt: order_by | undefined
-  email: order_by | undefined
-  entities_aggregate: entity_aggregate_order_by | undefined
-  id: order_by | undefined
-  integrations_aggregate: integration_aggregate_order_by | undefined
-  isActive: order_by | undefined
-  isTest: order_by | undefined
-  issues_aggregate: issue_aggregate_order_by | undefined
-  jobs_aggregate: job_aggregate_order_by | undefined
-  lines_aggregate: line_aggregate_order_by | undefined
-  members_aggregate: teamUser_aggregate_order_by | undefined
-  metrics_aggregate: metric_aggregate_order_by | undefined
-  name: order_by | undefined
-  payments_aggregate: payment_aggregate_order_by | undefined
-  stripeId: order_by | undefined
-  stripeSubscriptionItemId: order_by | undefined
-  supportEmail: order_by | undefined
-  supportPhone: order_by | undefined
-  tags_aggregate: tag_aggregate_order_by | undefined
-  units_aggregate: unit_aggregate_order_by | undefined
-  webhooks_aggregate: webhook_aggregate_order_by | undefined
-  website: order_by | undefined
+  address?: order_by | undefined
+  bookings_aggregate?: booking_aggregate_order_by | undefined
+  commissionPercentage?: order_by | undefined
+  connections_aggregate?: connection_aggregate_order_by | undefined
+  createdAt?: order_by | undefined
+  email?: order_by | undefined
+  entities_aggregate?: entity_aggregate_order_by | undefined
+  id?: order_by | undefined
+  integrations_aggregate?: integration_aggregate_order_by | undefined
+  isActive?: order_by | undefined
+  isTest?: order_by | undefined
+  issues_aggregate?: issue_aggregate_order_by | undefined
+  jobs_aggregate?: job_aggregate_order_by | undefined
+  lines_aggregate?: line_aggregate_order_by | undefined
+  members_aggregate?: teamUser_aggregate_order_by | undefined
+  metrics_aggregate?: metric_aggregate_order_by | undefined
+  name?: order_by | undefined
+  payments_aggregate?: payment_aggregate_order_by | undefined
+  stripeId?: order_by | undefined
+  stripeSubscriptionItemId?: order_by | undefined
+  supportEmail?: order_by | undefined
+  supportPhone?: order_by | undefined
+  tags_aggregate?: tag_aggregate_order_by | undefined
+  units_aggregate?: unit_aggregate_order_by | undefined
+  webhooks_aggregate?: webhook_aggregate_order_by | undefined
+  website?: order_by | undefined
 }
 
 /**
@@ -23827,19 +23827,19 @@ export enum team_select_column {
  * input type for updating data in table "team"
  */
 export type team_set_input = {
-  address: string | undefined
-  commissionPercentage: string | undefined
-  createdAt: string | undefined
-  email: string | undefined
-  id: string | undefined
-  isActive: boolean | undefined
-  isTest: boolean | undefined
-  name: string | undefined
-  stripeId: string | undefined
-  stripeSubscriptionItemId: string | undefined
-  supportEmail: string | undefined
-  supportPhone: string | undefined
-  website: string | undefined
+  address?: string | undefined
+  commissionPercentage?: string | undefined
+  createdAt?: string | undefined
+  email?: string | undefined
+  id?: string | undefined
+  isActive?: boolean | undefined
+  isTest?: boolean | undefined
+  name?: string | undefined
+  stripeId?: string | undefined
+  stripeSubscriptionItemId?: string | undefined
+  supportEmail?: string | undefined
+  supportPhone?: string | undefined
+  website?: string | undefined
 }
 
 /**
@@ -24097,8 +24097,8 @@ export class teamUser_aggregate_fields extends $Base<'teamUser_aggregate_fields'
 
   count<
     Args extends VariabledInput<{
-      columns: Array<teamUser_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<teamUser_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -24134,9 +24134,9 @@ export class teamUser_aggregate_fields extends $Base<'teamUser_aggregate_fields'
  * order by aggregate values of table "team_user"
  */
 export type teamUser_aggregate_order_by = {
-  count: order_by | undefined
-  max: teamUser_max_order_by | undefined
-  min: teamUser_min_order_by | undefined
+  count?: order_by | undefined
+  max?: teamUser_max_order_by | undefined
+  min?: teamUser_min_order_by | undefined
 }
 
 /**
@@ -24144,24 +24144,24 @@ export type teamUser_aggregate_order_by = {
  */
 export type teamUser_arr_rel_insert_input = {
   data: Array<teamUser_insert_input>
-  on_conflict: teamUser_on_conflict | undefined
+  on_conflict?: teamUser_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "team_user". All fields are combined with a logical 'AND'.
  */
 export type teamUser_bool_exp = {
-  _and: Array<teamUser_bool_exp> | undefined
-  _not: teamUser_bool_exp | undefined
-  _or: Array<teamUser_bool_exp> | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  role: String_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
-  user: user_bool_exp | undefined
-  userId: uuid_comparison_exp | undefined
+  _and?: Array<teamUser_bool_exp> | undefined
+  _not?: teamUser_bool_exp | undefined
+  _or?: Array<teamUser_bool_exp> | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  role?: String_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
+  user?: user_bool_exp | undefined
+  userId?: uuid_comparison_exp | undefined
 }
 
 /**
@@ -24178,14 +24178,14 @@ export enum teamUser_constraint {
  * input type for inserting data into table "team_user"
  */
 export type teamUser_insert_input = {
-  createdAt: string | undefined
-  id: string | undefined
-  role: string | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  updatedAt: string | undefined
-  user: user_obj_rel_insert_input | undefined
-  userId: string | undefined
+  createdAt?: string | undefined
+  id?: string | undefined
+  role?: string | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  updatedAt?: string | undefined
+  user?: user_obj_rel_insert_input | undefined
+  userId?: string | undefined
 }
 
 /**
@@ -24225,12 +24225,12 @@ export class teamUser_max_fields extends $Base<'teamUser_max_fields'> {
  * order by max() on columns of table "team_user"
  */
 export type teamUser_max_order_by = {
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  role: order_by | undefined
-  teamId: order_by | undefined
-  updatedAt: order_by | undefined
-  userId: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  role?: order_by | undefined
+  teamId?: order_by | undefined
+  updatedAt?: order_by | undefined
+  userId?: order_by | undefined
 }
 
 /**
@@ -24270,12 +24270,12 @@ export class teamUser_min_fields extends $Base<'teamUser_min_fields'> {
  * order by min() on columns of table "team_user"
  */
 export type teamUser_min_order_by = {
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  role: order_by | undefined
-  teamId: order_by | undefined
-  updatedAt: order_by | undefined
-  userId: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  role?: order_by | undefined
+  teamId?: order_by | undefined
+  updatedAt?: order_by | undefined
+  userId?: order_by | undefined
 }
 
 /**
@@ -24312,21 +24312,21 @@ export class teamUser_mutation_response extends $Base<'teamUser_mutation_respons
 export type teamUser_on_conflict = {
   constraint: teamUser_constraint
   update_columns: Array<teamUser_update_column>
-  where: teamUser_bool_exp | undefined
+  where?: teamUser_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "team_user".
  */
 export type teamUser_order_by = {
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  role: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  updatedAt: order_by | undefined
-  user: user_order_by | undefined
-  userId: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  role?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  updatedAt?: order_by | undefined
+  user?: user_order_by | undefined
+  userId?: order_by | undefined
 }
 
 /**
@@ -24375,12 +24375,12 @@ export enum teamUser_select_column {
  * input type for updating data in table "team_user"
  */
 export type teamUser_set_input = {
-  createdAt: string | undefined
-  id: string | undefined
-  role: string | undefined
-  teamId: string | undefined
-  updatedAt: string | undefined
-  userId: string | undefined
+  createdAt?: string | undefined
+  id?: string | undefined
+  role?: string | undefined
+  teamId?: string | undefined
+  updatedAt?: string | undefined
+  userId?: string | undefined
 }
 
 /**
@@ -24424,15 +24424,15 @@ export type timestamptz = unknown
  * Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
  */
 export type timestamptz_comparison_exp = {
-  _eq: string | undefined
-  _gt: string | undefined
-  _gte: string | undefined
-  _in: Array<string> | undefined
-  _is_null: boolean | undefined
-  _lt: string | undefined
-  _lte: string | undefined
-  _neq: string | undefined
-  _nin: Array<string> | undefined
+  _eq?: string | undefined
+  _gt?: string | undefined
+  _gte?: string | undefined
+  _in?: Array<string> | undefined
+  _is_null?: boolean | undefined
+  _lt?: string | undefined
+  _lte?: string | undefined
+  _neq?: string | undefined
+  _nin?: Array<string> | undefined
 }
 
 /**
@@ -24448,11 +24448,11 @@ export class unit extends $Base<'unit'> {
    */
   bookings<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking>
   >(
@@ -24479,11 +24479,11 @@ export class unit extends $Base<'unit'> {
    */
   bookings_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<booking_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<booking_order_by> | undefined
-      where: booking_bool_exp | undefined
+      distinct_on?: Array<booking_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<booking_order_by> | undefined
+      where?: booking_bool_exp | undefined
     }>,
     Sel extends Selection<booking_aggregate>
   >(
@@ -24547,7 +24547,7 @@ export class unit extends $Base<'unit'> {
 
   metadata<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'metadata', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -24572,11 +24572,11 @@ export class unit extends $Base<'unit'> {
    */
   tags<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag>
   >(
@@ -24603,11 +24603,11 @@ export class unit extends $Base<'unit'> {
    */
   tags_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<tag_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<tag_order_by> | undefined
-      where: tag_bool_exp | undefined
+      distinct_on?: Array<tag_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<tag_order_by> | undefined
+      where?: tag_bool_exp | undefined
     }>,
     Sel extends Selection<tag_aggregate>
   >(
@@ -24691,8 +24691,8 @@ export class unit_aggregate_fields extends $Base<'unit_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<unit_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<unit_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -24728,16 +24728,16 @@ export class unit_aggregate_fields extends $Base<'unit_aggregate_fields'> {
  * order by aggregate values of table "unit"
  */
 export type unit_aggregate_order_by = {
-  count: order_by | undefined
-  max: unit_max_order_by | undefined
-  min: unit_min_order_by | undefined
+  count?: order_by | undefined
+  max?: unit_max_order_by | undefined
+  min?: unit_min_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type unit_append_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -24745,31 +24745,31 @@ export type unit_append_input = {
  */
 export type unit_arr_rel_insert_input = {
   data: Array<unit_insert_input>
-  on_conflict: unit_on_conflict | undefined
+  on_conflict?: unit_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "unit". All fields are combined with a logical 'AND'.
  */
 export type unit_bool_exp = {
-  _and: Array<unit_bool_exp> | undefined
-  _not: unit_bool_exp | undefined
-  _or: Array<unit_bool_exp> | undefined
-  bookings: booking_bool_exp | undefined
-  connection: connection_bool_exp | undefined
-  connectionId: uuid_comparison_exp | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  entity: entity_bool_exp | undefined
-  entityId: uuid_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  metadata: jsonb_comparison_exp | undefined
-  name: String_comparison_exp | undefined
-  status: String_comparison_exp | undefined
-  tags: tag_bool_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  uniqueRef: String_comparison_exp | undefined
-  updatedAt: timestamptz_comparison_exp | undefined
+  _and?: Array<unit_bool_exp> | undefined
+  _not?: unit_bool_exp | undefined
+  _or?: Array<unit_bool_exp> | undefined
+  bookings?: booking_bool_exp | undefined
+  connection?: connection_bool_exp | undefined
+  connectionId?: uuid_comparison_exp | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  entity?: entity_bool_exp | undefined
+  entityId?: uuid_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  metadata?: jsonb_comparison_exp | undefined
+  name?: String_comparison_exp | undefined
+  status?: String_comparison_exp | undefined
+  tags?: tag_bool_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  uniqueRef?: String_comparison_exp | undefined
+  updatedAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -24786,7 +24786,7 @@ export enum unit_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type unit_delete_at_path_input = {
-  metadata: Array<string> | undefined
+  metadata?: Array<string> | undefined
 }
 
 /**
@@ -24794,35 +24794,35 @@ export type unit_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type unit_delete_elem_input = {
-  metadata: number | undefined
+  metadata?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type unit_delete_key_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
  * input type for inserting data into table "unit"
  */
 export type unit_insert_input = {
-  bookings: booking_arr_rel_insert_input | undefined
-  connection: connection_obj_rel_insert_input | undefined
-  connectionId: string | undefined
-  createdAt: string | undefined
-  entity: entity_obj_rel_insert_input | undefined
-  entityId: string | undefined
-  id: string | undefined
-  metadata: string | undefined
-  name: string | undefined
-  status: string | undefined
-  tags: tag_arr_rel_insert_input | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  uniqueRef: string | undefined
-  updatedAt: string | undefined
+  bookings?: booking_arr_rel_insert_input | undefined
+  connection?: connection_obj_rel_insert_input | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  entity?: entity_obj_rel_insert_input | undefined
+  entityId?: string | undefined
+  id?: string | undefined
+  metadata?: string | undefined
+  name?: string | undefined
+  status?: string | undefined
+  tags?: tag_arr_rel_insert_input | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  uniqueRef?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -24874,15 +24874,15 @@ export class unit_max_fields extends $Base<'unit_max_fields'> {
  * order by max() on columns of table "unit"
  */
 export type unit_max_order_by = {
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  entityId: order_by | undefined
-  id: order_by | undefined
-  name: order_by | undefined
-  status: order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  entityId?: order_by | undefined
+  id?: order_by | undefined
+  name?: order_by | undefined
+  status?: order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -24934,15 +24934,15 @@ export class unit_min_fields extends $Base<'unit_min_fields'> {
  * order by min() on columns of table "unit"
  */
 export type unit_min_order_by = {
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  entityId: order_by | undefined
-  id: order_by | undefined
-  name: order_by | undefined
-  status: order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  entityId?: order_by | undefined
+  id?: order_by | undefined
+  name?: order_by | undefined
+  status?: order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -24978,7 +24978,7 @@ export class unit_mutation_response extends $Base<'unit_mutation_response'> {
  */
 export type unit_obj_rel_insert_input = {
   data: unit_insert_input
-  on_conflict: unit_on_conflict | undefined
+  on_conflict?: unit_on_conflict | undefined
 }
 
 /**
@@ -24987,28 +24987,28 @@ export type unit_obj_rel_insert_input = {
 export type unit_on_conflict = {
   constraint: unit_constraint
   update_columns: Array<unit_update_column>
-  where: unit_bool_exp | undefined
+  where?: unit_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "unit".
  */
 export type unit_order_by = {
-  bookings_aggregate: booking_aggregate_order_by | undefined
-  connection: connection_order_by | undefined
-  connectionId: order_by | undefined
-  createdAt: order_by | undefined
-  entity: entity_order_by | undefined
-  entityId: order_by | undefined
-  id: order_by | undefined
-  metadata: order_by | undefined
-  name: order_by | undefined
-  status: order_by | undefined
-  tags_aggregate: tag_aggregate_order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  uniqueRef: order_by | undefined
-  updatedAt: order_by | undefined
+  bookings_aggregate?: booking_aggregate_order_by | undefined
+  connection?: connection_order_by | undefined
+  connectionId?: order_by | undefined
+  createdAt?: order_by | undefined
+  entity?: entity_order_by | undefined
+  entityId?: order_by | undefined
+  id?: order_by | undefined
+  metadata?: order_by | undefined
+  name?: order_by | undefined
+  status?: order_by | undefined
+  tags_aggregate?: tag_aggregate_order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  uniqueRef?: order_by | undefined
+  updatedAt?: order_by | undefined
 }
 
 /**
@@ -25022,7 +25022,7 @@ export type unit_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type unit_prepend_input = {
-  metadata: string | undefined
+  metadata?: string | undefined
 }
 
 /**
@@ -25084,16 +25084,16 @@ export enum unit_select_column {
  * input type for updating data in table "unit"
  */
 export type unit_set_input = {
-  connectionId: string | undefined
-  createdAt: string | undefined
-  entityId: string | undefined
-  id: string | undefined
-  metadata: string | undefined
-  name: string | undefined
-  status: string | undefined
-  teamId: string | undefined
-  uniqueRef: string | undefined
-  updatedAt: string | undefined
+  connectionId?: string | undefined
+  createdAt?: string | undefined
+  entityId?: string | undefined
+  id?: string | undefined
+  metadata?: string | undefined
+  name?: string | undefined
+  status?: string | undefined
+  teamId?: string | undefined
+  uniqueRef?: string | undefined
+  updatedAt?: string | undefined
 }
 
 /**
@@ -25180,11 +25180,11 @@ export class user extends $Base<'user'> {
    */
   memberships<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser>
   >(
@@ -25211,11 +25211,11 @@ export class user extends $Base<'user'> {
    */
   memberships_aggregate<
     Args extends VariabledInput<{
-      distinct_on: Array<teamUser_select_column> | undefined
-      limit: number | undefined
-      offset: number | undefined
-      order_by: Array<teamUser_order_by> | undefined
-      where: teamUser_bool_exp | undefined
+      distinct_on?: Array<teamUser_select_column> | undefined
+      limit?: number | undefined
+      offset?: number | undefined
+      order_by?: Array<teamUser_order_by> | undefined
+      where?: teamUser_bool_exp | undefined
     }>,
     Sel extends Selection<teamUser_aggregate>
   >(
@@ -25291,8 +25291,8 @@ export class user_aggregate_fields extends $Base<'user_aggregate_fields'> {
 
   count<
     Args extends VariabledInput<{
-      columns: Array<user_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<user_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -25328,18 +25328,18 @@ export class user_aggregate_fields extends $Base<'user_aggregate_fields'> {
  * Boolean expression to filter rows from the table "user". All fields are combined with a logical 'AND'.
  */
 export type user_bool_exp = {
-  _and: Array<user_bool_exp> | undefined
-  _not: user_bool_exp | undefined
-  _or: Array<user_bool_exp> | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  email: String_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  isAdmin: Boolean_comparison_exp | undefined
-  memberships: teamUser_bool_exp | undefined
-  name: String_comparison_exp | undefined
-  status: user_status_enum_comparison_exp | undefined
-  sub: String_comparison_exp | undefined
-  trialExpiryAt: timestamptz_comparison_exp | undefined
+  _and?: Array<user_bool_exp> | undefined
+  _not?: user_bool_exp | undefined
+  _or?: Array<user_bool_exp> | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  email?: String_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  isAdmin?: Boolean_comparison_exp | undefined
+  memberships?: teamUser_bool_exp | undefined
+  name?: String_comparison_exp | undefined
+  status?: user_status_enum_comparison_exp | undefined
+  sub?: String_comparison_exp | undefined
+  trialExpiryAt?: timestamptz_comparison_exp | undefined
 }
 
 /**
@@ -25356,15 +25356,15 @@ export enum user_constraint {
  * input type for inserting data into table "user"
  */
 export type user_insert_input = {
-  createdAt: string | undefined
-  email: string | undefined
-  id: string | undefined
-  isAdmin: boolean | undefined
-  memberships: teamUser_arr_rel_insert_input | undefined
-  name: string | undefined
-  status: user_status_enum | undefined
-  sub: string | undefined
-  trialExpiryAt: string | undefined
+  createdAt?: string | undefined
+  email?: string | undefined
+  id?: string | undefined
+  isAdmin?: boolean | undefined
+  memberships?: teamUser_arr_rel_insert_input | undefined
+  name?: string | undefined
+  status?: user_status_enum | undefined
+  sub?: string | undefined
+  trialExpiryAt?: string | undefined
 }
 
 /**
@@ -25466,7 +25466,7 @@ export class user_mutation_response extends $Base<'user_mutation_response'> {
  */
 export type user_obj_rel_insert_input = {
   data: user_insert_input
-  on_conflict: user_on_conflict | undefined
+  on_conflict?: user_on_conflict | undefined
 }
 
 /**
@@ -25475,22 +25475,22 @@ export type user_obj_rel_insert_input = {
 export type user_on_conflict = {
   constraint: user_constraint
   update_columns: Array<user_update_column>
-  where: user_bool_exp | undefined
+  where?: user_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "user".
  */
 export type user_order_by = {
-  createdAt: order_by | undefined
-  email: order_by | undefined
-  id: order_by | undefined
-  isAdmin: order_by | undefined
-  memberships_aggregate: teamUser_aggregate_order_by | undefined
-  name: order_by | undefined
-  status: order_by | undefined
-  sub: order_by | undefined
-  trialExpiryAt: order_by | undefined
+  createdAt?: order_by | undefined
+  email?: order_by | undefined
+  id?: order_by | undefined
+  isAdmin?: order_by | undefined
+  memberships_aggregate?: teamUser_aggregate_order_by | undefined
+  name?: order_by | undefined
+  status?: order_by | undefined
+  sub?: order_by | undefined
+  trialExpiryAt?: order_by | undefined
 }
 
 /**
@@ -25549,14 +25549,14 @@ export enum user_select_column {
  * input type for updating data in table "user"
  */
 export type user_set_input = {
-  createdAt: string | undefined
-  email: string | undefined
-  id: string | undefined
-  isAdmin: boolean | undefined
-  name: string | undefined
-  status: user_status_enum | undefined
-  sub: string | undefined
-  trialExpiryAt: string | undefined
+  createdAt?: string | undefined
+  email?: string | undefined
+  id?: string | undefined
+  isAdmin?: boolean | undefined
+  name?: string | undefined
+  status?: user_status_enum | undefined
+  sub?: string | undefined
+  trialExpiryAt?: string | undefined
 }
 
 export enum user_status_enum {
@@ -25573,11 +25573,11 @@ export enum user_status_enum {
  * Boolean expression to compare columns of type "user_status_enum". All fields are combined with logical 'AND'.
  */
 export type user_status_enum_comparison_exp = {
-  _eq: user_status_enum | undefined
-  _in: Array<user_status_enum> | undefined
-  _is_null: boolean | undefined
-  _neq: user_status_enum | undefined
-  _nin: Array<user_status_enum> | undefined
+  _eq?: user_status_enum | undefined
+  _in?: Array<user_status_enum> | undefined
+  _is_null?: boolean | undefined
+  _neq?: user_status_enum | undefined
+  _nin?: Array<user_status_enum> | undefined
 }
 
 /**
@@ -25675,8 +25675,8 @@ export class userStatus_aggregate_fields extends $Base<'userStatus_aggregate_fie
 
   count<
     Args extends VariabledInput<{
-      columns: Array<userStatus_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<userStatus_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -25712,10 +25712,10 @@ export class userStatus_aggregate_fields extends $Base<'userStatus_aggregate_fie
  * Boolean expression to filter rows from the table "user_status". All fields are combined with a logical 'AND'.
  */
 export type userStatus_bool_exp = {
-  _and: Array<userStatus_bool_exp> | undefined
-  _not: userStatus_bool_exp | undefined
-  _or: Array<userStatus_bool_exp> | undefined
-  name: String_comparison_exp | undefined
+  _and?: Array<userStatus_bool_exp> | undefined
+  _not?: userStatus_bool_exp | undefined
+  _or?: Array<userStatus_bool_exp> | undefined
+  name?: String_comparison_exp | undefined
 }
 
 /**
@@ -25732,7 +25732,7 @@ export enum userStatus_constraint {
  * input type for inserting data into table "user_status"
  */
 export type userStatus_insert_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -25795,14 +25795,14 @@ export class userStatus_mutation_response extends $Base<'userStatus_mutation_res
 export type userStatus_on_conflict = {
   constraint: userStatus_constraint
   update_columns: Array<userStatus_update_column>
-  where: userStatus_bool_exp | undefined
+  where?: userStatus_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "user_status".
  */
 export type userStatus_order_by = {
-  name: order_by | undefined
+  name?: order_by | undefined
 }
 
 /**
@@ -25826,7 +25826,7 @@ export enum userStatus_select_column {
  * input type for updating data in table "user_status"
  */
 export type userStatus_set_input = {
-  name: string | undefined
+  name?: string | undefined
 }
 
 /**
@@ -25845,15 +25845,15 @@ export type uuid = unknown
  * Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
  */
 export type uuid_comparison_exp = {
-  _eq: string | undefined
-  _gt: string | undefined
-  _gte: string | undefined
-  _in: Array<string> | undefined
-  _is_null: boolean | undefined
-  _lt: string | undefined
-  _lte: string | undefined
-  _neq: string | undefined
-  _nin: Array<string> | undefined
+  _eq?: string | undefined
+  _gt?: string | undefined
+  _gte?: string | undefined
+  _in?: Array<string> | undefined
+  _is_null?: boolean | undefined
+  _lt?: string | undefined
+  _lte?: string | undefined
+  _neq?: string | undefined
+  _nin?: Array<string> | undefined
 }
 
 /**
@@ -25870,7 +25870,7 @@ export class webhook extends $Base<'webhook'> {
 
   headers<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'headers', string | undefined, GetVariables<[], Args>> {
     const options = {
@@ -25904,7 +25904,7 @@ export class webhook extends $Base<'webhook'> {
 
   types<
     Args extends VariabledInput<{
-      path: string | undefined
+      path?: string | undefined
     }>
   >(args: Args): $Field<'types', string, GetVariables<[], Args>> {
     const options = {
@@ -25962,8 +25962,8 @@ export class webhook_aggregate_fields extends $Base<'webhook_aggregate_fields'> 
 
   count<
     Args extends VariabledInput<{
-      columns: Array<webhook_select_column> | undefined
-      distinct: boolean | undefined
+      columns?: Array<webhook_select_column> | undefined
+      distinct?: boolean | undefined
     }>
   >(args: Args): $Field<'count', number, GetVariables<[], Args>> {
     const options = {
@@ -25999,17 +25999,17 @@ export class webhook_aggregate_fields extends $Base<'webhook_aggregate_fields'> 
  * order by aggregate values of table "webhook"
  */
 export type webhook_aggregate_order_by = {
-  count: order_by | undefined
-  max: webhook_max_order_by | undefined
-  min: webhook_min_order_by | undefined
+  count?: order_by | undefined
+  max?: webhook_max_order_by | undefined
+  min?: webhook_min_order_by | undefined
 }
 
 /**
  * append existing jsonb value of filtered columns with new jsonb value
  */
 export type webhook_append_input = {
-  headers: string | undefined
-  types: string | undefined
+  headers?: string | undefined
+  types?: string | undefined
 }
 
 /**
@@ -26017,24 +26017,24 @@ export type webhook_append_input = {
  */
 export type webhook_arr_rel_insert_input = {
   data: Array<webhook_insert_input>
-  on_conflict: webhook_on_conflict | undefined
+  on_conflict?: webhook_on_conflict | undefined
 }
 
 /**
  * Boolean expression to filter rows from the table "webhook". All fields are combined with a logical 'AND'.
  */
 export type webhook_bool_exp = {
-  _and: Array<webhook_bool_exp> | undefined
-  _not: webhook_bool_exp | undefined
-  _or: Array<webhook_bool_exp> | undefined
-  createdAt: timestamptz_comparison_exp | undefined
-  headers: jsonb_comparison_exp | undefined
-  id: uuid_comparison_exp | undefined
-  team: team_bool_exp | undefined
-  teamId: uuid_comparison_exp | undefined
-  types: jsonb_comparison_exp | undefined
-  types2: _text_comparison_exp | undefined
-  url: String_comparison_exp | undefined
+  _and?: Array<webhook_bool_exp> | undefined
+  _not?: webhook_bool_exp | undefined
+  _or?: Array<webhook_bool_exp> | undefined
+  createdAt?: timestamptz_comparison_exp | undefined
+  headers?: jsonb_comparison_exp | undefined
+  id?: uuid_comparison_exp | undefined
+  team?: team_bool_exp | undefined
+  teamId?: uuid_comparison_exp | undefined
+  types?: jsonb_comparison_exp | undefined
+  types2?: _text_comparison_exp | undefined
+  url?: String_comparison_exp | undefined
 }
 
 /**
@@ -26051,8 +26051,8 @@ export enum webhook_constraint {
  * delete the field or element with specified path (for JSON arrays, negative integers count from the end)
  */
 export type webhook_delete_at_path_input = {
-  headers: Array<string> | undefined
-  types: Array<string> | undefined
+  headers?: Array<string> | undefined
+  types?: Array<string> | undefined
 }
 
 /**
@@ -26060,30 +26060,30 @@ export type webhook_delete_at_path_input = {
 end). throws an error if top level container is not an array
  */
 export type webhook_delete_elem_input = {
-  headers: number | undefined
-  types: number | undefined
+  headers?: number | undefined
+  types?: number | undefined
 }
 
 /**
  * delete key/value pair or string element. key/value pairs are matched based on their key value
  */
 export type webhook_delete_key_input = {
-  headers: string | undefined
-  types: string | undefined
+  headers?: string | undefined
+  types?: string | undefined
 }
 
 /**
  * input type for inserting data into table "webhook"
  */
 export type webhook_insert_input = {
-  createdAt: string | undefined
-  headers: string | undefined
-  id: string | undefined
-  team: team_obj_rel_insert_input | undefined
-  teamId: string | undefined
-  types: string | undefined
-  types2: string | undefined
-  url: string | undefined
+  createdAt?: string | undefined
+  headers?: string | undefined
+  id?: string | undefined
+  team?: team_obj_rel_insert_input | undefined
+  teamId?: string | undefined
+  types?: string | undefined
+  types2?: string | undefined
+  url?: string | undefined
 }
 
 /**
@@ -26115,10 +26115,10 @@ export class webhook_max_fields extends $Base<'webhook_max_fields'> {
  * order by max() on columns of table "webhook"
  */
 export type webhook_max_order_by = {
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  teamId: order_by | undefined
-  url: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  teamId?: order_by | undefined
+  url?: order_by | undefined
 }
 
 /**
@@ -26150,10 +26150,10 @@ export class webhook_min_fields extends $Base<'webhook_min_fields'> {
  * order by min() on columns of table "webhook"
  */
 export type webhook_min_order_by = {
-  createdAt: order_by | undefined
-  id: order_by | undefined
-  teamId: order_by | undefined
-  url: order_by | undefined
+  createdAt?: order_by | undefined
+  id?: order_by | undefined
+  teamId?: order_by | undefined
+  url?: order_by | undefined
 }
 
 /**
@@ -26190,21 +26190,21 @@ export class webhook_mutation_response extends $Base<'webhook_mutation_response'
 export type webhook_on_conflict = {
   constraint: webhook_constraint
   update_columns: Array<webhook_update_column>
-  where: webhook_bool_exp | undefined
+  where?: webhook_bool_exp | undefined
 }
 
 /**
  * Ordering options when selecting data from "webhook".
  */
 export type webhook_order_by = {
-  createdAt: order_by | undefined
-  headers: order_by | undefined
-  id: order_by | undefined
-  team: team_order_by | undefined
-  teamId: order_by | undefined
-  types: order_by | undefined
-  types2: order_by | undefined
-  url: order_by | undefined
+  createdAt?: order_by | undefined
+  headers?: order_by | undefined
+  id?: order_by | undefined
+  team?: team_order_by | undefined
+  teamId?: order_by | undefined
+  types?: order_by | undefined
+  types2?: order_by | undefined
+  url?: order_by | undefined
 }
 
 /**
@@ -26218,8 +26218,8 @@ export type webhook_pk_columns_input = {
  * prepend existing jsonb value of filtered columns with new jsonb value
  */
 export type webhook_prepend_input = {
-  headers: string | undefined
-  types: string | undefined
+  headers?: string | undefined
+  types?: string | undefined
 }
 
 /**
@@ -26266,13 +26266,13 @@ export enum webhook_select_column {
  * input type for updating data in table "webhook"
  */
 export type webhook_set_input = {
-  createdAt: string | undefined
-  headers: string | undefined
-  id: string | undefined
-  teamId: string | undefined
-  types: string | undefined
-  types2: string | undefined
-  url: string | undefined
+  createdAt?: string | undefined
+  headers?: string | undefined
+  id?: string | undefined
+  teamId?: string | undefined
+  types?: string | undefined
+  types2?: string | undefined
+  url?: string | undefined
 }
 
 /**
