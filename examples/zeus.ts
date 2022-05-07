@@ -387,11 +387,11 @@ export class S3Object extends $Base<'S3Object'> {
 export type JSON = unknown
 
 export class ChangeCard extends $Union<
-  { SpecialCard: SpecialCard; EffectCard: EffectCard },
+  { SpecialCard: SpecialCard; EffectCard: EffectCard; Nameable: Nameable },
   'ChangeCard'
 > {
   constructor() {
-    super({ SpecialCard: SpecialCard, EffectCard: EffectCard })
+    super({ SpecialCard: SpecialCard, EffectCard: EffectCard, Nameable: Nameable })
   }
 }
 

@@ -45,6 +45,15 @@ async function main() {
       ]) as [string, string][]
   )
 
+  const inheritanceMap = new Map(
+    res.definitions.flatMap(def => {
+      if (def.kind === gq.Kind.OBJECT_TYPE_DEFINITION) {
+        return [[def.name.value, def.interfaces?.map(ifc => ifc.name.value)]]
+      }
+      return []
+    })
+  )
+
   function isAtomic(typeName: string) {
     return !!atomicTypes.get(typeName)
   }
@@ -235,7 +244,13 @@ export type ${def.name.value} = unknown
   }
 
   function printUnion(def: gq.UnionTypeDefinitionNode) {
-    const UnionObject = `{${def.types?.map(t => `${printTypeBase(t)}: ${printTypeBase(t)}`)}}`
+    // TODO: collect all interfaces that the named type implements too
+    const baseTypes = def.types?.map(t => printTypeBase(t)) ?? []
+    const additionalTypes = Array.from(
+      new Set(baseTypes.concat(baseTypes.flatMap(bt => inheritanceMap.get(bt) ?? [])))
+    )
+
+    const UnionObject = `{${additionalTypes.map(t => `${t}: ${t}`)}}`
     return `
 ${printDocumentation(def.description)}
 export class ${def.name.value} extends $Union<${UnionObject}, "${def.name.value}"> {
