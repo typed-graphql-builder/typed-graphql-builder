@@ -24,6 +24,10 @@ const { describe, it } = mocha
 //   }
 // examples/test-schema1.bad.ts
 //   content can be anything that we want to fail compilation :D
+// schema/schema-test.ts
+//   tests that compile a small raw schema and expect a certain output
+//   can go in this directory (i.e. checking correct support for various valid GQL schemas)
+//   examples: no mutations, no query root, unions, enums, custom scalars, optionals etc.
 
 import { exec, execSync } from 'child_process'
 
