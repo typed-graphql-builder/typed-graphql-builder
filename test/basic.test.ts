@@ -6,6 +6,7 @@ const { describe, it } = mocha
 // util - contains the libs to run the tests
 // runner - ???
 // examples - contains the harness
+// See https://github.com/brianc/node-sql/blob/master/test/dialects/select-tests.js for what we're looking for
 // examples/schema1.graphql
 // examples/schema1.graphql.ts
 // examples/schema2.graphql
