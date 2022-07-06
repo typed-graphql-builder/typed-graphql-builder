@@ -29,3 +29,5 @@ jobs:
     - run: yarn
     - run: yarn run build
     - run: yarn test
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
