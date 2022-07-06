@@ -1,6 +1,6 @@
 import t, { mocha } from 'tap'
-
-const { describe, it } = mocha
+import * as glob from 'glob'
+import { compile } from '../src/compile'
 
 // test dir structure
 // util - contains the libs to run the tests
@@ -30,11 +30,11 @@ const { describe, it } = mocha
 //   can go in this directory (i.e. checking correct support for various valid GQL schemas)
 //   examples: no mutations, no query root, unions, enums, custom scalars, optionals etc.
 
-import { exec, execSync } from 'child_process'
+import { spawnSync } from 'child_process'
+import path from 'path'
 
-execSync('tsc', {
-  cwd: __dirname,
-})
+t.setTimeout(10000)
+t.autoend(true)
 
 // We do NOT need to use the output of `tsc`. We only care about the error reporting
 // This means we can use a config that has `noemit: true`
@@ -42,11 +42,40 @@ execSync('tsc', {
 // directly on the .ts file of the test.
 // https://github.com/jeremyben/tsc-prog
 
-describe('hello world', () => {
-  it('works', () => {
-    t.ok(true, 'Its allright 2')
-    // runCompilerForCheckOnly('./file.ts')
-    // const queries = require('./file.ts') as someArray[];
-    // run asserts on the queries
+function compileTs(path: string) {
+  return spawnSync(`tsc`, ['--noEmit', '--strict', path], {
+    cwd: __dirname,
   })
-})
+}
+
+for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
+  let schemaName = path.basename(schema)
+  t.test(`schema ${schemaName}`, t => {
+    t.autoend(true)
+
+    t.before(async () => {
+      await compile({ schema, output: `${schema}.ts` })
+    })
+
+    let goodExamples = glob.sync(`__dirname/examples/*-${path.basename(schema)}.good.ts`)
+
+    // t.plan(goodExamples.length + 1)
+
+    t.test('typechecks', t => {
+      let output = compileTs(`${schema}.ts`)
+      t.ok(!output.error, 'schema compiled without errors')
+      t.end()
+    })
+
+    for (let example of goodExamples) {
+      let exampleName = path.basename(example)
+      t.test(`compiles with example ${exampleName}.ts`, async t => {
+        let res = compileTs(example)
+        t.ok(!res.error, 'valid example compiled successfully')
+
+        let loadedExample = require(example).default
+        for (let test of loadedExample) test(t)
+      })
+    }
+  })
+}
