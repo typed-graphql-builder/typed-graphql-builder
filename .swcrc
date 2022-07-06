@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "jsc": {
+    "parser": {
+      "syntax":"typescript"
+    },
+    "target": "es2019"
+  },
+  "sourceMaps": "inline",
+  "minify": false
+}

@@ -303,7 +303,6 @@ export enum ${def.name.value} {
 
   if (rootNode) {
     write(printSchema(rootNode))
-
     write(postamble(rootNode.operationTypes.map(o => o.operation.toString())))
   } else {
     throw new Error('Schema does not have a root node')
