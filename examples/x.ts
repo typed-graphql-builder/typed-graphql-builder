@@ -1,6 +1,8 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
+/* tslint:disable */
+
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
 
@@ -193,40 +195,6 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   ret += queryBody
 
   return ret
-}
-
-export function query<Sel extends Selection<$RootTypes.query>>(
-  selectFn: (q: $RootTypes.query) => [...Sel]
-) {
-  let field = new $Field<'query', GetOutput<Sel>, GetVariables<Sel>>('query', {
-    selection: selectFn(new $Root.query()),
-  })
-  const str = fieldToQuery('query', field)
-
-  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
-}
-
-export function mutation<Sel extends Selection<$RootTypes.mutation>>(
-  selectFn: (q: $RootTypes.mutation) => [...Sel]
-) {
-  let field = new $Field<'mutation', GetOutput<Sel>, GetVariables<Sel>>('mutation', {
-    selection: selectFn(new $Root.mutation()),
-  })
-  const str = fieldToQuery('mutation', field)
-
-  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
-}
-
-export function subscription<Sel extends Selection<$RootTypes.subscription>>(
-  selectFn: (q: $RootTypes.mutation) => [...Sel]
-) {
-  let field = new $Field<'subscription', GetOutput<Sel>, GetVariables<Sel>>('subscription', {
-    selection: selectFn(new $Root.mutation()),
-  })
-  return gql(fieldToQuery('subscription', field)) as any as TypedDocumentNode<
-    GetOutput<Sel>,
-    GetVariables<Sel>
-  >
 }
 
 export function fragment<T, Sel extends Selection<T>>(
@@ -26325,6 +26293,39 @@ namespace $RootTypes {
   export type query = query_root
   export type mutation = mutation_root
   export type subscription = subscription_root
+}
+
+export function query<Sel extends Selection<$RootTypes.query>>(
+  selectFn: (q: $RootTypes.query) => [...Sel]
+) {
+  let field = new $Field<'query', GetOutput<Sel>, GetVariables<Sel>>('query', {
+    selection: selectFn(new $Root.query()),
+  })
+  const str = fieldToQuery('query', field)
+
+  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
+}
+
+export function mutation<Sel extends Selection<$RootTypes.mutation>>(
+  selectFn: (q: $RootTypes.mutation) => [...Sel]
+) {
+  let field = new $Field<'mutation', GetOutput<Sel>, GetVariables<Sel>>('mutation', {
+    selection: selectFn(new $Root.mutation()),
+  })
+  const str = fieldToQuery('mutation', field)
+
+  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
+}
+
+export function subscription<Sel extends Selection<$RootTypes.subscription>>(
+  selectFn: (q: $RootTypes.subscription) => [...Sel]
+) {
+  let field = new $Field<'subscription', GetOutput<Sel>, GetVariables<Sel>>('subscription', {
+    selection: selectFn(new $Root.subscription()),
+  })
+  const str = fieldToQuery('subscription', field)
+
+  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 }
 
 const $InputTypes: { [key: string]: { [key: string]: string } } = {
