@@ -33,7 +33,6 @@ import { compile } from '../src/compile'
 import { spawnSync } from 'child_process'
 import path from 'path'
 
-t.setTimeout(10000)
 t.autoend(true)
 
 // We do NOT need to use the output of `tsc`. We only care about the error reporting
