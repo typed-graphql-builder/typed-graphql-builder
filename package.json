@@ -2,6 +2,9 @@
   "name": "typed-graphql-builder",
   "version": "1.0.0",
   "main": "index.js",
+  "bin": {
+    "typed-graphql-builder": "dist/index.js"
+  },
   "license": "MIT",
   "devDependencies": {
     "@swc-node/register": "^1.4.2",
@@ -25,10 +28,10 @@
   },
   "tap": {
     "ts": true,
-    "lines":80,
-    "statements":80,
-    "branches":80,
-    "functions":80
+    "lines": 80,
+    "statements": 80,
+    "branches": 80,
+    "functions": 80
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",

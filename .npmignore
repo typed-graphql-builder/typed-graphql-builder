@@ -1,0 +1,9 @@
+/node_modules
+/dist
+/accidental-build
+/.nyc_output
+/examples
+.github
+.prettierrc
+.swcrc
+/test
