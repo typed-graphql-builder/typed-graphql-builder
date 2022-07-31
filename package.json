@@ -17,7 +17,7 @@
     "swc-node": "^1.0.0",
     "tap": "^16.2.0",
     "ts-node": "^10.8.2",
-    "typescript": "^4.6.3"
+    "typescript": "^4.7.4"
   },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
