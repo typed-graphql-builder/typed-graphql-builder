@@ -18,7 +18,7 @@ class Variable<T, Name extends string> {
 type VariabledInput<T> = T extends $Atomic | undefined
   ? Variable<NonNullable<T>, any> | T
   : T extends Array<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
+  ? Variable<NonNullable<T>, any> | readonly VariabledInput<NonNullable<R>>[] | T
   : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
@@ -545,7 +545,7 @@ export class EffectCard extends $Base<'EffectCard'> {
  */
 export type createCard = {
   skills?: Array<SpecialSkills> | undefined
-  and?: Array<AndType | undefined> | undefined
+  conditions?: ConditionType | undefined
   name: string
   description: string
   Children?: number | undefined
@@ -553,8 +553,17 @@ export type createCard = {
   Defense: number
 }
 
-export type AndType = {
-  eq: number
+export type ConditionType = {
+  field1?: CheckType | undefined
+  filed2?: CheckType | undefined
+  _and?: Array<ConditionType | undefined> | undefined
+  _or?: Array<ConditionType | undefined> | undefined
+}
+
+export type CheckType = {
+  eq?: number | undefined
+  lt?: number | undefined
+  gt?: number | undefined
 }
 
 const $Root = {
@@ -605,14 +614,22 @@ export function subscription<Sel extends Selection<$RootTypes.subscription>>(
 const $InputTypes: { [key: string]: { [key: string]: string } } = {
   createCard: {
     skills: '[SpecialSkills!]',
-    and: '[AndType]',
+    conditions: 'ConditionType',
     name: 'String!',
     description: 'String!',
     Children: 'Int',
     Attack: 'Int!',
     Defense: 'Int!',
   },
-  AndType: {
-    eq: 'Int!',
+  ConditionType: {
+    field1: 'CheckType',
+    filed2: 'CheckType',
+    _and: '[ConditionType]',
+    _or: '[ConditionType]',
+  },
+  CheckType: {
+    eq: 'Int',
+    lt: 'Int',
+    gt: 'Int',
   },
 }

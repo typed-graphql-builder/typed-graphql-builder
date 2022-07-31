@@ -18,6 +18,8 @@ class Variable<T, Name extends string> {
 
 type VariabledInput<T> = T extends $Atomic | undefined
   ? Variable<NonNullable<T>, any> | T
+  : T extends ReadonlyArray<infer R> | undefined
+  ? Variable<NonNullable<T>, any> | ReadonlyArray<VariabledInput<NonNullable<R>>> | T
   : T extends Array<infer R> | undefined
   ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
   : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
@@ -103,7 +105,7 @@ type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer 
   ? { [key in VName]: VType }
   : Inputs extends $Atomic
   ? {}
-  : Inputs extends [...Array<any>]
+  : Inputs extends any[] | readonly any[]
   ? UnionToIntersection<
       { [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs & number]
     >

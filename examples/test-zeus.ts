@@ -60,19 +60,20 @@ const tm = mutation(m => [
   m.addCard(
     {
       card: {
-        Attack: $('test'),
-        Children: $('a'),
+        Attack: 1,
         Defense: 2,
         name: 'Hi',
         description: 'Lo',
         skills: [SpecialSkills.FIRE],
-        and: [
-          { eq: $('hi') }, //
-          { eq: $('bye') },
-        ],
+        conditions: {
+          _and: [
+            { field1: { eq: $('hiz') } }, //
+            { field2: { eq: $('bye') } },
+          ] as const,
+        },
       },
     },
-    c => [c.Attack, c.Defense]
+    c => [c.Attack, c.Defense, c.Children]
   ),
 ])
 
