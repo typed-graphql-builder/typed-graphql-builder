@@ -265,7 +265,7 @@ input createCard {
 
 input ConditionType {
   field1: CheckType
-  filed2: CheckType
+  field2: CheckType
   _and: [ConditionType]
   _or: [ConditionType]
 }

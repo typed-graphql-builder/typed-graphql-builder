@@ -16,6 +16,47 @@ function verify<Inp, Out>(opts: {
   }
 }
 
+/*
+Expected query:
+
+query($cid:String, $cids:String!, $cid2:String, $cids2:String!) {
+  cardById(cardId:$cid) {
+    Attack
+    def:Defense
+    attack(cardID:$cids) {
+      Attack
+      Defense
+    }
+  }
+  second:cardById(cardId:$cid2){
+    Attack
+    def:Defense
+    attack(cardID:$cids2) {
+      Attack
+      Defense
+    }
+  }
+  drawCard{
+    Attack
+    cardImage{
+      bucket
+      region
+      key
+    }
+  }
+  drawChangeCard {
+    ... on EffectCard {
+      name
+      effectSize
+    }
+    ... on SpecialCard {
+      name
+      effect
+    }
+  }
+}
+*/
+
 const tq = query(q => [
   q.cardById({ cardId: $('cid') }, c => [
     ...cardFragment,
@@ -56,6 +97,28 @@ const tq = query(q => [
   ]),
 ])
 
+/*
+Expected mutation:
+mutation ($hiz:Int, $bye:Int) {
+  addCard(card:{
+    Attack:1,
+    Defense:2,
+    name:"Hi",
+    description:"Lo",
+    skills:["FIRE"],
+    conditions:{
+      _and:[
+        {field1:{eq:$hiz}},
+        {field2:{eq:$bye}}
+      ]
+    }
+  }){
+    Attack
+    Defense
+    Children
+  }
+}
+ */
 const tm = mutation(m => [
   m.addCard(
     {
@@ -83,7 +146,7 @@ type GetOutput<X> = X extends TypedDocumentNode<infer Out, infer In> ? Out : nev
 type test = GetInput<typeof tm>
 type testO = GetOutput<typeof tq>
 
-console.log(tq, tm)
+console.log(tq.loc?.source.body, tm.loc?.source.body)
 
 verify({
   query: tq,

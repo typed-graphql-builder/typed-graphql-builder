@@ -150,6 +150,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
         return wrapped(
           Array.from(Object.entries(args))
             .map(([key, val]) => {
+              if (!argTypes[key]) {
+                throw new Error(\`Argument type for \${key} not found\`)
+              }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
               return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
             })

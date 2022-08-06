@@ -1,7 +1,9 @@
+
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
 /* tslint:disable */
+/* eslint-disable */
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
@@ -17,8 +19,10 @@ class Variable<T, Name extends string> {
 
 type VariabledInput<T> = T extends $Atomic | undefined
   ? Variable<NonNullable<T>, any> | T
+  : T extends ReadonlyArray<infer R> | undefined
+  ? Variable<NonNullable<T>, any> | ReadonlyArray<VariabledInput<NonNullable<R>>> | T
   : T extends Array<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | readonly VariabledInput<NonNullable<R>>[] | T
+  ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
   : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
@@ -102,7 +106,7 @@ type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer 
   ? { [key in VName]: VType }
   : Inputs extends $Atomic
   ? {}
-  : Inputs extends [...Array<any>]
+  : Inputs extends any[] | readonly any[]
   ? UnionToIntersection<
       { [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs & number]
     >
@@ -146,6 +150,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
         return wrapped(
           Array.from(Object.entries(args))
             .map(([key, val]) => {
+              if (!argTypes[key]) {
+                throw new Error(`Argument type for ${key} not found`)
+              }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
               return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
             })
@@ -204,379 +211,438 @@ export function fragment<T, Sel extends Selection<T>>(
   return selectFn(new GQLType())
 }
 
+
 type $Atomic = SpecialSkills | string | number | boolean
+
+
 
 /**
  * The query root
  */
-export class Query extends $Base<'Query'> {
+export class Query extends $Base<"Query"> {
   constructor() {
-    super('Query')
+    super("Query")
   }
 
-  cardById<
-    Args extends VariabledInput<{
-      cardId?: string | undefined
-    }>,
-    Sel extends Selection<Card>
-  >(
-    args: Args,
-    selectorFn: (s: Card) => [...Sel]
-  ): $Field<'cardById', GetOutput<Sel> | undefined, GetVariables<Sel, Args>> {
-    const options = {
-      argTypes: {
-        cardId: 'String',
-      },
-      args,
+  
+      
+      cardById<Args extends VariabledInput<{
+        cardId?: string | undefined,
+      }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"cardById", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const options = {
+        argTypes: {
+              cardId: "String"
+            },
+        args,
 
-      selection: selectorFn(new Card()),
+        selection: selectorFn(new Card)
+      };
+      return this.$_select("cardById", options) as any
     }
-    return this.$_select('cardById', options) as any
-  }
+  
 
-  /**
-   * Draw a card<br>
-   */
-  drawCard<Sel extends Selection<Card>>(
-    selectorFn: (s: Card) => [...Sel]
-  ): $Field<'drawCard', GetOutput<Sel>> {
-    const options = {
-      selection: selectorFn(new Card()),
-    }
-    return this.$_select('drawCard', options) as any
-  }
+      
+/**
+ * Draw a card<br>
+ */
+      drawCard<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"drawCard", GetOutput<Sel> > {
+      const options = {
+        
+        
 
-  drawChangeCard<Sel extends Selection<ChangeCard>>(
-    selectorFn: (s: ChangeCard) => [...Sel]
-  ): $Field<'drawChangeCard', GetOutput<Sel>> {
-    const options = {
-      selection: selectorFn(new ChangeCard()),
+        selection: selectorFn(new Card)
+      };
+      return this.$_select("drawCard", options) as any
     }
-    return this.$_select('drawChangeCard', options) as any
-  }
+  
 
-  /**
-   * list All Cards availble<br>
-   */
-  listCards<Sel extends Selection<Card>>(
-    selectorFn: (s: Card) => [...Sel]
-  ): $Field<'listCards', Array<GetOutput<Sel>>> {
-    const options = {
-      selection: selectorFn(new Card()),
-    }
-    return this.$_select('listCards', options) as any
-  }
+      
+      drawChangeCard<Sel extends Selection<ChangeCard>>(selectorFn: (s: ChangeCard) => [...Sel]):$Field<"drawChangeCard", GetOutput<Sel> > {
+      const options = {
+        
+        
 
-  myStacks<Sel extends Selection<CardStack>>(
-    selectorFn: (s: CardStack) => [...Sel]
-  ): $Field<'myStacks', Array<GetOutput<Sel>> | undefined> {
-    const options = {
-      selection: selectorFn(new CardStack()),
+        selection: selectorFn(new ChangeCard)
+      };
+      return this.$_select("drawChangeCard", options) as any
     }
-    return this.$_select('myStacks', options) as any
-  }
+  
 
-  nameables<Sel extends Selection<Nameable>>(
-    selectorFn: (s: Nameable) => [...Sel]
-  ): $Field<'nameables', Array<GetOutput<Sel>>> {
-    const options = {
-      selection: selectorFn(new Nameable()),
+      
+/**
+ * list All Cards availble<br>
+ */
+      listCards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"listCards", Array<GetOutput<Sel>> > {
+      const options = {
+        
+        
+
+        selection: selectorFn(new Card)
+      };
+      return this.$_select("listCards", options) as any
     }
-    return this.$_select('nameables', options) as any
-  }
+  
+
+      
+      myStacks<Sel extends Selection<CardStack>>(selectorFn: (s: CardStack) => [...Sel]):$Field<"myStacks", Array<GetOutput<Sel>> | undefined > {
+      const options = {
+        
+        
+
+        selection: selectorFn(new CardStack)
+      };
+      return this.$_select("myStacks", options) as any
+    }
+  
+
+      
+      nameables<Sel extends Selection<Nameable>>(selectorFn: (s: Nameable) => [...Sel]):$Field<"nameables", Array<GetOutput<Sel>> > {
+      const options = {
+        
+        
+
+        selection: selectorFn(new Nameable)
+      };
+      return this.$_select("nameables", options) as any
+    }
+  
 }
+
 
 /**
  * Stack of cards
  */
-export class CardStack extends $Base<'CardStack'> {
+export class CardStack extends $Base<"CardStack"> {
   constructor() {
-    super('CardStack')
+    super("CardStack")
   }
 
-  /**
-   * The list of cards
-   */
-  cards<Sel extends Selection<Card>>(
-    selectorFn: (s: Card) => [...Sel]
-  ): $Field<'cards', Array<GetOutput<Sel>> | undefined> {
-    const options = {
-      selection: selectorFn(new Card()),
+  
+      
+/**
+ * The list of cards
+ */
+      cards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"cards", Array<GetOutput<Sel>> | undefined > {
+      const options = {
+        
+        
+
+        selection: selectorFn(new Card)
+      };
+      return this.$_select("cards", options) as any
     }
-    return this.$_select('cards', options) as any
-  }
+  
 
-  /**
-   * The card name
-   */
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
-  }
+      
+/**
+ * The card name
+ */
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 }
 
+  
 export enum SpecialSkills {
-  /**
-   * Lower enemy defense -5<br>
-   */
-  THUNDER = 'THUNDER',
+  
+/**
+ * Lower enemy defense -5<br>
+ */
+  THUNDER = "THUNDER",
 
-  /**
-   * Attack multiple Cards at once<br>
-   */
-  RAIN = 'RAIN',
+/**
+ * Attack multiple Cards at once<br>
+ */
+  RAIN = "RAIN",
 
-  /**
-   * 50% chance to avoid any attack<br>
-   */
-  FIRE = 'FIRE',
+/**
+ * 50% chance to avoid any attack<br>
+ */
+  FIRE = "FIRE"
 }
+  
+
 
 /**
  * Aws S3 File
  */
-export class S3Object extends $Base<'S3Object'> {
+export class S3Object extends $Base<"S3Object"> {
   constructor() {
-    super('S3Object')
+    super("S3Object")
   }
 
-  get bucket(): $Field<'bucket', string> {
-    return this.$_select('bucket') as any
-  }
+  
+      
+      get bucket(): $Field<"bucket", string>  {
+       return this.$_select("bucket") as any
+      }
 
-  get key(): $Field<'key', string> {
-    return this.$_select('key') as any
-  }
+      
+      get key(): $Field<"key", string>  {
+       return this.$_select("key") as any
+      }
 
-  get region(): $Field<'region', string> {
-    return this.$_select('region') as any
-  }
+      
+      get region(): $Field<"region", string>  {
+       return this.$_select("region") as any
+      }
 }
+
 
 export type JSON = unknown
 
-export class ChangeCard extends $Union<
-  { SpecialCard: SpecialCard; EffectCard: EffectCard; Nameable: Nameable },
-  'ChangeCard'
-> {
+
+
+export class ChangeCard extends $Union<{SpecialCard: SpecialCard,EffectCard: EffectCard,Nameable: Nameable}, "ChangeCard"> {
   constructor() {
-    super({ SpecialCard: SpecialCard, EffectCard: EffectCard, Nameable: Nameable })
+    super({SpecialCard: SpecialCard,EffectCard: EffectCard,Nameable: Nameable})
   }
 }
 
-export class Nameable extends $Base<'Nameable'> {
-  constructor() {
-    super('Nameable')
-  }
 
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
+export class Nameable extends $Base<"Nameable"> {
+  constructor() {
+    super("Nameable")
   }
+  
+      
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 }
+
 
 /**
  * Card used in card game<br>
  */
-export class Card extends $Base<'Card'> {
+export class Card extends $Base<"Card"> {
   constructor() {
-    super('Card')
+    super("Card")
   }
 
-  /**
-   * The attack power<br>
-   */
-  get Attack(): $Field<'Attack', number> {
-    return this.$_select('Attack') as any
-  }
+  
+      
+/**
+ * The attack power<br>
+ */
+      get Attack(): $Field<"Attack", number>  {
+       return this.$_select("Attack") as any
+      }
 
-  /**
-   * <div>How many children the greek god had</div>
-   */
-  get Children(): $Field<'Children', number | undefined> {
-    return this.$_select('Children') as any
-  }
+      
+/**
+ * <div>How many children the greek god had</div>
+ */
+      get Children(): $Field<"Children", number | undefined>  {
+       return this.$_select("Children") as any
+      }
 
-  /**
-   * The defense power<br>
-   */
-  get Defense(): $Field<'Defense', number> {
-    return this.$_select('Defense') as any
-  }
+      
+/**
+ * The defense power<br>
+ */
+      get Defense(): $Field<"Defense", number>  {
+       return this.$_select("Defense") as any
+      }
 
-  /**
-   * Attack other cards on the table , returns Cards after attack<br>
-   */
-  attack<
-    Args extends VariabledInput<{
-      cardID: Array<string>
-    }>,
-    Sel extends Selection<Card>
-  >(
-    args: Args,
-    selectorFn: (s: Card) => [...Sel]
-  ): $Field<'attack', Array<GetOutput<Sel>> | undefined, GetVariables<Sel, Args>> {
-    const options = {
-      argTypes: {
-        cardID: '[String!]!',
-      },
-      args,
+      
+/**
+ * Attack other cards on the table , returns Cards after attack<br>
+ */
+      attack<Args extends VariabledInput<{
+        cardID: Array<string>,
+      }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"attack", Array<GetOutput<Sel>> | undefined , GetVariables<Sel, Args>> {
+      const options = {
+        argTypes: {
+              cardID: "[String!]!"
+            },
+        args,
 
-      selection: selectorFn(new Card()),
+        selection: selectorFn(new Card)
+      };
+      return this.$_select("attack", options) as any
     }
-    return this.$_select('attack', options) as any
-  }
+  
 
-  /**
-   * Put your description here
-   */
-  cardImage<Sel extends Selection<S3Object>>(
-    selectorFn: (s: S3Object) => [...Sel]
-  ): $Field<'cardImage', GetOutput<Sel> | undefined> {
-    const options = {
-      selection: selectorFn(new S3Object()),
+      
+/**
+ * Put your description here
+ */
+      cardImage<Sel extends Selection<S3Object>>(selectorFn: (s: S3Object) => [...Sel]):$Field<"cardImage", GetOutput<Sel> | undefined > {
+      const options = {
+        
+        
+
+        selection: selectorFn(new S3Object)
+      };
+      return this.$_select("cardImage", options) as any
     }
-    return this.$_select('cardImage', options) as any
-  }
+  
 
-  /**
-   * Description of a card<br>
-   */
-  get description(): $Field<'description', string> {
-    return this.$_select('description') as any
-  }
+      
+/**
+ * Description of a card<br>
+ */
+      get description(): $Field<"description", string>  {
+       return this.$_select("description") as any
+      }
 
-  get id(): $Field<'id', string> {
-    return this.$_select('id') as any
-  }
+      
+      get id(): $Field<"id", string>  {
+       return this.$_select("id") as any
+      }
 
-  get image(): $Field<'image', string> {
-    return this.$_select('image') as any
-  }
+      
+      get image(): $Field<"image", string>  {
+       return this.$_select("image") as any
+      }
 
-  get info(): $Field<'info', string> {
-    return this.$_select('info') as any
-  }
+      
+      get info(): $Field<"info", string>  {
+       return this.$_select("info") as any
+      }
 
-  /**
-   * The name of a card<br>
-   */
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
-  }
+      
+/**
+ * The name of a card<br>
+ */
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 
-  get skills(): $Field<'skills', Array<SpecialSkills> | undefined> {
-    return this.$_select('skills') as any
-  }
+      
+      get skills(): $Field<"skills", Array<SpecialSkills> | undefined>  {
+       return this.$_select("skills") as any
+      }
 }
 
-export class Mutation extends $Base<'Mutation'> {
+
+export class Mutation extends $Base<"Mutation"> {
   constructor() {
-    super('Mutation')
+    super("Mutation")
   }
 
-  /**
-   * add Card to Cards database<br>
-   */
-  addCard<
-    Args extends VariabledInput<{
-      card: createCard
-    }>,
-    Sel extends Selection<Card>
-  >(
-    args: Args,
-    selectorFn: (s: Card) => [...Sel]
-  ): $Field<'addCard', GetOutput<Sel>, GetVariables<Sel, Args>> {
-    const options = {
-      argTypes: {
-        card: 'createCard!',
-      },
-      args,
+  
+      
+/**
+ * add Card to Cards database<br>
+ */
+      addCard<Args extends VariabledInput<{
+        card: createCard,
+      }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"addCard", GetOutput<Sel> , GetVariables<Sel, Args>> {
+      const options = {
+        argTypes: {
+              card: "createCard!"
+            },
+        args,
 
-      selection: selectorFn(new Card()),
+        selection: selectorFn(new Card)
+      };
+      return this.$_select("addCard", options) as any
     }
-    return this.$_select('addCard', options) as any
-  }
+  
 }
 
-export class Subscription extends $Base<'Subscription'> {
+
+export class Subscription extends $Base<"Subscription"> {
   constructor() {
-    super('Subscription')
+    super("Subscription")
   }
 
-  deck<Sel extends Selection<Card>>(
-    selectorFn: (s: Card) => [...Sel]
-  ): $Field<'deck', Array<GetOutput<Sel>> | undefined> {
-    const options = {
-      selection: selectorFn(new Card()),
+  
+      
+      deck<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"deck", Array<GetOutput<Sel>> | undefined > {
+      const options = {
+        
+        
+
+        selection: selectorFn(new Card)
+      };
+      return this.$_select("deck", options) as any
     }
-    return this.$_select('deck', options) as any
-  }
+  
 }
 
-export class SpecialCard extends $Base<'SpecialCard'> {
+
+export class SpecialCard extends $Base<"SpecialCard"> {
   constructor() {
-    super('SpecialCard')
+    super("SpecialCard")
   }
 
-  get effect(): $Field<'effect', string> {
-    return this.$_select('effect') as any
-  }
+  
+      
+      get effect(): $Field<"effect", string>  {
+       return this.$_select("effect") as any
+      }
 
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
-  }
+      
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 }
 
-export class EffectCard extends $Base<'EffectCard'> {
+
+export class EffectCard extends $Base<"EffectCard"> {
   constructor() {
-    super('EffectCard')
+    super("EffectCard")
   }
 
-  get effectSize(): $Field<'effectSize', number> {
-    return this.$_select('effectSize') as any
-  }
+  
+      
+      get effectSize(): $Field<"effectSize", number>  {
+       return this.$_select("effectSize") as any
+      }
 
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
-  }
+      
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 }
+
 
 /**
  * create card inputs<br>
  */
 export type createCard = {
-  skills?: Array<SpecialSkills> | undefined
-  conditions?: ConditionType | undefined
-  name: string
-  description: string
-  Children?: number | undefined
-  Attack: number
-  Defense: number
+  skills?: Array<SpecialSkills> | undefined,
+conditions?: ConditionType | undefined,
+name: string,
+description: string,
+Children?: number | undefined,
+Attack: number,
+Defense: number
 }
+    
+
 
 export type ConditionType = {
-  field1?: CheckType | undefined
-  filed2?: CheckType | undefined
-  _and?: Array<ConditionType | undefined> | undefined
-  _or?: Array<ConditionType | undefined> | undefined
+  field1?: CheckType | undefined,
+field2?: CheckType | undefined,
+_and?: Array<ConditionType | undefined> | undefined,
+_or?: Array<ConditionType | undefined> | undefined
 }
+    
+
 
 export type CheckType = {
-  eq?: number | undefined
-  lt?: number | undefined
-  gt?: number | undefined
+  eq?: number | undefined,
+lt?: number | undefined,
+gt?: number | undefined
 }
+    
 
-const $Root = {
-  query: Query,
-  mutation: Mutation,
-  subscription: Subscription,
-}
+  const $Root = {
+    query: Query,
+mutation: Mutation,
+subscription: Subscription
+  }
 
-namespace $RootTypes {
-  export type query = Query
-  export type mutation = Mutation
-  export type subscription = Subscription
-}
+  namespace $RootTypes {
+    export type query = Query
+export type mutation = Mutation
+export type subscription = Subscription
+  }
+  
 
 export function query<Sel extends Selection<$RootTypes.query>>(
   selectFn: (q: $RootTypes.query) => [...Sel]
@@ -589,6 +655,7 @@ export function query<Sel extends Selection<$RootTypes.query>>(
   return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 }
 
+
 export function mutation<Sel extends Selection<$RootTypes.mutation>>(
   selectFn: (q: $RootTypes.mutation) => [...Sel]
 ) {
@@ -599,6 +666,7 @@ export function mutation<Sel extends Selection<$RootTypes.mutation>>(
 
   return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 }
+
 
 export function subscription<Sel extends Selection<$RootTypes.subscription>>(
   selectFn: (q: $RootTypes.subscription) => [...Sel]
@@ -611,25 +679,27 @@ export function subscription<Sel extends Selection<$RootTypes.subscription>>(
   return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 }
 
-const $InputTypes: { [key: string]: { [key: string]: string } } = {
-  createCard: {
-    skills: '[SpecialSkills!]',
-    conditions: 'ConditionType',
-    name: 'String!',
-    description: 'String!',
-    Children: 'Int',
-    Attack: 'Int!',
-    Defense: 'Int!',
+
+const $InputTypes: {[key: string]: {[key: string]: string}} = {
+    createCard: {
+    skills: "[SpecialSkills!]",
+conditions: "ConditionType",
+name: "String!",
+description: "String!",
+Children: "Int",
+Attack: "Int!",
+Defense: "Int!"
   },
   ConditionType: {
-    field1: 'CheckType',
-    filed2: 'CheckType',
-    _and: '[ConditionType]',
-    _or: '[ConditionType]',
+    field1: "CheckType",
+field2: "CheckType",
+_and: "[ConditionType]",
+_or: "[ConditionType]"
   },
   CheckType: {
-    eq: 'Int',
-    lt: 'Int',
-    gt: 'Int',
-  },
+    eq: "Int",
+lt: "Int",
+gt: "Int"
+  }
 }
+
