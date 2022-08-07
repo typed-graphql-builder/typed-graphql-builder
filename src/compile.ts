@@ -3,8 +3,18 @@ import * as fs from 'fs/promises'
 import { Preamble } from './preamble'
 import { postamble } from './postamble'
 
+import { request } from 'undici'
+
+async function fetchOrRead(schemaUrl: string) {
+  if (/https?/.test(schemaUrl)) {
+    let res = await request(schemaUrl)
+    return await res.body.text()
+  } else {
+    return await fs.readFile(schemaUrl, 'utf8')
+  }
+}
 export async function compile(args: { schema: string; output: string }) {
-  const schemaData = await fs.readFile(args.schema, 'utf8')
+  const schemaData = await fetchOrRead(args.schema)
 
   let outputScript = ''
   const write = (s: string) => {

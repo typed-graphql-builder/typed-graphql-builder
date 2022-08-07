@@ -1,7 +1,8 @@
 {
   "name": "typed-graphql-builder",
   "version": "1.1.1",
-  "main": "index.js",
+  "main": "dist/compile.js",
+  "types": "dist/compile.d.ts",
   "bin": {
     "typed-graphql-builder": "dist/index.js"
   },
@@ -37,6 +38,7 @@
     "@graphql-typed-document-node/core": "^3.1.1",
     "graphql": "^16.3.0",
     "graphql-tag": "^2.12.6",
+    "undici": "^5.8.1",
     "yargs": "^17.4.1"
   }
 }
