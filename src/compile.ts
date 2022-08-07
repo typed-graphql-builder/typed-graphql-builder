@@ -331,11 +331,6 @@ export enum ${def.name.value} {
   }
   write(printSchema(rootNode))
   write(postamble(rootNode.operationTypes.map(o => o.operation.toString())))
-  // } else {
-  //   let rn: gq.SchemaDefinitionNode =
-  //   throw new Error('Schema does not have a root node')
-  // }
-
   write(
     printInputTypeMap(
       res.definitions.filter(def => def.kind === gq.Kind.INPUT_OBJECT_TYPE_DEFINITION) as any[]
