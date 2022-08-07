@@ -6,7 +6,7 @@ import { postamble } from './postamble'
 import { request } from 'undici'
 
 async function fetchOrRead(schemaUrl: string) {
-  if (/https?/.test(schemaUrl)) {
+  if (/^https?/.test(schemaUrl)) {
     let res = await request(schemaUrl)
     return await res.body.text()
   } else {
