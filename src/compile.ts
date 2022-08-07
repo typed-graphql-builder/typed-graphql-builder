@@ -311,12 +311,30 @@ export enum ${def.name.value} {
     }
   }
 
-  if (rootNode) {
-    write(printSchema(rootNode))
-    write(postamble(rootNode.operationTypes.map(o => o.operation.toString())))
-  } else {
-    throw new Error('Schema does not have a root node')
+  if (!rootNode) {
+    rootNode = {
+      kind: gq.Kind.SCHEMA_DEFINITION,
+      operationTypes: [
+        {
+          kind: gq.Kind.OPERATION_TYPE_DEFINITION,
+          operation: gq.OperationTypeNode.QUERY,
+          type: {
+            kind: gq.Kind.NAMED_TYPE,
+            name: {
+              kind: gq.Kind.NAME,
+              value: 'Query',
+            },
+          },
+        },
+      ],
+    }
   }
+  write(printSchema(rootNode))
+  write(postamble(rootNode.operationTypes.map(o => o.operation.toString())))
+  // } else {
+  //   let rn: gq.SchemaDefinitionNode =
+  //   throw new Error('Schema does not have a root node')
+  // }
 
   write(
     printInputTypeMap(
@@ -324,5 +342,9 @@ export enum ${def.name.value} {
     )
   )
 
-  await fs.writeFile(args.output, outputScript)
+  if (args.output === '') {
+    console.log(outputScript)
+  } else {
+    await fs.writeFile(args.output, outputScript)
+  }
 }
