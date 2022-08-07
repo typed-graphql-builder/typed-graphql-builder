@@ -167,7 +167,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
-      if (args) {
+      if (args && Object.keys(args).length > 0) {
         retVal += '(' + stringifyArgs(args, argTypes!) + ')'
       }
       let sel = field.options.selection
