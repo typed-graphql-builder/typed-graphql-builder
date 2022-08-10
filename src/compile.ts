@@ -155,6 +155,15 @@ export class ${className} extends $Base<"${className}"> {
       methodArgs.push(`selectorFn: (s: ${fieldTypeName}) => [...Sel]`)
     }
     if (methodArgs.length > 0) {
+      const hasOnlyMaybeInputs = (field.arguments ?? []).every(
+        def => def.type.kind !== gq.Kind.NON_NULL_TYPE
+      )
+      let extractArgs = ''
+      let methodArgsSerialized = methodArgs.join(', ')
+      if (hasOnlyMaybeInputs && hasArgs && hasSelector) {
+        extractArgs = `const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };\n`
+        methodArgsSerialized = `...params: [${methodArgs[1]}] | [${methodArgsSerialized}]`
+      }
       const argsType = `{
         ${(field.arguments ?? []).map(arg => printInputField(arg)).join('\n')},
       }`
@@ -163,11 +172,12 @@ export class ${className} extends $Base<"${className}"> {
       )
       return `
       ${printDocumentation(field.description)}
-      ${field.name.value}<${generics.join(',')}>(${methodArgs.join(', ')}):$Field<"${
+      ${field.name.value}<${generics.join(',')}>(${methodArgsSerialized}):$Field<"${
         field.name.value
       }", ${hasSelector ? printTypeWrapped('GetOutput<Sel>', field.type) : printType(field.type)} ${
         hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '[]'}, Args>` : ''
       }> {
+      ${extractArgs}
       const options = {
         ${
           hasArgs
