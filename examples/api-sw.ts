@@ -150,6 +150,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
         return wrapped(
           Array.from(Object.entries(args))
             .map(([key, val]) => {
+              if (!argTypes[key]) {
+                throw new Error(`Argument type for ${key} not found`)
+              }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
               return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
             })
@@ -164,7 +167,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
-      if (args) {
+      if (args && Object.keys(args).length > 0) {
         retVal += '(' + stringifyArgs(args, argTypes!) + ')'
       }
       let sel = field.options.selection
@@ -276,7 +279,9 @@ export class Film extends $Base<"Film"> {
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<FilmSpeciesConnection>>(args: Args, selectorFn: (s: FilmSpeciesConnection) => [...Sel]):$Field<"speciesConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<FilmSpeciesConnection>>(...params: [selectorFn: (s: FilmSpeciesConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmSpeciesConnection) => [...Sel]]):$Field<"speciesConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -298,7 +303,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<FilmStarshipsConnection>>(args: Args, selectorFn: (s: FilmStarshipsConnection) => [...Sel]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<FilmStarshipsConnection>>(...params: [selectorFn: (s: FilmStarshipsConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmStarshipsConnection) => [...Sel]]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -320,7 +327,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<FilmVehiclesConnection>>(args: Args, selectorFn: (s: FilmVehiclesConnection) => [...Sel]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<FilmVehiclesConnection>>(...params: [selectorFn: (s: FilmVehiclesConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmVehiclesConnection) => [...Sel]]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -342,7 +351,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<FilmCharactersConnection>>(args: Args, selectorFn: (s: FilmCharactersConnection) => [...Sel]):$Field<"characterConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<FilmCharactersConnection>>(...params: [selectorFn: (s: FilmCharactersConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmCharactersConnection) => [...Sel]]):$Field<"characterConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -364,7 +375,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<FilmPlanetsConnection>>(args: Args, selectorFn: (s: FilmPlanetsConnection) => [...Sel]):$Field<"planetConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<FilmPlanetsConnection>>(...params: [selectorFn: (s: FilmPlanetsConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmPlanetsConnection) => [...Sel]]):$Field<"planetConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -420,6 +433,7 @@ export class FilmCharactersConnection extends $Base<"FilmCharactersConnection"> 
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -435,6 +449,7 @@ export class FilmCharactersConnection extends $Base<"FilmCharactersConnection"> 
  * A list of edges.
  */
       edges<Sel extends Selection<FilmCharactersEdge>>(selectorFn: (s: FilmCharactersEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -466,6 +481,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       characters<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"characters", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -492,6 +508,7 @@ export class FilmCharactersEdge extends $Base<"FilmCharactersEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -526,6 +543,7 @@ export class FilmPlanetsConnection extends $Base<"FilmPlanetsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -541,6 +559,7 @@ export class FilmPlanetsConnection extends $Base<"FilmPlanetsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<FilmPlanetsEdge>>(selectorFn: (s: FilmPlanetsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -572,6 +591,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       planets<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"planets", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -598,6 +618,7 @@ export class FilmPlanetsEdge extends $Base<"FilmPlanetsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -632,6 +653,7 @@ export class FilmsConnection extends $Base<"FilmsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -647,6 +669,7 @@ export class FilmsConnection extends $Base<"FilmsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<FilmsEdge>>(selectorFn: (s: FilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -678,6 +701,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -704,6 +728,7 @@ export class FilmsEdge extends $Base<"FilmsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -738,6 +763,7 @@ export class FilmSpeciesConnection extends $Base<"FilmSpeciesConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -753,6 +779,7 @@ export class FilmSpeciesConnection extends $Base<"FilmSpeciesConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<FilmSpeciesEdge>>(selectorFn: (s: FilmSpeciesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -784,6 +811,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -810,6 +838,7 @@ export class FilmSpeciesEdge extends $Base<"FilmSpeciesEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -844,6 +873,7 @@ export class FilmStarshipsConnection extends $Base<"FilmStarshipsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -859,6 +889,7 @@ export class FilmStarshipsConnection extends $Base<"FilmStarshipsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<FilmStarshipsEdge>>(selectorFn: (s: FilmStarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -890,6 +921,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -916,6 +948,7 @@ export class FilmStarshipsEdge extends $Base<"FilmStarshipsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -950,6 +983,7 @@ export class FilmVehiclesConnection extends $Base<"FilmVehiclesConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -965,6 +999,7 @@ export class FilmVehiclesConnection extends $Base<"FilmVehiclesConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<FilmVehiclesEdge>>(selectorFn: (s: FilmVehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -996,6 +1031,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1022,6 +1058,7 @@ export class FilmVehiclesEdge extends $Base<"FilmVehiclesEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -1117,6 +1154,7 @@ export class PeopleConnection extends $Base<"PeopleConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -1132,6 +1170,7 @@ export class PeopleConnection extends $Base<"PeopleConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<PeopleEdge>>(selectorFn: (s: PeopleEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1163,6 +1202,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       people<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"people", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1189,6 +1229,7 @@ export class PeopleEdge extends $Base<"PeopleEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -1292,6 +1333,7 @@ person does not have hair.
  * A planet that this person was born on or inhabits.
  */
       homeworld<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"homeworld", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -1308,7 +1350,9 @@ person does not have hair.
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<PersonFilmsConnection>>(args: Args, selectorFn: (s: PersonFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<PersonFilmsConnection>>(...params: [selectorFn: (s: PersonFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PersonFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -1329,6 +1373,7 @@ last: "Int"
  * The species that this person belongs to, or null if unknown.
  */
       species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -1345,7 +1390,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<PersonStarshipsConnection>>(args: Args, selectorFn: (s: PersonStarshipsConnection) => [...Sel]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<PersonStarshipsConnection>>(...params: [selectorFn: (s: PersonStarshipsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PersonStarshipsConnection) => [...Sel]]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -1367,7 +1414,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<PersonVehiclesConnection>>(args: Args, selectorFn: (s: PersonVehiclesConnection) => [...Sel]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<PersonVehiclesConnection>>(...params: [selectorFn: (s: PersonVehiclesConnection) => [...Sel]] | [args: Args, selectorFn: (s: PersonVehiclesConnection) => [...Sel]]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -1423,6 +1472,7 @@ export class PersonFilmsConnection extends $Base<"PersonFilmsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -1438,6 +1488,7 @@ export class PersonFilmsConnection extends $Base<"PersonFilmsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<PersonFilmsEdge>>(selectorFn: (s: PersonFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1469,6 +1520,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1495,6 +1547,7 @@ export class PersonFilmsEdge extends $Base<"PersonFilmsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -1529,6 +1582,7 @@ export class PersonStarshipsConnection extends $Base<"PersonStarshipsConnection"
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -1544,6 +1598,7 @@ export class PersonStarshipsConnection extends $Base<"PersonStarshipsConnection"
  * A list of edges.
  */
       edges<Sel extends Selection<PersonStarshipsEdge>>(selectorFn: (s: PersonStarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1575,6 +1630,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1601,6 +1657,7 @@ export class PersonStarshipsEdge extends $Base<"PersonStarshipsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -1635,6 +1692,7 @@ export class PersonVehiclesConnection extends $Base<"PersonVehiclesConnection"> 
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -1650,6 +1708,7 @@ export class PersonVehiclesConnection extends $Base<"PersonVehiclesConnection"> 
  * A list of edges.
  */
       edges<Sel extends Selection<PersonVehiclesEdge>>(selectorFn: (s: PersonVehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1681,6 +1740,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1707,6 +1767,7 @@ export class PersonVehiclesEdge extends $Base<"PersonVehiclesEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -1819,7 +1880,9 @@ of water.
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<PlanetResidentsConnection>>(args: Args, selectorFn: (s: PlanetResidentsConnection) => [...Sel]):$Field<"residentConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<PlanetResidentsConnection>>(...params: [selectorFn: (s: PlanetResidentsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PlanetResidentsConnection) => [...Sel]]):$Field<"residentConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -1841,7 +1904,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<PlanetFilmsConnection>>(args: Args, selectorFn: (s: PlanetFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<PlanetFilmsConnection>>(...params: [selectorFn: (s: PlanetFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PlanetFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -1897,6 +1962,7 @@ export class PlanetFilmsConnection extends $Base<"PlanetFilmsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -1912,6 +1978,7 @@ export class PlanetFilmsConnection extends $Base<"PlanetFilmsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<PlanetFilmsEdge>>(selectorFn: (s: PlanetFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1943,6 +2010,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -1969,6 +2037,7 @@ export class PlanetFilmsEdge extends $Base<"PlanetFilmsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -2003,6 +2072,7 @@ export class PlanetResidentsConnection extends $Base<"PlanetResidentsConnection"
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -2018,6 +2088,7 @@ export class PlanetResidentsConnection extends $Base<"PlanetResidentsConnection"
  * A list of edges.
  */
       edges<Sel extends Selection<PlanetResidentsEdge>>(selectorFn: (s: PlanetResidentsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2049,6 +2120,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       residents<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"residents", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2075,6 +2147,7 @@ export class PlanetResidentsEdge extends $Base<"PlanetResidentsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -2109,6 +2182,7 @@ export class PlanetsConnection extends $Base<"PlanetsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -2124,6 +2198,7 @@ export class PlanetsConnection extends $Base<"PlanetsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<PlanetsEdge>>(selectorFn: (s: PlanetsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2155,6 +2230,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       planets<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"planets", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2181,6 +2257,7 @@ export class PlanetsEdge extends $Base<"PlanetsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -2213,7 +2290,9 @@ export class Root extends $Base<"Root"> {
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<FilmsConnection>>(args: Args, selectorFn: (s: FilmsConnection) => [...Sel]):$Field<"allFilms", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<FilmsConnection>>(...params: [selectorFn: (s: FilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmsConnection) => [...Sel]]):$Field<"allFilms", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2233,7 +2312,9 @@ last: "Int"
       film<Args extends VariabledInput<{
         id?: string | undefined
 filmID?: string | undefined,
-      }>,Sel extends Selection<Film>>(args: Args, selectorFn: (s: Film) => [...Sel]):$Field<"film", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<Film>>(...params: [selectorFn: (s: Film) => [...Sel]] | [args: Args, selectorFn: (s: Film) => [...Sel]]):$Field<"film", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               id: "ID",
@@ -2253,7 +2334,9 @@ filmID: "ID"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<PeopleConnection>>(args: Args, selectorFn: (s: PeopleConnection) => [...Sel]):$Field<"allPeople", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<PeopleConnection>>(...params: [selectorFn: (s: PeopleConnection) => [...Sel]] | [args: Args, selectorFn: (s: PeopleConnection) => [...Sel]]):$Field<"allPeople", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2273,7 +2356,9 @@ last: "Int"
       person<Args extends VariabledInput<{
         id?: string | undefined
 personID?: string | undefined,
-      }>,Sel extends Selection<Person>>(args: Args, selectorFn: (s: Person) => [...Sel]):$Field<"person", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<Person>>(...params: [selectorFn: (s: Person) => [...Sel]] | [args: Args, selectorFn: (s: Person) => [...Sel]]):$Field<"person", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               id: "ID",
@@ -2293,7 +2378,9 @@ personID: "ID"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<PlanetsConnection>>(args: Args, selectorFn: (s: PlanetsConnection) => [...Sel]):$Field<"allPlanets", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<PlanetsConnection>>(...params: [selectorFn: (s: PlanetsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PlanetsConnection) => [...Sel]]):$Field<"allPlanets", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2313,7 +2400,9 @@ last: "Int"
       planet<Args extends VariabledInput<{
         id?: string | undefined
 planetID?: string | undefined,
-      }>,Sel extends Selection<Planet>>(args: Args, selectorFn: (s: Planet) => [...Sel]):$Field<"planet", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<Planet>>(...params: [selectorFn: (s: Planet) => [...Sel]] | [args: Args, selectorFn: (s: Planet) => [...Sel]]):$Field<"planet", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               id: "ID",
@@ -2333,7 +2422,9 @@ planetID: "ID"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<SpeciesConnection>>(args: Args, selectorFn: (s: SpeciesConnection) => [...Sel]):$Field<"allSpecies", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<SpeciesConnection>>(...params: [selectorFn: (s: SpeciesConnection) => [...Sel]] | [args: Args, selectorFn: (s: SpeciesConnection) => [...Sel]]):$Field<"allSpecies", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2353,7 +2444,9 @@ last: "Int"
       species<Args extends VariabledInput<{
         id?: string | undefined
 speciesID?: string | undefined,
-      }>,Sel extends Selection<Species>>(args: Args, selectorFn: (s: Species) => [...Sel]):$Field<"species", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<Species>>(...params: [selectorFn: (s: Species) => [...Sel]] | [args: Args, selectorFn: (s: Species) => [...Sel]]):$Field<"species", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               id: "ID",
@@ -2373,7 +2466,9 @@ speciesID: "ID"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<StarshipsConnection>>(args: Args, selectorFn: (s: StarshipsConnection) => [...Sel]):$Field<"allStarships", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<StarshipsConnection>>(...params: [selectorFn: (s: StarshipsConnection) => [...Sel]] | [args: Args, selectorFn: (s: StarshipsConnection) => [...Sel]]):$Field<"allStarships", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2393,7 +2488,9 @@ last: "Int"
       starship<Args extends VariabledInput<{
         id?: string | undefined
 starshipID?: string | undefined,
-      }>,Sel extends Selection<Starship>>(args: Args, selectorFn: (s: Starship) => [...Sel]):$Field<"starship", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<Starship>>(...params: [selectorFn: (s: Starship) => [...Sel]] | [args: Args, selectorFn: (s: Starship) => [...Sel]]):$Field<"starship", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               id: "ID",
@@ -2413,7 +2510,9 @@ starshipID: "ID"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<VehiclesConnection>>(args: Args, selectorFn: (s: VehiclesConnection) => [...Sel]):$Field<"allVehicles", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<VehiclesConnection>>(...params: [selectorFn: (s: VehiclesConnection) => [...Sel]] | [args: Args, selectorFn: (s: VehiclesConnection) => [...Sel]]):$Field<"allVehicles", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2433,7 +2532,9 @@ last: "Int"
       vehicle<Args extends VariabledInput<{
         id?: string | undefined
 vehicleID?: string | undefined,
-      }>,Sel extends Selection<Vehicle>>(args: Args, selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicle", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<Vehicle>>(...params: [selectorFn: (s: Vehicle) => [...Sel]] | [args: Args, selectorFn: (s: Vehicle) => [...Sel]]):$Field<"vehicle", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               id: "ID",
@@ -2454,6 +2555,7 @@ vehicleID: "ID"
       node<Args extends VariabledInput<{
         id: string,
       }>,Sel extends Selection<Node>>(args: Args, selectorFn: (s: Node) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      
       const options = {
         argTypes: {
               id: "ID!"
@@ -2557,6 +2659,7 @@ have skin.
  * A planet that this species originates from.
  */
       homeworld<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"homeworld", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -2573,7 +2676,9 @@ have skin.
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<SpeciesPeopleConnection>>(args: Args, selectorFn: (s: SpeciesPeopleConnection) => [...Sel]):$Field<"personConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<SpeciesPeopleConnection>>(...params: [selectorFn: (s: SpeciesPeopleConnection) => [...Sel]] | [args: Args, selectorFn: (s: SpeciesPeopleConnection) => [...Sel]]):$Field<"personConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2595,7 +2700,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<SpeciesFilmsConnection>>(args: Args, selectorFn: (s: SpeciesFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<SpeciesFilmsConnection>>(...params: [selectorFn: (s: SpeciesFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: SpeciesFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -2651,6 +2758,7 @@ export class SpeciesConnection extends $Base<"SpeciesConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -2666,6 +2774,7 @@ export class SpeciesConnection extends $Base<"SpeciesConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<SpeciesEdge>>(selectorFn: (s: SpeciesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2697,6 +2806,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2723,6 +2833,7 @@ export class SpeciesEdge extends $Base<"SpeciesEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -2757,6 +2868,7 @@ export class SpeciesFilmsConnection extends $Base<"SpeciesFilmsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -2772,6 +2884,7 @@ export class SpeciesFilmsConnection extends $Base<"SpeciesFilmsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<SpeciesFilmsEdge>>(selectorFn: (s: SpeciesFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2803,6 +2916,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2829,6 +2943,7 @@ export class SpeciesFilmsEdge extends $Base<"SpeciesFilmsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -2863,6 +2978,7 @@ export class SpeciesPeopleConnection extends $Base<"SpeciesPeopleConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -2878,6 +2994,7 @@ export class SpeciesPeopleConnection extends $Base<"SpeciesPeopleConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<SpeciesPeopleEdge>>(selectorFn: (s: SpeciesPeopleEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2909,6 +3026,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       people<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"people", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -2935,6 +3053,7 @@ export class SpeciesPeopleEdge extends $Base<"SpeciesPeopleEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -3082,7 +3201,9 @@ entire crew without having to resupply.
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<StarshipPilotsConnection>>(args: Args, selectorFn: (s: StarshipPilotsConnection) => [...Sel]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<StarshipPilotsConnection>>(...params: [selectorFn: (s: StarshipPilotsConnection) => [...Sel]] | [args: Args, selectorFn: (s: StarshipPilotsConnection) => [...Sel]]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -3104,7 +3225,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<StarshipFilmsConnection>>(args: Args, selectorFn: (s: StarshipFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<StarshipFilmsConnection>>(...params: [selectorFn: (s: StarshipFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: StarshipFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -3160,6 +3283,7 @@ export class StarshipFilmsConnection extends $Base<"StarshipFilmsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -3175,6 +3299,7 @@ export class StarshipFilmsConnection extends $Base<"StarshipFilmsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<StarshipFilmsEdge>>(selectorFn: (s: StarshipFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3206,6 +3331,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3232,6 +3358,7 @@ export class StarshipFilmsEdge extends $Base<"StarshipFilmsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -3266,6 +3393,7 @@ export class StarshipPilotsConnection extends $Base<"StarshipPilotsConnection"> 
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -3281,6 +3409,7 @@ export class StarshipPilotsConnection extends $Base<"StarshipPilotsConnection"> 
  * A list of edges.
  */
       edges<Sel extends Selection<StarshipPilotsEdge>>(selectorFn: (s: StarshipPilotsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3312,6 +3441,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       pilots<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"pilots", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3338,6 +3468,7 @@ export class StarshipPilotsEdge extends $Base<"StarshipPilotsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -3372,6 +3503,7 @@ export class StarshipsConnection extends $Base<"StarshipsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -3387,6 +3519,7 @@ export class StarshipsConnection extends $Base<"StarshipsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<StarshipsEdge>>(selectorFn: (s: StarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3418,6 +3551,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3444,6 +3578,7 @@ export class StarshipsEdge extends $Base<"StarshipsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -3570,7 +3705,9 @@ entire crew without having to resupply.
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<VehiclePilotsConnection>>(args: Args, selectorFn: (s: VehiclePilotsConnection) => [...Sel]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<VehiclePilotsConnection>>(...params: [selectorFn: (s: VehiclePilotsConnection) => [...Sel]] | [args: Args, selectorFn: (s: VehiclePilotsConnection) => [...Sel]]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -3592,7 +3729,9 @@ last: "Int"
 first?: number | undefined
 before?: string | undefined
 last?: number | undefined,
-      }>,Sel extends Selection<VehicleFilmsConnection>>(args: Args, selectorFn: (s: VehicleFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<VehicleFilmsConnection>>(...params: [selectorFn: (s: VehicleFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: VehicleFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               after: "String",
@@ -3648,6 +3787,7 @@ export class VehicleFilmsConnection extends $Base<"VehicleFilmsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -3663,6 +3803,7 @@ export class VehicleFilmsConnection extends $Base<"VehicleFilmsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<VehicleFilmsEdge>>(selectorFn: (s: VehicleFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3694,6 +3835,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3720,6 +3862,7 @@ export class VehicleFilmsEdge extends $Base<"VehicleFilmsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -3754,6 +3897,7 @@ export class VehiclePilotsConnection extends $Base<"VehiclePilotsConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -3769,6 +3913,7 @@ export class VehiclePilotsConnection extends $Base<"VehiclePilotsConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<VehiclePilotsEdge>>(selectorFn: (s: VehiclePilotsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3800,6 +3945,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       pilots<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"pilots", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3826,6 +3972,7 @@ export class VehiclePilotsEdge extends $Base<"VehiclePilotsEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -3860,6 +4007,7 @@ export class VehiclesConnection extends $Base<"VehiclesConnection"> {
  * Information to aid in pagination.
  */
       pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -3875,6 +4023,7 @@ export class VehiclesConnection extends $Base<"VehiclesConnection"> {
  * A list of edges.
  */
       edges<Sel extends Selection<VehiclesEdge>>(selectorFn: (s: VehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3906,6 +4055,7 @@ the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
       vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined > {
+      
       const options = {
         
         
@@ -3932,6 +4082,7 @@ export class VehiclesEdge extends $Base<"VehiclesEdge"> {
  * The item at the end of the edge
  */
       node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         

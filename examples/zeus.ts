@@ -167,7 +167,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
-      if (args) {
+      if (args && Object.keys(args).length > 0) {
         retVal += '(' + stringifyArgs(args, argTypes!) + ')'
       }
       let sel = field.options.selection
@@ -228,7 +228,9 @@ export class Query extends $Base<"Query"> {
       
       cardById<Args extends VariabledInput<{
         cardId?: string | undefined,
-      }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"cardById", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      }>,Sel extends Selection<Card>>(...params: [selectorFn: (s: Card) => [...Sel]] | [args: Args, selectorFn: (s: Card) => [...Sel]]):$Field<"cardById", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+
       const options = {
         argTypes: {
               cardId: "String"
@@ -246,6 +248,7 @@ export class Query extends $Base<"Query"> {
  * Draw a card<br>
  */
       drawCard<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"drawCard", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -258,6 +261,7 @@ export class Query extends $Base<"Query"> {
 
       
       drawChangeCard<Sel extends Selection<ChangeCard>>(selectorFn: (s: ChangeCard) => [...Sel]):$Field<"drawChangeCard", GetOutput<Sel> > {
+      
       const options = {
         
         
@@ -273,6 +277,7 @@ export class Query extends $Base<"Query"> {
  * list All Cards availble<br>
  */
       listCards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"listCards", Array<GetOutput<Sel>> > {
+      
       const options = {
         
         
@@ -285,6 +290,7 @@ export class Query extends $Base<"Query"> {
 
       
       myStacks<Sel extends Selection<CardStack>>(selectorFn: (s: CardStack) => [...Sel]):$Field<"myStacks", Array<GetOutput<Sel>> | undefined > {
+      
       const options = {
         
         
@@ -297,6 +303,7 @@ export class Query extends $Base<"Query"> {
 
       
       nameables<Sel extends Selection<Nameable>>(selectorFn: (s: Nameable) => [...Sel]):$Field<"nameables", Array<GetOutput<Sel>> > {
+      
       const options = {
         
         
@@ -323,6 +330,7 @@ export class CardStack extends $Base<"CardStack"> {
  * The list of cards
  */
       cards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"cards", Array<GetOutput<Sel>> | undefined > {
+      
       const options = {
         
         
@@ -452,6 +460,7 @@ export class Card extends $Base<"Card"> {
       attack<Args extends VariabledInput<{
         cardID: Array<string>,
       }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"attack", Array<GetOutput<Sel>> | undefined , GetVariables<Sel, Args>> {
+      
       const options = {
         argTypes: {
               cardID: "[String!]!"
@@ -469,6 +478,7 @@ export class Card extends $Base<"Card"> {
  * Put your description here
  */
       cardImage<Sel extends Selection<S3Object>>(selectorFn: (s: S3Object) => [...Sel]):$Field<"cardImage", GetOutput<Sel> | undefined > {
+      
       const options = {
         
         
@@ -530,6 +540,7 @@ export class Mutation extends $Base<"Mutation"> {
       addCard<Args extends VariabledInput<{
         card: createCard,
       }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"addCard", GetOutput<Sel> , GetVariables<Sel, Args>> {
+      
       const options = {
         argTypes: {
               card: "createCard!"
@@ -552,6 +563,7 @@ export class Subscription extends $Base<"Subscription"> {
   
       
       deck<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"deck", Array<GetOutput<Sel>> | undefined > {
+      
       const options = {
         
         
