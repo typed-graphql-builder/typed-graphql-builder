@@ -34,7 +34,7 @@
     "statements": 80,
     "branches": 80,
     "functions": 80,
-    "timeout": 60
+    "timeout": 90
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
