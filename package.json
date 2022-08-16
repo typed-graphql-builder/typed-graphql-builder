@@ -22,10 +22,11 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
-    "test": "tap test/**/*.test.ts",
-    "test:watch": "tap -w test/**/*.test.ts",
+    "test": "tap test/**/*.test.ts -R spec",
+    "test:watch": "tap -w test/**/*.test.ts -R spec",
     "regenerate:big-schema": "swc-node src/index.ts --schema examples/x.graphql --output examples/x.ts",
-    "regenerate:small-schema": "swc-node src/index.ts --schema examples/zeus.graphql --output examples/zeus.ts"
+    "regenerate:small-schema": "swc-node src/index.ts --schema examples/zeus.graphql --output examples/zeus.ts",
+    "regenerate:country-schema": "swc-node src/index.ts --schema examples/countries-schema.graphql --output examples/countries-schema.ts"
   },
   "tap": {
     "ts": true,
