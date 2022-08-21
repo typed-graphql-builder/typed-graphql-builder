@@ -97,7 +97,3 @@ input StringQueryOperatorInput {
   regex: String
   glob: String
 }
-
-schema {
-  query: Query
-}

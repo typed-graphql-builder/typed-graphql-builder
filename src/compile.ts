@@ -21,6 +21,8 @@ export async function compile(args: { schema: string; output: string }) {
     outputScript += s + '\n'
   }
 
+  const outputObjectTypeNames = new Set()
+
   let res = gq.parse(schemaData)
 
   const atomicTypes = new Map(
@@ -288,8 +290,8 @@ export enum ${def.name.value} {
   for (let def of res.definitions) {
     switch (def.kind) {
       case gq.Kind.OBJECT_TYPE_DEFINITION:
-        // the interfaces this object implements are def.interfaces
         write(printObjectType(def))
+        outputObjectTypeNames.add(def.name.value)
         break
       case gq.Kind.INPUT_OBJECT_TYPE_DEFINITION:
         write(printInputObjectType(def))
@@ -312,6 +314,10 @@ export enum ${def.name.value} {
   }
 
   if (!rootNode) {
+    if (!outputObjectTypeNames.has('Query')) {
+      console.error('Could not find toplevel root node or an output objet type named `Query`')
+      process.exit(1)
+    }
     rootNode = {
       kind: gq.Kind.SCHEMA_DEFINITION,
       operationTypes: [
@@ -326,17 +332,21 @@ export enum ${def.name.value} {
             },
           },
         },
-        {
-          kind: gq.Kind.OPERATION_TYPE_DEFINITION,
-          operation: gq.OperationTypeNode.MUTATION,
-          type: {
-            kind: gq.Kind.NAMED_TYPE,
-            name: {
-              kind: gq.Kind.NAME,
-              value: 'Mutation',
-            },
-          },
-        },
+        ...(outputObjectTypeNames.has('Mutation')
+          ? [
+              {
+                kind: gq.Kind.OPERATION_TYPE_DEFINITION as const,
+                operation: gq.OperationTypeNode.MUTATION,
+                type: {
+                  kind: gq.Kind.NAMED_TYPE as const,
+                  name: {
+                    kind: gq.Kind.NAME as const,
+                    value: 'Mutation',
+                  },
+                },
+              },
+            ]
+          : []),
       ],
     }
   }

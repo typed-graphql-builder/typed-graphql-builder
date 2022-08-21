@@ -396,9 +396,6 @@ export class Query extends $Base<'Query'> {
     return this.$_select('_service', options) as any
   }
 
-  countries<Sel extends Selection<Country>>(
-    selectorFn: (s: Country) => [...Sel]
-  ): $Field<'countries', Array<GetOutput<Sel>>, GetVariables<Sel, {}>>
   countries<
     Args extends VariabledInput<{
       filter?: CountryFilterInput | undefined
@@ -407,8 +404,7 @@ export class Query extends $Base<'Query'> {
   >(
     args: Args,
     selectorFn: (s: Country) => [...Sel]
-  ): $Field<'countries', Array<GetOutput<Sel>>, GetVariables<Sel, Args>>
-  countries(args: any, selectorFn?: any) {
+  ): $Field<'countries', Array<GetOutput<Sel>>, GetVariables<Sel, Args>> {
     const options = {
       argTypes: {
         filter: 'CountryFilterInput',

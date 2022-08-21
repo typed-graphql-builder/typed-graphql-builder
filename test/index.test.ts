@@ -42,9 +42,13 @@ t.autoend(true)
 // https://github.com/jeremyben/tsc-prog
 
 function compileTs(path: string) {
-  return spawnSync(`tsc`, ['--noEmit', '--strict', path], {
-    cwd: __dirname,
-  })
+  return spawnSync(
+    `tsc`,
+    ['--noEmit', '--skipLibCheck', '--strict', '--esModuleInterop', '--target', 'es5', path],
+    {
+      cwd: __dirname,
+    }
+  )
 }
 
 for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
@@ -62,7 +66,9 @@ for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
 
     t.test('typechecks', t => {
       let output = compileTs(`${schema}.ts`)
-      t.ok(!output.error, 'schema compiled without errors')
+      if (output.status) {
+        t.fail(output.stdout.toString())
+      }
       t.end()
     })
 
@@ -70,8 +76,9 @@ for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
       let exampleName = path.basename(example)
       t.test(`compiles with example ${exampleName}.ts`, async t => {
         let res = compileTs(example)
-        t.ok(!res.error, 'valid example compiled successfully')
-
+        if (res.status) {
+          t.fail(res.stdout.toString())
+        }
         // TODO: this does not work for some reason
         // let loadedExample = require(example).default
         // for (let test of loadedExample) test(t)
