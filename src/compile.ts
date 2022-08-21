@@ -326,6 +326,17 @@ export enum ${def.name.value} {
             },
           },
         },
+        {
+          kind: gq.Kind.OPERATION_TYPE_DEFINITION,
+          operation: gq.OperationTypeNode.MUTATION,
+          type: {
+            kind: gq.Kind.NAMED_TYPE,
+            name: {
+              kind: gq.Kind.NAME,
+              value: 'Mutation',
+            },
+          },
+        },
       ],
     }
   }
