@@ -139,15 +139,12 @@ export class ${className} extends $Base<"${className}"> {
 }`
   }
 
-  function printField(field: gq.FieldDefinitionNode, parentName: string) {
+  function generateFieldDefinition(field: gq.FieldDefinitionNode, includeArgs: boolean) {
     const methodArgs: string[] = []
-
-    // const fieldType = printType(field.type)
     const fieldTypeName = printTypeBase(field.type)
-
     let hasArgs = false,
       hasSelector = false
-    if (field.arguments?.length) {
+    if (field.arguments?.length && includeArgs) {
       hasArgs = true
       methodArgs.push(`args: Args`)
     }
@@ -157,28 +154,47 @@ export class ${className} extends $Base<"${className}"> {
       methodArgs.push(`selectorFn: (s: ${fieldTypeName}) => [...Sel]`)
     }
     if (methodArgs.length > 0) {
-      const hasOnlyMaybeInputs = (field.arguments ?? []).every(
-        def => def.type.kind !== gq.Kind.NON_NULL_TYPE
-      )
       let extractArgs = ''
       let methodArgsSerialized = methodArgs.join(', ')
-      if (hasOnlyMaybeInputs && hasArgs && hasSelector) {
-        extractArgs = `const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };\n`
-        methodArgsSerialized = `...params: [${methodArgs[1]}] | [${methodArgsSerialized}]`
-      }
       const argsType = `{
         ${(field.arguments ?? []).map(arg => printInputField(arg)).join('\n')},
       }`
       const generics = (hasArgs ? [`Args extends VariabledInput<${argsType}>`] : []).concat(
         hasSelector ? [`Sel extends Selection<${fieldTypeName}>`] : []
       )
-      return `
-      ${printDocumentation(field.description)}
-      ${field.name.value}<${generics.join(',')}>(${methodArgsSerialized}):$Field<"${
+
+      return `${field.name.value}<${generics.join(',')}>(${methodArgsSerialized}):$Field<"${
         field.name.value
       }", ${hasSelector ? printTypeWrapped('GetOutput<Sel>', field.type) : printType(field.type)} ${
         hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '[]'}, Args>` : ''
-      }> {
+      }>`
+    }
+  }
+  function printField(field: gq.FieldDefinitionNode, parentName: string) {
+    const fieldTypeName = printTypeBase(field.type)
+
+    let hasArgs = !!field.arguments?.length,
+      hasSelector = !isAtomic(fieldTypeName)
+
+    if (hasArgs || hasSelector) {
+      let extractArgs = ''
+
+      let validDefinitions = generateFieldDefinition(field, true)
+
+      const hasOnlyMaybeInputs = (field.arguments ?? []).every(
+        def => def.type.kind !== gq.Kind.NON_NULL_TYPE
+      )
+      if (hasOnlyMaybeInputs && hasArgs && hasSelector) {
+        validDefinitions +=
+          '\n' +
+          generateFieldDefinition(field, false) +
+          '\n' +
+          `${field.name.value}(arg1: any, arg2?: any)`
+        extractArgs = `const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };\n`
+      }
+      return `
+      ${printDocumentation(field.description)}
+      ${validDefinitions} {
       ${extractArgs}
       const options = {
         ${

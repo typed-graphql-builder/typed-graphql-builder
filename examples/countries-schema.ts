@@ -404,7 +404,15 @@ export class Query extends $Base<'Query'> {
   >(
     args: Args,
     selectorFn: (s: Country) => [...Sel]
-  ): $Field<'countries', Array<GetOutput<Sel>>, GetVariables<Sel, Args>> {
+  ): $Field<'countries', Array<GetOutput<Sel>>, GetVariables<Sel, Args>>
+  countries<Sel extends Selection<Country>>(
+    selectorFn: (s: Country) => [...Sel]
+  ): $Field<'countries', Array<GetOutput<Sel>>>
+  countries(arg1: any, arg2?: any) {
+    const { args, selectorFn } = !arg2
+      ? { args: {}, selectorFn: arg1 }
+      : { args: arg1, selectorFn: arg2 }
+
     const options = {
       argTypes: {
         filter: 'CountryFilterInput',
@@ -444,7 +452,15 @@ export class Query extends $Base<'Query'> {
   >(
     args: Args,
     selectorFn: (s: Continent) => [...Sel]
-  ): $Field<'continents', Array<GetOutput<Sel>>, GetVariables<Sel, Args>> {
+  ): $Field<'continents', Array<GetOutput<Sel>>, GetVariables<Sel, Args>>
+  continents<Sel extends Selection<Continent>>(
+    selectorFn: (s: Continent) => [...Sel]
+  ): $Field<'continents', Array<GetOutput<Sel>>>
+  continents(arg1: any, arg2?: any) {
+    const { args, selectorFn } = !arg2
+      ? { args: {}, selectorFn: arg1 }
+      : { args: arg1, selectorFn: arg2 }
+
     const options = {
       argTypes: {
         filter: 'ContinentFilterInput',
@@ -484,7 +500,15 @@ export class Query extends $Base<'Query'> {
   >(
     args: Args,
     selectorFn: (s: Language) => [...Sel]
-  ): $Field<'languages', Array<GetOutput<Sel>>, GetVariables<Sel, Args>> {
+  ): $Field<'languages', Array<GetOutput<Sel>>, GetVariables<Sel, Args>>
+  languages<Sel extends Selection<Language>>(
+    selectorFn: (s: Language) => [...Sel]
+  ): $Field<'languages', Array<GetOutput<Sel>>>
+  languages(arg1: any, arg2?: any) {
+    const { args, selectorFn } = !arg2
+      ? { args: {}, selectorFn: arg1 }
+      : { args: arg1, selectorFn: arg2 }
+
     const options = {
       argTypes: {
         filter: 'LanguageFilterInput',
