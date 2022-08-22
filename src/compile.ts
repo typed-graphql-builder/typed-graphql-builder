@@ -1,6 +1,5 @@
 import * as gq from 'graphql'
 import * as fs from 'fs/promises'
-import { Preamble } from './preamble'
 import { postamble } from './postamble'
 
 import { request } from 'undici'
@@ -13,6 +12,7 @@ async function fetchOrRead(schemaUrl: string) {
     return await fs.readFile(schemaUrl, 'utf8')
   }
 }
+
 export async function compile(args: { schema: string; output: string }) {
   const schemaData = await fetchOrRead(args.schema)
 
@@ -309,7 +309,10 @@ export enum ${def.name.value} {
   `
   }
 
-  write(Preamble)
+  let preamble = await readPreamble();
+  if(!preamble) process.exit(0);
+
+  write(preamble)
   write(printAtomicTypes())
 
   let rootNode: gq.SchemaDefinitionNode | null = null
@@ -389,4 +392,15 @@ export enum ${def.name.value} {
   } else {
     await fs.writeFile(args.output, outputScript)
   }
+
+  async function readPreamble() {
+      try {
+          let preamble = await fs.readFile(__dirname + "/preamble.raw.ts")
+          return preamble.toString('utf8').split("/** BASE_HERE **/").pop()
+      } catch (e) {
+          console.error('Could not read the `preamble_base` file')
+          process.exit(0)
+      }
+  }
+
 }

@@ -21,7 +21,8 @@
     "typescript": "^4.7.4"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.lib.json",
+    "build": "tsc -p tsconfig.lib.json && npm run copy-base",
+    "copy-base": "cp src/preamble.ts ./dist/preamble.raw.ts",
     "test": "tap test/**/*.test.ts -R spec",
     "test:watch": "tap -w test/**/*.test.ts -R spec",
     "regenerate:big-schema": "swc-node src/index.ts --schema examples/x.graphql --output examples/x.ts",

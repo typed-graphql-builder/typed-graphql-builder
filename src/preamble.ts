@@ -1,9 +1,11 @@
-export const Preamble = `
+// Placeholders to keep typescript happy
+type $Atomic = ''
+const $InputTypes: Record<string, any> = {}
+
+/** BASE_HERE **/
+
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
-
-/* tslint:disable */
-/* eslint-disable */
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
@@ -151,7 +153,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
           Array.from(Object.entries(args))
             .map(([key, val]) => {
               if (!argTypes[key]) {
-                throw new Error(\`Argument type for \${key} not found\`)
+                throw new Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
               return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
@@ -210,5 +212,3 @@ export function fragment<T, Sel extends Selection<T>>(
 ) {
   return selectFn(new GQLType())
 }
-
-`
