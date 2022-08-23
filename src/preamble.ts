@@ -154,7 +154,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
                 throw new Error(\`Argument type for \${key} not found\`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
-              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
+              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], argTypes[key])
             })
             .join(',')
         )
