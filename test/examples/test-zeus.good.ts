@@ -1,12 +1,12 @@
 import { verify } from './verify'
-import { query, mutation, SpecialSkills, fragment, Card, $ } from './zeus.graphql'
+import { query, mutation, SpecialSkills, fragment, Card, $ } from './zeus.graphql.api'
 
 const cardFragment = fragment(Card, c => [
   c.Attack, //
   c.Defense.as('def'),
 ])
 
-const tq = query(q => [
+let tq = query(q => [
   q.cardById({ cardId: $('cid') }, c => [
     ...cardFragment,
     c.attack({ cardID: $('cids') }, aCards => [
@@ -46,7 +46,44 @@ const tq = query(q => [
   ]),
 ])
 
-const tm = mutation(m => [
+let tqString = `query ($cid: String, $cids: [String!]!, $cid2: String, $cids2: [String!]!) {
+  cardById(cardId: $cid) {
+    Attack
+    def: Defense
+    attack(cardID: $cids) {
+      Attack
+      Defense
+    }
+  }
+  second: cardById(cardId: $cid2) {
+    Attack
+    def: Defense
+    attack(cardID: $cids2) {
+      Attack
+      Defense
+    }
+  }
+  drawCard {
+    Attack
+    cardImage {
+      bucket
+      region
+      key
+    }
+  }
+  drawChangeCard {
+    ... on EffectCard {
+      name
+      effectSize
+    }
+    ... on SpecialCard {
+      name
+      effect
+    }
+  }
+}`
+
+let tm = mutation(m => [
   m.addCard(
     {
       card: {
@@ -55,30 +92,31 @@ const tm = mutation(m => [
         name: 'Hi',
         description: 'Lo',
         skills: [SpecialSkills.FIRE],
-        conditions: {
-          _and: [
-            { field1: { eq: $('hiz') } }, //
-            { field2: { eq: $('bye') } },
-          ] as const,
-        },
       },
     },
     c => [c.Attack, c.Defense, c.Children]
   ),
 ])
 
+let tmString = `mutation {
+  addCard(
+    card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: ["FIRE"]}
+  ) {
+    Attack
+    Defense
+    Children
+  }
+}`
+
 export default [
   verify({
     query: tm,
-    // string: '',
-    variables: {
-      hiz: 1,
-      bye: 2,
-    },
+    string: tmString,
+    variables: {},
   }),
   verify({
     query: tq,
-    // string: 'whatever',
+    string: tqString,
     variables: {
       cid: '1',
       cid2: '1',

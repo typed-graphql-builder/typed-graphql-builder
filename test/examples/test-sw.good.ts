@@ -1,7 +1,7 @@
-import { query, $ } from './sw.graphql'
+import { query, $ } from './sw.graphql.api'
 import { verify } from './verify'
 
-const planetQuery = query(q => [
+let planetQuery = query(q => [
   q.planet({ id: $('planet_id') }, p => [
     //
     p.id,
@@ -11,9 +11,19 @@ const planetQuery = query(q => [
   ]),
 ])
 
+let planetQueryString = `query ($planet_id: ID) {
+  planet(id: $planet_id) {
+    id
+    name
+    population
+    terrain: terrains
+  }
+}`
+
 export default [
   verify({
     query: planetQuery,
+    string: planetQueryString,
     variables: {
       planet_id: 'str',
     },

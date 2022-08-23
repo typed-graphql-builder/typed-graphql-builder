@@ -1,4 +1,4 @@
-import { mutation, $, SpecialSkills } from './zeus.graphql'
+import { mutation, $, SpecialSkills } from './zeus.graphql.api'
 import { verify } from './verify'
 
 const tm = mutation(m => [

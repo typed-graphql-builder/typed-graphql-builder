@@ -1,7 +1,27 @@
-import { query } from './countries.graphql'
+import { query } from './countries.graphql.api'
+import { verify } from './verify'
 
 // Allow both overloads
-query(q => [
+let twoCountries = query(q => [
   q.countries(c => [c.name, c.capital]).as('c1'),
   q.countries({}, c => [c.name, c.capital]).as('c2'),
 ])
+
+let twoCountriesString = `{
+  c1: countries {
+    name
+    capital
+  }
+  c2: countries {
+    name
+    capital
+  }
+}`
+
+export default [
+  verify({
+    query: twoCountries,
+    variables: {},
+    string: twoCountriesString,
+  }),
+]
