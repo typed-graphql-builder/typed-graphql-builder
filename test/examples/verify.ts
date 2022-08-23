@@ -1,6 +1,5 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import assert from 'assert'
-import { query } from './x.graphql'
 
 export function verify<Inp, Out>(opts: {
   query: TypedDocumentNode<Out, Inp>
