@@ -46,18 +46,22 @@ let tq = query(q => [
   ]),
 ])
 
-let tqString = `query ($cid: String, $cids: [String!]!, $cid2: String, $cids2: [String!]!) {
+let tqString = `
+fragment Card_190nlxk on Card {
+  Attack
+  def: Defense
+}
+
+query ($cid: String, $cids: [String!]!, $cid2: String, $cids2: [String!]!) {
   cardById(cardId: $cid) {
-    Attack
-    def: Defense
+    ...Card_190nlxk
     attack(cardID: $cids) {
       Attack
       Defense
     }
   }
   second: cardById(cardId: $cid2) {
-    Attack
-    def: Defense
+    ...Card_190nlxk
     attack(cardID: $cids2) {
       Attack
       Defense

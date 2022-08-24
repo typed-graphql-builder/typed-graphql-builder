@@ -1,8 +1,25 @@
+
+
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
 /* tslint:disable */
 /* eslint-disable */
+
+function fnvhash(data: string) {
+  let hash = 0x811c9dc5
+  for (let k = 0; k < data.length; ++k) {
+    hash = hash ^ data.charCodeAt(k)
+    hash += (hash << 24) + (hash << 8) + (hash << 7) + (hash << 4) + (hash << 1)
+  }
+  return ((hash & 0xffffffff) >>> 0).toString(36)
+}
+
+const FragmentName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd1'
+const FragmentData = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd2'
+const FragmentType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd3'
+
+const TypeName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd4'
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
@@ -55,7 +72,11 @@ class $Field<Name extends string, Type, Vars = {}> {
 }
 
 class $Base<Name extends string> {
-  constructor(private $$name: Name) {}
+  public [TypeName]: string
+
+  constructor(name: Name) {
+    this[TypeName] = name
+  }
 
   protected $_select<Key extends string>(
     name: Key,
@@ -124,6 +145,7 @@ export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIn
 
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const variables = new Map<string, string>()
+  const fragments = new Map<string, string>()
 
   function stringifyArgs(
     args: any,
@@ -153,39 +175,42 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
                 throw new Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
-              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
+              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], argTypes[key])
             })
             .join(',')
         )
     }
   }
 
-  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
+  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>): string {
     if (field.kind === 'field') {
       let retVal = field.name
       if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
       if (args && Object.keys(args).length > 0) {
-        retVal += '(' + stringifyArgs(args, argTypes!) + ')'
+        retVal += ' (' + stringifyArgs(args, argTypes!) + ')'
       }
       let sel = field.options.selection
       if (sel) {
-        retVal += '{'
-        for (let subField of sel) {
-          retVal += extractTextAndVars(subField)
-        }
-        retVal += '}'
+        retVal += ' {' + sel.map(extractTextAndVars).join(' ') + '} '
       }
-      return retVal + ' '
+      return retVal
     } else if (field.kind === 'union') {
-      let retVal = '... on ' + field.alternativeName + ' {'
-      for (let subField of field.alternativeSelection) {
-        retVal += extractTextAndVars(subField)
-      }
-      retVal += '}'
+      return `... on ${field.alternativeName} { ${field.alternativeSelection
+        .map(extractTextAndVars)
+        .join(' ')} } `
+    } else if (field[FragmentType]) {
+      let fragmentBody = (field[FragmentData] as any[]).map(extractTextAndVars).join(' ')
 
-      return retVal + ' '
+      let fragmentName = field[FragmentName] + '_' + fnvhash(fragmentBody)
+      fragments.set(
+        fragmentName,
+        `fragment ${fragmentName} on ${field[FragmentType]} { ${fragmentBody} } `
+      )
+      return '...' + fragmentName + ' '
+    } else {
+      throw new Error('Unknown field kind')
     }
   }
 
@@ -200,386 +225,425 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   }
   ret += queryBody
 
-  return ret
+  let fullQuery = Array.from(fragments.values()).join(' ') + ' ' + ret
+  console.log(fullQuery)
+  return fullQuery
 }
 
-export function fragment<T, Sel extends Selection<T>>(
+export function fragment<T extends $Base<any>, Sel extends Selection<T>>(
   GQLType: { new (): T },
   selectFn: (selector: T) => [...Sel]
 ) {
-  return selectFn(new GQLType())
+  let t = new GQLType()
+
+  return {
+    // TODO: unique name based on content hash
+    [FragmentName]: t[TypeName],
+    [FragmentData]: selectFn(t),
+    [FragmentType]: t[TypeName],
+    [Symbol.iterator]: function* () {
+      yield this
+    },
+  } as unknown as Sel
 }
 
 type $Atomic = string | number | boolean
 
+
+
 export type _Any = unknown
 
-export class _Entity extends $Union<
-  { Country: Country; Continent: Continent; Language: Language },
-  '_Entity'
-> {
+
+
+export class _Entity extends $Union<{Country: Country,Continent: Continent,Language: Language}, "_Entity"> {
   constructor() {
-    super({ Country: Country, Continent: Continent, Language: Language })
+    super({Country: Country,Continent: Continent,Language: Language})
   }
 }
 
-export class _Service extends $Base<'_Service'> {
+
+export class _Service extends $Base<"_Service"> {
   constructor() {
-    super('_Service')
+    super("_Service")
   }
 
-  /**
+  
+      
+/**
  * The sdl representing the federated service capabilities. Includes federation
 directives, removes federation types, and includes rest of full schema after
 schema directives have been applied
  */
-  get sdl(): $Field<'sdl', string | undefined> {
-    return this.$_select('sdl') as any
-  }
+      get sdl(): $Field<"sdl", string | undefined>  {
+       return this.$_select("sdl") as any
+      }
 }
 
-export class Continent extends $Base<'Continent'> {
+
+export class Continent extends $Base<"Continent"> {
   constructor() {
-    super('Continent')
+    super("Continent")
   }
 
-  get code(): $Field<'code', string> {
-    return this.$_select('code') as any
-  }
+  
+      
+      get code(): $Field<"code", string>  {
+       return this.$_select("code") as any
+      }
 
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
-  }
+      
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 
-  countries<Sel extends Selection<Country>>(
-    selectorFn: (s: Country) => [...Sel]
-  ): $Field<'countries', Array<GetOutput<Sel>>> {
-    const options = {
-      selection: selectorFn(new Country()),
+      
+      countries<Sel extends Selection<Country>>(selectorFn: (s: Country) => [...Sel]):$Field<"countries", Array<GetOutput<Sel>> > {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new Country)
+      };
+      return this.$_select("countries", options) as any
     }
-    return this.$_select('countries', options) as any
-  }
+  
 }
+
 
 export type ContinentFilterInput = {
   code?: StringQueryOperatorInput | undefined
 }
+    
 
-export class Country extends $Base<'Country'> {
+
+export class Country extends $Base<"Country"> {
   constructor() {
-    super('Country')
+    super("Country")
   }
 
-  get code(): $Field<'code', string> {
-    return this.$_select('code') as any
-  }
+  
+      
+      get code(): $Field<"code", string>  {
+       return this.$_select("code") as any
+      }
 
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
-  }
+      
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 
-  get native(): $Field<'native', string> {
-    return this.$_select('native') as any
-  }
+      
+      get native(): $Field<"native", string>  {
+       return this.$_select("native") as any
+      }
 
-  get phone(): $Field<'phone', string> {
-    return this.$_select('phone') as any
-  }
+      
+      get phone(): $Field<"phone", string>  {
+       return this.$_select("phone") as any
+      }
 
-  continent<Sel extends Selection<Continent>>(
-    selectorFn: (s: Continent) => [...Sel]
-  ): $Field<'continent', GetOutput<Sel>> {
-    const options = {
-      selection: selectorFn(new Continent()),
+      
+      continent<Sel extends Selection<Continent>>(selectorFn: (s: Continent) => [...Sel]):$Field<"continent", GetOutput<Sel> > {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new Continent)
+      };
+      return this.$_select("continent", options) as any
     }
-    return this.$_select('continent', options) as any
-  }
+  
 
-  get capital(): $Field<'capital', string | undefined> {
-    return this.$_select('capital') as any
-  }
+      
+      get capital(): $Field<"capital", string | undefined>  {
+       return this.$_select("capital") as any
+      }
 
-  get currency(): $Field<'currency', string | undefined> {
-    return this.$_select('currency') as any
-  }
+      
+      get currency(): $Field<"currency", string | undefined>  {
+       return this.$_select("currency") as any
+      }
 
-  languages<Sel extends Selection<Language>>(
-    selectorFn: (s: Language) => [...Sel]
-  ): $Field<'languages', Array<GetOutput<Sel>>> {
-    const options = {
-      selection: selectorFn(new Language()),
+      
+      languages<Sel extends Selection<Language>>(selectorFn: (s: Language) => [...Sel]):$Field<"languages", Array<GetOutput<Sel>> > {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new Language)
+      };
+      return this.$_select("languages", options) as any
     }
-    return this.$_select('languages', options) as any
-  }
+  
 
-  get emoji(): $Field<'emoji', string> {
-    return this.$_select('emoji') as any
-  }
+      
+      get emoji(): $Field<"emoji", string>  {
+       return this.$_select("emoji") as any
+      }
 
-  get emojiU(): $Field<'emojiU', string> {
-    return this.$_select('emojiU') as any
-  }
+      
+      get emojiU(): $Field<"emojiU", string>  {
+       return this.$_select("emojiU") as any
+      }
 
-  states<Sel extends Selection<State>>(
-    selectorFn: (s: State) => [...Sel]
-  ): $Field<'states', Array<GetOutput<Sel>>> {
-    const options = {
-      selection: selectorFn(new State()),
+      
+      states<Sel extends Selection<State>>(selectorFn: (s: State) => [...Sel]):$Field<"states", Array<GetOutput<Sel>> > {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new State)
+      };
+      return this.$_select("states", options) as any
     }
-    return this.$_select('states', options) as any
-  }
+  
 }
+
 
 export type CountryFilterInput = {
-  code?: StringQueryOperatorInput | undefined
-  currency?: StringQueryOperatorInput | undefined
-  continent?: StringQueryOperatorInput | undefined
+  code?: StringQueryOperatorInput | undefined,
+currency?: StringQueryOperatorInput | undefined,
+continent?: StringQueryOperatorInput | undefined
 }
+    
 
-export class Language extends $Base<'Language'> {
+
+export class Language extends $Base<"Language"> {
   constructor() {
-    super('Language')
+    super("Language")
   }
 
-  get code(): $Field<'code', string> {
-    return this.$_select('code') as any
-  }
+  
+      
+      get code(): $Field<"code", string>  {
+       return this.$_select("code") as any
+      }
 
-  get name(): $Field<'name', string | undefined> {
-    return this.$_select('name') as any
-  }
+      
+      get name(): $Field<"name", string | undefined>  {
+       return this.$_select("name") as any
+      }
 
-  get native(): $Field<'native', string | undefined> {
-    return this.$_select('native') as any
-  }
+      
+      get native(): $Field<"native", string | undefined>  {
+       return this.$_select("native") as any
+      }
 
-  get rtl(): $Field<'rtl', boolean> {
-    return this.$_select('rtl') as any
-  }
+      
+      get rtl(): $Field<"rtl", boolean>  {
+       return this.$_select("rtl") as any
+      }
 }
+
 
 export type LanguageFilterInput = {
   code?: StringQueryOperatorInput | undefined
 }
+    
 
-export class Query extends $Base<'Query'> {
+
+export class Query extends $Base<"Query"> {
   constructor() {
-    super('Query')
+    super("Query")
   }
 
-  _entities<
-    Args extends VariabledInput<{
-      representations: Array<string>
-    }>,
-    Sel extends Selection<_Entity>
-  >(
-    args: Args,
-    selectorFn: (s: _Entity) => [...Sel]
-  ): $Field<'_entities', Array<GetOutput<Sel> | undefined>, GetVariables<Sel, Args>> {
-    const options = {
-      argTypes: {
-        representations: '[_Any!]!',
-      },
-      args,
+  
+      
+      _entities<Args extends VariabledInput<{
+        representations: Array<string>,
+      }>,Sel extends Selection<_Entity>>(args: Args, selectorFn: (s: _Entity) => [...Sel]):$Field<"_entities", Array<GetOutput<Sel> | undefined> , GetVariables<Sel, Args>> {
+      
+      const options = {
+        argTypes: {
+              representations: "[_Any!]!"
+            },
+        args,
 
-      selection: selectorFn(new _Entity()),
+        selection: selectorFn(new _Entity)
+      };
+      return this.$_select("_entities", options) as any
     }
-    return this.$_select('_entities', options) as any
-  }
+  
 
-  _service<Sel extends Selection<_Service>>(
-    selectorFn: (s: _Service) => [...Sel]
-  ): $Field<'_service', GetOutput<Sel>> {
-    const options = {
-      selection: selectorFn(new _Service()),
+      
+      _service<Sel extends Selection<_Service>>(selectorFn: (s: _Service) => [...Sel]):$Field<"_service", GetOutput<Sel> > {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new _Service)
+      };
+      return this.$_select("_service", options) as any
     }
-    return this.$_select('_service', options) as any
-  }
+  
 
-  countries<
-    Args extends VariabledInput<{
-      filter?: CountryFilterInput | undefined
-    }>,
-    Sel extends Selection<Country>
-  >(
-    args: Args,
-    selectorFn: (s: Country) => [...Sel]
-  ): $Field<'countries', Array<GetOutput<Sel>>, GetVariables<Sel, Args>>
-  countries<Sel extends Selection<Country>>(
-    selectorFn: (s: Country) => [...Sel]
-  ): $Field<'countries', Array<GetOutput<Sel>>>
-  countries(arg1: any, arg2?: any) {
-    const { args, selectorFn } = !arg2
-      ? { args: {}, selectorFn: arg1 }
-      : { args: arg1, selectorFn: arg2 }
+      
+      countries<Args extends VariabledInput<{
+        filter?: CountryFilterInput | undefined,
+      }>,Sel extends Selection<Country>>(args: Args, selectorFn: (s: Country) => [...Sel]):$Field<"countries", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+countries<Sel extends Selection<Country>>(selectorFn: (s: Country) => [...Sel]):$Field<"countries", Array<GetOutput<Sel>> >
+countries(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
-    const options = {
-      argTypes: {
-        filter: 'CountryFilterInput',
-      },
-      args,
+      const options = {
+        argTypes: {
+              filter: "CountryFilterInput"
+            },
+        args,
 
-      selection: selectorFn(new Country()),
+        selection: selectorFn(new Country)
+      };
+      return this.$_select("countries", options) as any
     }
-    return this.$_select('countries', options) as any
-  }
+  
 
-  country<
-    Args extends VariabledInput<{
-      code: string
-    }>,
-    Sel extends Selection<Country>
-  >(
-    args: Args,
-    selectorFn: (s: Country) => [...Sel]
-  ): $Field<'country', GetOutput<Sel> | undefined, GetVariables<Sel, Args>> {
-    const options = {
-      argTypes: {
-        code: 'ID!',
-      },
-      args,
+      
+      country<Args extends VariabledInput<{
+        code: string,
+      }>,Sel extends Selection<Country>>(args: Args, selectorFn: (s: Country) => [...Sel]):$Field<"country", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      
+      const options = {
+        argTypes: {
+              code: "ID!"
+            },
+        args,
 
-      selection: selectorFn(new Country()),
+        selection: selectorFn(new Country)
+      };
+      return this.$_select("country", options) as any
     }
-    return this.$_select('country', options) as any
-  }
+  
 
-  continents<
-    Args extends VariabledInput<{
-      filter?: ContinentFilterInput | undefined
-    }>,
-    Sel extends Selection<Continent>
-  >(
-    args: Args,
-    selectorFn: (s: Continent) => [...Sel]
-  ): $Field<'continents', Array<GetOutput<Sel>>, GetVariables<Sel, Args>>
-  continents<Sel extends Selection<Continent>>(
-    selectorFn: (s: Continent) => [...Sel]
-  ): $Field<'continents', Array<GetOutput<Sel>>>
-  continents(arg1: any, arg2?: any) {
-    const { args, selectorFn } = !arg2
-      ? { args: {}, selectorFn: arg1 }
-      : { args: arg1, selectorFn: arg2 }
+      
+      continents<Args extends VariabledInput<{
+        filter?: ContinentFilterInput | undefined,
+      }>,Sel extends Selection<Continent>>(args: Args, selectorFn: (s: Continent) => [...Sel]):$Field<"continents", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+continents<Sel extends Selection<Continent>>(selectorFn: (s: Continent) => [...Sel]):$Field<"continents", Array<GetOutput<Sel>> >
+continents(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
-    const options = {
-      argTypes: {
-        filter: 'ContinentFilterInput',
-      },
-      args,
+      const options = {
+        argTypes: {
+              filter: "ContinentFilterInput"
+            },
+        args,
 
-      selection: selectorFn(new Continent()),
+        selection: selectorFn(new Continent)
+      };
+      return this.$_select("continents", options) as any
     }
-    return this.$_select('continents', options) as any
-  }
+  
 
-  continent<
-    Args extends VariabledInput<{
-      code: string
-    }>,
-    Sel extends Selection<Continent>
-  >(
-    args: Args,
-    selectorFn: (s: Continent) => [...Sel]
-  ): $Field<'continent', GetOutput<Sel> | undefined, GetVariables<Sel, Args>> {
-    const options = {
-      argTypes: {
-        code: 'ID!',
-      },
-      args,
+      
+      continent<Args extends VariabledInput<{
+        code: string,
+      }>,Sel extends Selection<Continent>>(args: Args, selectorFn: (s: Continent) => [...Sel]):$Field<"continent", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      
+      const options = {
+        argTypes: {
+              code: "ID!"
+            },
+        args,
 
-      selection: selectorFn(new Continent()),
+        selection: selectorFn(new Continent)
+      };
+      return this.$_select("continent", options) as any
     }
-    return this.$_select('continent', options) as any
-  }
+  
 
-  languages<
-    Args extends VariabledInput<{
-      filter?: LanguageFilterInput | undefined
-    }>,
-    Sel extends Selection<Language>
-  >(
-    args: Args,
-    selectorFn: (s: Language) => [...Sel]
-  ): $Field<'languages', Array<GetOutput<Sel>>, GetVariables<Sel, Args>>
-  languages<Sel extends Selection<Language>>(
-    selectorFn: (s: Language) => [...Sel]
-  ): $Field<'languages', Array<GetOutput<Sel>>>
-  languages(arg1: any, arg2?: any) {
-    const { args, selectorFn } = !arg2
-      ? { args: {}, selectorFn: arg1 }
-      : { args: arg1, selectorFn: arg2 }
+      
+      languages<Args extends VariabledInput<{
+        filter?: LanguageFilterInput | undefined,
+      }>,Sel extends Selection<Language>>(args: Args, selectorFn: (s: Language) => [...Sel]):$Field<"languages", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+languages<Sel extends Selection<Language>>(selectorFn: (s: Language) => [...Sel]):$Field<"languages", Array<GetOutput<Sel>> >
+languages(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
-    const options = {
-      argTypes: {
-        filter: 'LanguageFilterInput',
-      },
-      args,
+      const options = {
+        argTypes: {
+              filter: "LanguageFilterInput"
+            },
+        args,
 
-      selection: selectorFn(new Language()),
+        selection: selectorFn(new Language)
+      };
+      return this.$_select("languages", options) as any
     }
-    return this.$_select('languages', options) as any
-  }
+  
 
-  language<
-    Args extends VariabledInput<{
-      code: string
-    }>,
-    Sel extends Selection<Language>
-  >(
-    args: Args,
-    selectorFn: (s: Language) => [...Sel]
-  ): $Field<'language', GetOutput<Sel> | undefined, GetVariables<Sel, Args>> {
-    const options = {
-      argTypes: {
-        code: 'ID!',
-      },
-      args,
+      
+      language<Args extends VariabledInput<{
+        code: string,
+      }>,Sel extends Selection<Language>>(args: Args, selectorFn: (s: Language) => [...Sel]):$Field<"language", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
+      
+      const options = {
+        argTypes: {
+              code: "ID!"
+            },
+        args,
 
-      selection: selectorFn(new Language()),
+        selection: selectorFn(new Language)
+      };
+      return this.$_select("language", options) as any
     }
-    return this.$_select('language', options) as any
-  }
+  
 }
 
-export class State extends $Base<'State'> {
+
+export class State extends $Base<"State"> {
   constructor() {
-    super('State')
+    super("State")
   }
 
-  get code(): $Field<'code', string | undefined> {
-    return this.$_select('code') as any
-  }
+  
+      
+      get code(): $Field<"code", string | undefined>  {
+       return this.$_select("code") as any
+      }
 
-  get name(): $Field<'name', string> {
-    return this.$_select('name') as any
-  }
+      
+      get name(): $Field<"name", string>  {
+       return this.$_select("name") as any
+      }
 
-  country<Sel extends Selection<Country>>(
-    selectorFn: (s: Country) => [...Sel]
-  ): $Field<'country', GetOutput<Sel>> {
-    const options = {
-      selection: selectorFn(new Country()),
+      
+      country<Sel extends Selection<Country>>(selectorFn: (s: Country) => [...Sel]):$Field<"country", GetOutput<Sel> > {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new Country)
+      };
+      return this.$_select("country", options) as any
     }
-    return this.$_select('country', options) as any
-  }
+  
 }
+
 
 export type StringQueryOperatorInput = {
-  eq?: string | undefined
-  ne?: string | undefined
-  in?: Array<string | undefined> | undefined
-  nin?: Array<string | undefined> | undefined
-  regex?: string | undefined
-  glob?: string | undefined
+  eq?: string | undefined,
+ne?: string | undefined,
+in?: Array<string | undefined> | undefined,
+nin?: Array<string | undefined> | undefined,
+regex?: string | undefined,
+glob?: string | undefined
 }
+    
 
-const $Root = {
-  query: Query,
-}
+  const $Root = {
+    query: Query
+  }
 
-namespace $RootTypes {
-  export type query = Query
-}
+  namespace $RootTypes {
+    export type query = Query
+  }
+  
 
 export function query<Sel extends Selection<$RootTypes.query>>(
   selectFn: (q: $RootTypes.query) => [...Sel]
@@ -592,24 +656,26 @@ export function query<Sel extends Selection<$RootTypes.query>>(
   return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 }
 
-const $InputTypes: { [key: string]: { [key: string]: string } } = {
-  ContinentFilterInput: {
-    code: 'StringQueryOperatorInput',
+
+const $InputTypes: {[key: string]: {[key: string]: string}} = {
+    ContinentFilterInput: {
+    code: "StringQueryOperatorInput"
   },
   CountryFilterInput: {
-    code: 'StringQueryOperatorInput',
-    currency: 'StringQueryOperatorInput',
-    continent: 'StringQueryOperatorInput',
+    code: "StringQueryOperatorInput",
+currency: "StringQueryOperatorInput",
+continent: "StringQueryOperatorInput"
   },
   LanguageFilterInput: {
-    code: 'StringQueryOperatorInput',
+    code: "StringQueryOperatorInput"
   },
   StringQueryOperatorInput: {
-    eq: 'String',
-    ne: 'String',
-    in: '[String]',
-    nin: '[String]',
-    regex: 'String',
-    glob: 'String',
-  },
+    eq: "String",
+ne: "String",
+in: "[String]",
+nin: "[String]",
+regex: "String",
+glob: "String"
+  }
 }
+

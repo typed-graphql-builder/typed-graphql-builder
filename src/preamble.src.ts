@@ -8,6 +8,21 @@ import gql from 'graphql-tag'
 /* tslint:disable */
 /* eslint-disable */
 
+function fnvhash(data: string) {
+  let hash = 0x811c9dc5
+  for (let k = 0; k < data.length; ++k) {
+    hash = hash ^ data.charCodeAt(k)
+    hash += (hash << 24) + (hash << 8) + (hash << 7) + (hash << 4) + (hash << 1)
+  }
+  return ((hash & 0xffffffff) >>> 0).toString(36)
+}
+
+const FragmentName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd1'
+const FragmentData = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd2'
+const FragmentType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd3'
+
+const TypeName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd4'
+
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
 
@@ -59,7 +74,11 @@ class $Field<Name extends string, Type, Vars = {}> {
 }
 
 class $Base<Name extends string> {
-  constructor(private $$name: Name) {}
+  public [TypeName]: string
+
+  constructor(name: Name) {
+    this[TypeName] = name
+  }
 
   protected $_select<Key extends string>(
     name: Key,
@@ -128,6 +147,7 @@ export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIn
 
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const variables = new Map<string, string>()
+  const fragments = new Map<string, string>()
 
   function stringifyArgs(
     args: any,
@@ -164,32 +184,35 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
     }
   }
 
-  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
+  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>): string {
     if (field.kind === 'field') {
       let retVal = field.name
       if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
       if (args && Object.keys(args).length > 0) {
-        retVal += '(' + stringifyArgs(args, argTypes!) + ')'
+        retVal += ' (' + stringifyArgs(args, argTypes!) + ')'
       }
       let sel = field.options.selection
       if (sel) {
-        retVal += '{'
-        for (let subField of sel) {
-          retVal += extractTextAndVars(subField)
-        }
-        retVal += '}'
+        retVal += ' {' + sel.map(extractTextAndVars).join(' ') + '} '
       }
-      return retVal + ' '
+      return retVal
     } else if (field.kind === 'union') {
-      let retVal = '... on ' + field.alternativeName + ' {'
-      for (let subField of field.alternativeSelection) {
-        retVal += extractTextAndVars(subField)
-      }
-      retVal += '}'
+      return `... on ${field.alternativeName} { ${field.alternativeSelection
+        .map(extractTextAndVars)
+        .join(' ')} } `
+    } else if (field[FragmentType]) {
+      let fragmentBody = (field[FragmentData] as any[]).map(extractTextAndVars).join(' ')
 
-      return retVal + ' '
+      let fragmentName = field[FragmentName] + '_' + fnvhash(fragmentBody)
+      fragments.set(
+        fragmentName,
+        `fragment ${fragmentName} on ${field[FragmentType]} { ${fragmentBody} } `
+      )
+      return '...' + fragmentName + ' '
+    } else {
+      throw new Error('Unknown field kind')
     }
   }
 
@@ -204,12 +227,24 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   }
   ret += queryBody
 
-  return ret
+  let fullQuery = Array.from(fragments.values()).join(' ') + ' ' + ret
+  console.log(fullQuery)
+  return fullQuery
 }
 
-export function fragment<T, Sel extends Selection<T>>(
+export function fragment<T extends $Base<any>, Sel extends Selection<T>>(
   GQLType: { new (): T },
   selectFn: (selector: T) => [...Sel]
 ) {
-  return selectFn(new GQLType())
+  let t = new GQLType()
+
+  return {
+    // TODO: unique name based on content hash
+    [FragmentName]: t[TypeName],
+    [FragmentData]: selectFn(t),
+    [FragmentType]: t[TypeName],
+    [Symbol.iterator]: function* () {
+      yield this
+    },
+  } as unknown as Sel
 }
