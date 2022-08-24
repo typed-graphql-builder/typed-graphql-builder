@@ -1,9 +1,25 @@
 
+
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
 /* tslint:disable */
 /* eslint-disable */
+
+function fnvhash(data: string) {
+  let hash = 0x811c9dc5
+  for (let k = 0; k < data.length; ++k) {
+    hash = hash ^ data.charCodeAt(k)
+    hash += (hash << 24) + (hash << 8) + (hash << 7) + (hash << 4) + (hash << 1)
+  }
+  return ((hash & 0xffffffff) >>> 0).toString(36)
+}
+
+const FragmentName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd1'
+const FragmentData = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd2'
+const FragmentType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd3'
+
+const TypeName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd4'
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
@@ -56,7 +72,11 @@ class $Field<Name extends string, Type, Vars = {}> {
 }
 
 class $Base<Name extends string> {
-  constructor(private $$name: Name) {}
+  public [TypeName]: string
+
+  constructor(name: Name) {
+    this[TypeName] = name
+  }
 
   protected $_select<Key extends string>(
     name: Key,
@@ -125,6 +145,7 @@ export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIn
 
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const variables = new Map<string, string>()
+  const fragments = new Map<string, string>()
 
   function stringifyArgs(
     args: any,
@@ -154,39 +175,42 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
                 throw new Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
-              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
+              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], argTypes[key])
             })
             .join(',')
         )
     }
   }
 
-  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>) {
+  function extractTextAndVars(field: $Field<any, any, any> | $UnionSelection<any, any>): string {
     if (field.kind === 'field') {
       let retVal = field.name
       if (field.alias) retVal = field.alias + ':' + retVal
       const args = field.options.args,
         argTypes = field.options.argTypes
       if (args && Object.keys(args).length > 0) {
-        retVal += '(' + stringifyArgs(args, argTypes!) + ')'
+        retVal += ' (' + stringifyArgs(args, argTypes!) + ')'
       }
       let sel = field.options.selection
       if (sel) {
-        retVal += '{'
-        for (let subField of sel) {
-          retVal += extractTextAndVars(subField)
-        }
-        retVal += '}'
+        retVal += ' {' + sel.map(extractTextAndVars).join(' ') + '} '
       }
-      return retVal + ' '
+      return retVal
     } else if (field.kind === 'union') {
-      let retVal = '... on ' + field.alternativeName + ' {'
-      for (let subField of field.alternativeSelection) {
-        retVal += extractTextAndVars(subField)
-      }
-      retVal += '}'
+      return `... on ${field.alternativeName} { ${field.alternativeSelection
+        .map(extractTextAndVars)
+        .join(' ')} } `
+    } else if (field[FragmentType]) {
+      let fragmentBody = (field[FragmentData] as any[]).map(extractTextAndVars).join(' ')
 
-      return retVal + ' '
+      let fragmentName = field[FragmentName] + '_' + fnvhash(fragmentBody)
+      fragments.set(
+        fragmentName,
+        `fragment ${fragmentName} on ${field[FragmentType]} { ${fragmentBody} } `
+      )
+      return '...' + fragmentName + ' '
+    } else {
+      throw new Error('Unknown field kind')
     }
   }
 
@@ -201,16 +225,27 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   }
   ret += queryBody
 
-  return ret
+  let fullQuery = Array.from(fragments.values()).join(' ') + ' ' + ret
+  console.log(fullQuery)
+  return fullQuery
 }
 
-export function fragment<T, Sel extends Selection<T>>(
+export function fragment<T extends $Base<any>, Sel extends Selection<T>>(
   GQLType: { new (): T },
   selectFn: (selector: T) => [...Sel]
 ) {
-  return selectFn(new GQLType())
-}
+  let t = new GQLType()
 
+  return {
+    // TODO: unique name based on content hash
+    [FragmentName]: t[TypeName],
+    [FragmentData]: selectFn(t),
+    [FragmentType]: t[TypeName],
+    [Symbol.iterator]: function* () {
+      yield this
+    },
+  } as unknown as Sel
+}
 
 type $Atomic = string | booking_channel_constraint | booking_channel_enum | booking_channel_select_column | booking_channel_update_column | booking_constraint | booking_select_column | booking_status_enum | booking_update_column | bookingStatus_constraint | bookingStatus_select_column | bookingStatus_update_column | classification_constraint | classification_enum | classification_select_column | classification_update_column | connection_constraint | connection_select_column | connection_update_column | currency_constraint | currency_enum | currency_select_column | currency_update_column | entity_constraint | entity_select_column | entity_status_enum | entity_update_column | entityStatus_constraint | entityStatus_select_column | entityStatus_update_column | integration_constraint | integration_select_column | integration_type_enum | integration_update_column | integrationType_constraint | integrationType_select_column | integrationType_update_column | issue_constraint | issue_select_column | issue_update_column | job_constraint | job_method_enum | job_select_column | job_status_enum | job_update_column | jobMethod_constraint | jobMethod_select_column | jobMethod_update_column | jobStatus_constraint | jobStatus_select_column | jobStatus_update_column | line_constraint | line_select_column | line_update_column | metric_constraint | metric_select_column | metric_update_column | normalized_type_enum | normalizedType_constraint | normalizedType_select_column | normalizedType_update_column | order_by | payment_constraint | payment_select_column | payment_status_enum | payment_update_column | paymentStatus_constraint | paymentStatus_select_column | paymentStatus_update_column | paymentType_constraint | paymentType_select_column | paymentType_update_column | subclassification_constraint | subclassification_enum | subclassification_select_column | subclassification_update_column | tag_constraint | tag_select_column | tag_update_column | team_constraint | team_select_column | team_update_column | teamUser_constraint | teamUser_select_column | teamUser_update_column | unit_constraint | unit_select_column | unit_update_column | user_constraint | user_select_column | user_status_enum | user_update_column | userStatus_constraint | userStatus_select_column | userStatus_update_column | webhook_constraint | webhook_select_column | webhook_update_column | number | boolean
 
@@ -358,8 +393,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line>>(...params: [selectorFn: (s: line) => [...Sel]] | [args: Args, selectorFn: (s: line) => [...Sel]]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line>>(args: Args, selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+lines<Sel extends Selection<line>>(selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> >
+lines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -387,8 +424,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line_aggregate>>(...params: [selectorFn: (s: line_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: line_aggregate) => [...Sel]]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line_aggregate>>(args: Args, selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+lines_aggregate<Sel extends Selection<line_aggregate>>(selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> >
+lines_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -459,8 +498,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking>>(...params: [selectorFn: (s: booking) => [...Sel]] | [args: Args, selectorFn: (s: booking) => [...Sel]]):$Field<"relatedBookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking>>(args: Args, selectorFn: (s: booking) => [...Sel]):$Field<"relatedBookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+relatedBookings<Sel extends Selection<booking>>(selectorFn: (s: booking) => [...Sel]):$Field<"relatedBookings", Array<GetOutput<Sel>> >
+relatedBookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -488,8 +529,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking_aggregate>>(...params: [selectorFn: (s: booking_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_aggregate) => [...Sel]]):$Field<"relatedBookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_aggregate>>(args: Args, selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"relatedBookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+relatedBookings_aggregate<Sel extends Selection<booking_aggregate>>(selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"relatedBookings_aggregate", GetOutput<Sel> >
+relatedBookings_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -522,8 +565,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag>>(...params: [selectorFn: (s: tag) => [...Sel]] | [args: Args, selectorFn: (s: tag) => [...Sel]]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag>>(args: Args, selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+tags<Sel extends Selection<tag>>(selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> >
+tags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -551,8 +596,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag_aggregate>>(...params: [selectorFn: (s: tag_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: tag_aggregate) => [...Sel]]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag_aggregate>>(args: Args, selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+tags_aggregate<Sel extends Selection<tag_aggregate>>(selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> >
+tags_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2805,8 +2852,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking>>(...params: [selectorFn: (s: booking) => [...Sel]] | [args: Args, selectorFn: (s: booking) => [...Sel]]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking>>(args: Args, selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookings<Sel extends Selection<booking>>(selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> >
+bookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2834,8 +2883,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking_aggregate>>(...params: [selectorFn: (s: booking_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_aggregate) => [...Sel]]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_aggregate>>(args: Args, selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+bookings_aggregate<Sel extends Selection<booking_aggregate>>(selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> >
+bookings_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2885,8 +2936,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity>>(...params: [selectorFn: (s: entity) => [...Sel]] | [args: Args, selectorFn: (s: entity) => [...Sel]]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity>>(args: Args, selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+entities<Sel extends Selection<entity>>(selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> >
+entities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2914,8 +2967,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity_aggregate>>(...params: [selectorFn: (s: entity_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entity_aggregate) => [...Sel]]):$Field<"entities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity_aggregate>>(args: Args, selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"entities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+entities_aggregate<Sel extends Selection<entity_aggregate>>(selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"entities_aggregate", GetOutput<Sel> >
+entities_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2969,8 +3024,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job>>(...params: [selectorFn: (s: job) => [...Sel]] | [args: Args, selectorFn: (s: job) => [...Sel]]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job>>(args: Args, selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobs<Sel extends Selection<job>>(selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> >
+jobs(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2998,8 +3055,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job_aggregate>>(...params: [selectorFn: (s: job_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: job_aggregate) => [...Sel]]):$Field<"jobs_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job_aggregate>>(args: Args, selectorFn: (s: job_aggregate) => [...Sel]):$Field<"jobs_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+jobs_aggregate<Sel extends Selection<job_aggregate>>(selectorFn: (s: job_aggregate) => [...Sel]):$Field<"jobs_aggregate", GetOutput<Sel> >
+jobs_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3027,8 +3086,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line>>(...params: [selectorFn: (s: line) => [...Sel]] | [args: Args, selectorFn: (s: line) => [...Sel]]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line>>(args: Args, selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+lines<Sel extends Selection<line>>(selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> >
+lines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3056,8 +3117,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line_aggregate>>(...params: [selectorFn: (s: line_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: line_aggregate) => [...Sel]]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line_aggregate>>(args: Args, selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+lines_aggregate<Sel extends Selection<line_aggregate>>(selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> >
+lines_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3085,8 +3148,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric>>(...params: [selectorFn: (s: metric) => [...Sel]] | [args: Args, selectorFn: (s: metric) => [...Sel]]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric>>(args: Args, selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+metrics<Sel extends Selection<metric>>(selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> >
+metrics(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3114,8 +3179,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric_aggregate>>(...params: [selectorFn: (s: metric_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: metric_aggregate) => [...Sel]]):$Field<"metrics_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric_aggregate>>(args: Args, selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"metrics_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+metrics_aggregate<Sel extends Selection<metric_aggregate>>(selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"metrics_aggregate", GetOutput<Sel> >
+metrics_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3148,8 +3215,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment>>(...params: [selectorFn: (s: payment) => [...Sel]] | [args: Args, selectorFn: (s: payment) => [...Sel]]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment>>(args: Args, selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+payments<Sel extends Selection<payment>>(selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> >
+payments(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3177,8 +3246,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment_aggregate>>(...params: [selectorFn: (s: payment_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: payment_aggregate) => [...Sel]]):$Field<"payments_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment_aggregate>>(args: Args, selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"payments_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+payments_aggregate<Sel extends Selection<payment_aggregate>>(selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"payments_aggregate", GetOutput<Sel> >
+payments_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3228,8 +3299,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag>>(...params: [selectorFn: (s: tag) => [...Sel]] | [args: Args, selectorFn: (s: tag) => [...Sel]]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag>>(args: Args, selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+tags<Sel extends Selection<tag>>(selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> >
+tags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3257,8 +3330,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag_aggregate>>(...params: [selectorFn: (s: tag_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: tag_aggregate) => [...Sel]]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag_aggregate>>(args: Args, selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+tags_aggregate<Sel extends Selection<tag_aggregate>>(selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> >
+tags_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3307,8 +3382,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit>>(...params: [selectorFn: (s: unit) => [...Sel]] | [args: Args, selectorFn: (s: unit) => [...Sel]]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit>>(args: Args, selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+units<Sel extends Selection<unit>>(selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> >
+units(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3336,8 +3413,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit_aggregate>>(...params: [selectorFn: (s: unit_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: unit_aggregate) => [...Sel]]):$Field<"units_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit_aggregate>>(args: Args, selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"units_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+units_aggregate<Sel extends Selection<unit_aggregate>>(selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"units_aggregate", GetOutput<Sel> >
+units_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4601,8 +4680,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking>>(...params: [selectorFn: (s: booking) => [...Sel]] | [args: Args, selectorFn: (s: booking) => [...Sel]]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking>>(args: Args, selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookings<Sel extends Selection<booking>>(selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> >
+bookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4630,8 +4711,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking_aggregate>>(...params: [selectorFn: (s: booking_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_aggregate) => [...Sel]]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_aggregate>>(args: Args, selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+bookings_aggregate<Sel extends Selection<booking_aggregate>>(selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> >
+bookings_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4782,8 +4865,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment>>(...params: [selectorFn: (s: payment) => [...Sel]] | [args: Args, selectorFn: (s: payment) => [...Sel]]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment>>(args: Args, selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+payments<Sel extends Selection<payment>>(selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> >
+payments(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4811,8 +4896,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment_aggregate>>(...params: [selectorFn: (s: payment_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: payment_aggregate) => [...Sel]]):$Field<"payments_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment_aggregate>>(args: Args, selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"payments_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+payments_aggregate<Sel extends Selection<payment_aggregate>>(selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"payments_aggregate", GetOutput<Sel> >
+payments_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4871,8 +4958,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity>>(...params: [selectorFn: (s: entity) => [...Sel]] | [args: Args, selectorFn: (s: entity) => [...Sel]]):$Field<"successorEntities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity>>(args: Args, selectorFn: (s: entity) => [...Sel]):$Field<"successorEntities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+successorEntities<Sel extends Selection<entity>>(selectorFn: (s: entity) => [...Sel]):$Field<"successorEntities", Array<GetOutput<Sel>> >
+successorEntities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4900,8 +4989,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity_aggregate>>(...params: [selectorFn: (s: entity_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entity_aggregate) => [...Sel]]):$Field<"successorEntities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity_aggregate>>(args: Args, selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"successorEntities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+successorEntities_aggregate<Sel extends Selection<entity_aggregate>>(selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"successorEntities_aggregate", GetOutput<Sel> >
+successorEntities_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4960,8 +5051,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit>>(...params: [selectorFn: (s: unit) => [...Sel]] | [args: Args, selectorFn: (s: unit) => [...Sel]]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit>>(args: Args, selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+units<Sel extends Selection<unit>>(selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> >
+units(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -4989,8 +5082,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit_aggregate>>(...params: [selectorFn: (s: unit_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: unit_aggregate) => [...Sel]]):$Field<"units_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit_aggregate>>(args: Args, selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"units_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+units_aggregate<Sel extends Selection<unit_aggregate>>(selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"units_aggregate", GetOutput<Sel> >
+units_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -6158,8 +6253,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection>>(...params: [selectorFn: (s: connection) => [...Sel]] | [args: Args, selectorFn: (s: connection) => [...Sel]]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection>>(args: Args, selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+connections<Sel extends Selection<connection>>(selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> >
+connections(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -6187,8 +6284,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection_aggregate>>(...params: [selectorFn: (s: connection_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: connection_aggregate) => [...Sel]]):$Field<"connections_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection_aggregate>>(args: Args, selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"connections_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+connections_aggregate<Sel extends Selection<connection_aggregate>>(selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"connections_aggregate", GetOutput<Sel> >
+connections_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -6236,8 +6335,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job>>(...params: [selectorFn: (s: job) => [...Sel]] | [args: Args, selectorFn: (s: job) => [...Sel]]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job>>(args: Args, selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobs<Sel extends Selection<job>>(selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> >
+jobs(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -6265,8 +6366,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job_aggregate>>(...params: [selectorFn: (s: job_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: job_aggregate) => [...Sel]]):$Field<"jobs_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job_aggregate>>(args: Args, selectorFn: (s: job_aggregate) => [...Sel]):$Field<"jobs_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+jobs_aggregate<Sel extends Selection<job_aggregate>>(selectorFn: (s: job_aggregate) => [...Sel]):$Field<"jobs_aggregate", GetOutput<Sel> >
+jobs_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -7912,8 +8015,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity>>(...params: [selectorFn: (s: entity) => [...Sel]] | [args: Args, selectorFn: (s: entity) => [...Sel]]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity>>(args: Args, selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+entities<Sel extends Selection<entity>>(selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> >
+entities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -7941,8 +8046,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity_aggregate>>(...params: [selectorFn: (s: entity_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entity_aggregate) => [...Sel]]):$Field<"entities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity_aggregate>>(args: Args, selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"entities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+entities_aggregate<Sel extends Selection<entity_aggregate>>(selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"entities_aggregate", GetOutput<Sel> >
+entities_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -8006,8 +8113,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue>>(...params: [selectorFn: (s: issue) => [...Sel]] | [args: Args, selectorFn: (s: issue) => [...Sel]]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue>>(args: Args, selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+issues<Sel extends Selection<issue>>(selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> >
+issues(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -8035,8 +8144,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue_aggregate>>(...params: [selectorFn: (s: issue_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: issue_aggregate) => [...Sel]]):$Field<"issues_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue_aggregate>>(args: Args, selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"issues_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+issues_aggregate<Sel extends Selection<issue_aggregate>>(selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"issues_aggregate", GetOutput<Sel> >
+issues_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -9699,8 +9810,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line>>(...params: [selectorFn: (s: line) => [...Sel]] | [args: Args, selectorFn: (s: line) => [...Sel]]):$Field<"enhancementLines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line>>(args: Args, selectorFn: (s: line) => [...Sel]):$Field<"enhancementLines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+enhancementLines<Sel extends Selection<line>>(selectorFn: (s: line) => [...Sel]):$Field<"enhancementLines", Array<GetOutput<Sel>> >
+enhancementLines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -9728,8 +9841,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line_aggregate>>(...params: [selectorFn: (s: line_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: line_aggregate) => [...Sel]]):$Field<"enhancementLines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line_aggregate>>(args: Args, selectorFn: (s: line_aggregate) => [...Sel]):$Field<"enhancementLines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+enhancementLines_aggregate<Sel extends Selection<line_aggregate>>(selectorFn: (s: line_aggregate) => [...Sel]):$Field<"enhancementLines_aggregate", GetOutput<Sel> >
+enhancementLines_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -16494,8 +16609,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line>>(...params: [selectorFn: (s: line) => [...Sel]] | [args: Args, selectorFn: (s: line) => [...Sel]]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line>>(args: Args, selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+lines<Sel extends Selection<line>>(selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> >
+lines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -16523,8 +16640,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line_aggregate>>(...params: [selectorFn: (s: line_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: line_aggregate) => [...Sel]]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line_aggregate>>(args: Args, selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+lines_aggregate<Sel extends Selection<line_aggregate>>(selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> >
+lines_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -16579,8 +16698,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag>>(...params: [selectorFn: (s: tag) => [...Sel]] | [args: Args, selectorFn: (s: tag) => [...Sel]]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag>>(args: Args, selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+tags<Sel extends Selection<tag>>(selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> >
+tags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -16608,8 +16729,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag_aggregate>>(...params: [selectorFn: (s: tag_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: tag_aggregate) => [...Sel]]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag_aggregate>>(args: Args, selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+tags_aggregate<Sel extends Selection<tag_aggregate>>(selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> >
+tags_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18270,8 +18393,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<bookingStatus_order_by> | undefined
 where?: bookingStatus_bool_exp | undefined,
-      }>,Sel extends Selection<bookingStatus_aggregate>>(...params: [selectorFn: (s: bookingStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: bookingStatus_aggregate) => [...Sel]]):$Field<"aggregateBookingStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<bookingStatus_aggregate>>(args: Args, selectorFn: (s: bookingStatus_aggregate) => [...Sel]):$Field<"aggregateBookingStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateBookingStatuses<Sel extends Selection<bookingStatus_aggregate>>(selectorFn: (s: bookingStatus_aggregate) => [...Sel]):$Field<"aggregateBookingStatuses", GetOutput<Sel> >
+aggregateBookingStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18299,8 +18424,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking_aggregate>>(...params: [selectorFn: (s: booking_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_aggregate) => [...Sel]]):$Field<"aggregateBookings", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_aggregate>>(args: Args, selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"aggregateBookings", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateBookings<Sel extends Selection<booking_aggregate>>(selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"aggregateBookings", GetOutput<Sel> >
+aggregateBookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18328,8 +18455,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<classification_order_by> | undefined
 where?: classification_bool_exp | undefined,
-      }>,Sel extends Selection<classification_aggregate>>(...params: [selectorFn: (s: classification_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: classification_aggregate) => [...Sel]]):$Field<"aggregateClassifications", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<classification_aggregate>>(args: Args, selectorFn: (s: classification_aggregate) => [...Sel]):$Field<"aggregateClassifications", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateClassifications<Sel extends Selection<classification_aggregate>>(selectorFn: (s: classification_aggregate) => [...Sel]):$Field<"aggregateClassifications", GetOutput<Sel> >
+aggregateClassifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18357,8 +18486,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection_aggregate>>(...params: [selectorFn: (s: connection_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: connection_aggregate) => [...Sel]]):$Field<"aggregateConnections", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection_aggregate>>(args: Args, selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"aggregateConnections", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateConnections<Sel extends Selection<connection_aggregate>>(selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"aggregateConnections", GetOutput<Sel> >
+aggregateConnections(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18386,8 +18517,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<currency_order_by> | undefined
 where?: currency_bool_exp | undefined,
-      }>,Sel extends Selection<currency_aggregate>>(...params: [selectorFn: (s: currency_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: currency_aggregate) => [...Sel]]):$Field<"aggregateCurrencies", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<currency_aggregate>>(args: Args, selectorFn: (s: currency_aggregate) => [...Sel]):$Field<"aggregateCurrencies", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateCurrencies<Sel extends Selection<currency_aggregate>>(selectorFn: (s: currency_aggregate) => [...Sel]):$Field<"aggregateCurrencies", GetOutput<Sel> >
+aggregateCurrencies(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18415,8 +18548,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity_aggregate>>(...params: [selectorFn: (s: entity_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entity_aggregate) => [...Sel]]):$Field<"aggregateEntities", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity_aggregate>>(args: Args, selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"aggregateEntities", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateEntities<Sel extends Selection<entity_aggregate>>(selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"aggregateEntities", GetOutput<Sel> >
+aggregateEntities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18444,8 +18579,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entityStatus_order_by> | undefined
 where?: entityStatus_bool_exp | undefined,
-      }>,Sel extends Selection<entityStatus_aggregate>>(...params: [selectorFn: (s: entityStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entityStatus_aggregate) => [...Sel]]):$Field<"aggregateEntityStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entityStatus_aggregate>>(args: Args, selectorFn: (s: entityStatus_aggregate) => [...Sel]):$Field<"aggregateEntityStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateEntityStatuses<Sel extends Selection<entityStatus_aggregate>>(selectorFn: (s: entityStatus_aggregate) => [...Sel]):$Field<"aggregateEntityStatuses", GetOutput<Sel> >
+aggregateEntityStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18473,8 +18610,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integrationType_order_by> | undefined
 where?: integrationType_bool_exp | undefined,
-      }>,Sel extends Selection<integrationType_aggregate>>(...params: [selectorFn: (s: integrationType_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: integrationType_aggregate) => [...Sel]]):$Field<"aggregateIntegrationTypes", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integrationType_aggregate>>(args: Args, selectorFn: (s: integrationType_aggregate) => [...Sel]):$Field<"aggregateIntegrationTypes", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateIntegrationTypes<Sel extends Selection<integrationType_aggregate>>(selectorFn: (s: integrationType_aggregate) => [...Sel]):$Field<"aggregateIntegrationTypes", GetOutput<Sel> >
+aggregateIntegrationTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18502,8 +18641,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integration_order_by> | undefined
 where?: integration_bool_exp | undefined,
-      }>,Sel extends Selection<integration_aggregate>>(...params: [selectorFn: (s: integration_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: integration_aggregate) => [...Sel]]):$Field<"aggregateIntegrations", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integration_aggregate>>(args: Args, selectorFn: (s: integration_aggregate) => [...Sel]):$Field<"aggregateIntegrations", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateIntegrations<Sel extends Selection<integration_aggregate>>(selectorFn: (s: integration_aggregate) => [...Sel]):$Field<"aggregateIntegrations", GetOutput<Sel> >
+aggregateIntegrations(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18531,8 +18672,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue_aggregate>>(...params: [selectorFn: (s: issue_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: issue_aggregate) => [...Sel]]):$Field<"aggregateIssues", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue_aggregate>>(args: Args, selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"aggregateIssues", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateIssues<Sel extends Selection<issue_aggregate>>(selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"aggregateIssues", GetOutput<Sel> >
+aggregateIssues(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18560,8 +18703,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobMethod_order_by> | undefined
 where?: jobMethod_bool_exp | undefined,
-      }>,Sel extends Selection<jobMethod_aggregate>>(...params: [selectorFn: (s: jobMethod_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: jobMethod_aggregate) => [...Sel]]):$Field<"aggregateJobMethods", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobMethod_aggregate>>(args: Args, selectorFn: (s: jobMethod_aggregate) => [...Sel]):$Field<"aggregateJobMethods", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateJobMethods<Sel extends Selection<jobMethod_aggregate>>(selectorFn: (s: jobMethod_aggregate) => [...Sel]):$Field<"aggregateJobMethods", GetOutput<Sel> >
+aggregateJobMethods(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18589,8 +18734,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobStatus_order_by> | undefined
 where?: jobStatus_bool_exp | undefined,
-      }>,Sel extends Selection<jobStatus_aggregate>>(...params: [selectorFn: (s: jobStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: jobStatus_aggregate) => [...Sel]]):$Field<"aggregateJobStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobStatus_aggregate>>(args: Args, selectorFn: (s: jobStatus_aggregate) => [...Sel]):$Field<"aggregateJobStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateJobStatuses<Sel extends Selection<jobStatus_aggregate>>(selectorFn: (s: jobStatus_aggregate) => [...Sel]):$Field<"aggregateJobStatuses", GetOutput<Sel> >
+aggregateJobStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18618,8 +18765,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job_aggregate>>(...params: [selectorFn: (s: job_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: job_aggregate) => [...Sel]]):$Field<"aggregateJobs", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job_aggregate>>(args: Args, selectorFn: (s: job_aggregate) => [...Sel]):$Field<"aggregateJobs", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateJobs<Sel extends Selection<job_aggregate>>(selectorFn: (s: job_aggregate) => [...Sel]):$Field<"aggregateJobs", GetOutput<Sel> >
+aggregateJobs(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18647,8 +18796,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line_aggregate>>(...params: [selectorFn: (s: line_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: line_aggregate) => [...Sel]]):$Field<"aggregateLines", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line_aggregate>>(args: Args, selectorFn: (s: line_aggregate) => [...Sel]):$Field<"aggregateLines", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateLines<Sel extends Selection<line_aggregate>>(selectorFn: (s: line_aggregate) => [...Sel]):$Field<"aggregateLines", GetOutput<Sel> >
+aggregateLines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18676,8 +18827,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric_aggregate>>(...params: [selectorFn: (s: metric_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: metric_aggregate) => [...Sel]]):$Field<"aggregateMetrics", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric_aggregate>>(args: Args, selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"aggregateMetrics", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateMetrics<Sel extends Selection<metric_aggregate>>(selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"aggregateMetrics", GetOutput<Sel> >
+aggregateMetrics(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18705,8 +18858,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<normalizedType_order_by> | undefined
 where?: normalizedType_bool_exp | undefined,
-      }>,Sel extends Selection<normalizedType_aggregate>>(...params: [selectorFn: (s: normalizedType_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: normalizedType_aggregate) => [...Sel]]):$Field<"aggregateNormalizedTypes", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<normalizedType_aggregate>>(args: Args, selectorFn: (s: normalizedType_aggregate) => [...Sel]):$Field<"aggregateNormalizedTypes", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateNormalizedTypes<Sel extends Selection<normalizedType_aggregate>>(selectorFn: (s: normalizedType_aggregate) => [...Sel]):$Field<"aggregateNormalizedTypes", GetOutput<Sel> >
+aggregateNormalizedTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18734,8 +18889,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentStatus_order_by> | undefined
 where?: paymentStatus_bool_exp | undefined,
-      }>,Sel extends Selection<paymentStatus_aggregate>>(...params: [selectorFn: (s: paymentStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: paymentStatus_aggregate) => [...Sel]]):$Field<"aggregatePaymentStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentStatus_aggregate>>(args: Args, selectorFn: (s: paymentStatus_aggregate) => [...Sel]):$Field<"aggregatePaymentStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregatePaymentStatuses<Sel extends Selection<paymentStatus_aggregate>>(selectorFn: (s: paymentStatus_aggregate) => [...Sel]):$Field<"aggregatePaymentStatuses", GetOutput<Sel> >
+aggregatePaymentStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18763,8 +18920,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentType_order_by> | undefined
 where?: paymentType_bool_exp | undefined,
-      }>,Sel extends Selection<paymentType_aggregate>>(...params: [selectorFn: (s: paymentType_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: paymentType_aggregate) => [...Sel]]):$Field<"aggregatePaymentTypes", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentType_aggregate>>(args: Args, selectorFn: (s: paymentType_aggregate) => [...Sel]):$Field<"aggregatePaymentTypes", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregatePaymentTypes<Sel extends Selection<paymentType_aggregate>>(selectorFn: (s: paymentType_aggregate) => [...Sel]):$Field<"aggregatePaymentTypes", GetOutput<Sel> >
+aggregatePaymentTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18792,8 +18951,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment_aggregate>>(...params: [selectorFn: (s: payment_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: payment_aggregate) => [...Sel]]):$Field<"aggregatePayments", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment_aggregate>>(args: Args, selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"aggregatePayments", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregatePayments<Sel extends Selection<payment_aggregate>>(selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"aggregatePayments", GetOutput<Sel> >
+aggregatePayments(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18821,8 +18982,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<subclassification_order_by> | undefined
 where?: subclassification_bool_exp | undefined,
-      }>,Sel extends Selection<subclassification_aggregate>>(...params: [selectorFn: (s: subclassification_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: subclassification_aggregate) => [...Sel]]):$Field<"aggregateSubclassifications", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<subclassification_aggregate>>(args: Args, selectorFn: (s: subclassification_aggregate) => [...Sel]):$Field<"aggregateSubclassifications", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateSubclassifications<Sel extends Selection<subclassification_aggregate>>(selectorFn: (s: subclassification_aggregate) => [...Sel]):$Field<"aggregateSubclassifications", GetOutput<Sel> >
+aggregateSubclassifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18850,8 +19013,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag_aggregate>>(...params: [selectorFn: (s: tag_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: tag_aggregate) => [...Sel]]):$Field<"aggregateTags", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag_aggregate>>(args: Args, selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"aggregateTags", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateTags<Sel extends Selection<tag_aggregate>>(selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"aggregateTags", GetOutput<Sel> >
+aggregateTags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18879,8 +19044,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser_aggregate>>(...params: [selectorFn: (s: teamUser_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]]):$Field<"aggregateTeamUsers", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser_aggregate>>(args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"aggregateTeamUsers", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateTeamUsers<Sel extends Selection<teamUser_aggregate>>(selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"aggregateTeamUsers", GetOutput<Sel> >
+aggregateTeamUsers(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18908,8 +19075,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<team_order_by> | undefined
 where?: team_bool_exp | undefined,
-      }>,Sel extends Selection<team_aggregate>>(...params: [selectorFn: (s: team_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: team_aggregate) => [...Sel]]):$Field<"aggregateTeams", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<team_aggregate>>(args: Args, selectorFn: (s: team_aggregate) => [...Sel]):$Field<"aggregateTeams", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateTeams<Sel extends Selection<team_aggregate>>(selectorFn: (s: team_aggregate) => [...Sel]):$Field<"aggregateTeams", GetOutput<Sel> >
+aggregateTeams(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18937,8 +19106,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit_aggregate>>(...params: [selectorFn: (s: unit_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: unit_aggregate) => [...Sel]]):$Field<"aggregateUnits", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit_aggregate>>(args: Args, selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"aggregateUnits", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateUnits<Sel extends Selection<unit_aggregate>>(selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"aggregateUnits", GetOutput<Sel> >
+aggregateUnits(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18966,8 +19137,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<userStatus_order_by> | undefined
 where?: userStatus_bool_exp | undefined,
-      }>,Sel extends Selection<userStatus_aggregate>>(...params: [selectorFn: (s: userStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: userStatus_aggregate) => [...Sel]]):$Field<"aggregateUserStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<userStatus_aggregate>>(args: Args, selectorFn: (s: userStatus_aggregate) => [...Sel]):$Field<"aggregateUserStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateUserStatuses<Sel extends Selection<userStatus_aggregate>>(selectorFn: (s: userStatus_aggregate) => [...Sel]):$Field<"aggregateUserStatuses", GetOutput<Sel> >
+aggregateUserStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -18995,8 +19168,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<user_order_by> | undefined
 where?: user_bool_exp | undefined,
-      }>,Sel extends Selection<user_aggregate>>(...params: [selectorFn: (s: user_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: user_aggregate) => [...Sel]]):$Field<"aggregateUsers", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<user_aggregate>>(args: Args, selectorFn: (s: user_aggregate) => [...Sel]):$Field<"aggregateUsers", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateUsers<Sel extends Selection<user_aggregate>>(selectorFn: (s: user_aggregate) => [...Sel]):$Field<"aggregateUsers", GetOutput<Sel> >
+aggregateUsers(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19024,8 +19199,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<webhook_order_by> | undefined
 where?: webhook_bool_exp | undefined,
-      }>,Sel extends Selection<webhook_aggregate>>(...params: [selectorFn: (s: webhook_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: webhook_aggregate) => [...Sel]]):$Field<"aggregateWebhooks", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<webhook_aggregate>>(args: Args, selectorFn: (s: webhook_aggregate) => [...Sel]):$Field<"aggregateWebhooks", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateWebhooks<Sel extends Selection<webhook_aggregate>>(selectorFn: (s: webhook_aggregate) => [...Sel]):$Field<"aggregateWebhooks", GetOutput<Sel> >
+aggregateWebhooks(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19093,8 +19270,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<bookingStatus_order_by> | undefined
 where?: bookingStatus_bool_exp | undefined,
-      }>,Sel extends Selection<bookingStatus>>(...params: [selectorFn: (s: bookingStatus) => [...Sel]] | [args: Args, selectorFn: (s: bookingStatus) => [...Sel]]):$Field<"bookingStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<bookingStatus>>(args: Args, selectorFn: (s: bookingStatus) => [...Sel]):$Field<"bookingStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookingStatuses<Sel extends Selection<bookingStatus>>(selectorFn: (s: bookingStatus) => [...Sel]):$Field<"bookingStatuses", Array<GetOutput<Sel>> >
+bookingStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19122,8 +19301,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_channel_order_by> | undefined
 where?: booking_channel_bool_exp | undefined,
-      }>,Sel extends Selection<booking_channel>>(...params: [selectorFn: (s: booking_channel) => [...Sel]] | [args: Args, selectorFn: (s: booking_channel) => [...Sel]]):$Field<"booking_channel", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_channel>>(args: Args, selectorFn: (s: booking_channel) => [...Sel]):$Field<"booking_channel", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+booking_channel<Sel extends Selection<booking_channel>>(selectorFn: (s: booking_channel) => [...Sel]):$Field<"booking_channel", Array<GetOutput<Sel>> >
+booking_channel(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19151,8 +19332,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_channel_order_by> | undefined
 where?: booking_channel_bool_exp | undefined,
-      }>,Sel extends Selection<booking_channel_aggregate>>(...params: [selectorFn: (s: booking_channel_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_channel_aggregate) => [...Sel]]):$Field<"booking_channel_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_channel_aggregate>>(args: Args, selectorFn: (s: booking_channel_aggregate) => [...Sel]):$Field<"booking_channel_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+booking_channel_aggregate<Sel extends Selection<booking_channel_aggregate>>(selectorFn: (s: booking_channel_aggregate) => [...Sel]):$Field<"booking_channel_aggregate", GetOutput<Sel> >
+booking_channel_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19200,8 +19383,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking>>(...params: [selectorFn: (s: booking) => [...Sel]] | [args: Args, selectorFn: (s: booking) => [...Sel]]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking>>(args: Args, selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookings<Sel extends Selection<booking>>(selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> >
+bookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19249,8 +19434,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<classification_order_by> | undefined
 where?: classification_bool_exp | undefined,
-      }>,Sel extends Selection<classification>>(...params: [selectorFn: (s: classification) => [...Sel]] | [args: Args, selectorFn: (s: classification) => [...Sel]]):$Field<"classifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<classification>>(args: Args, selectorFn: (s: classification) => [...Sel]):$Field<"classifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+classifications<Sel extends Selection<classification>>(selectorFn: (s: classification) => [...Sel]):$Field<"classifications", Array<GetOutput<Sel>> >
+classifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19298,8 +19485,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection>>(...params: [selectorFn: (s: connection) => [...Sel]] | [args: Args, selectorFn: (s: connection) => [...Sel]]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection>>(args: Args, selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+connections<Sel extends Selection<connection>>(selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> >
+connections(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19327,8 +19516,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<currency_order_by> | undefined
 where?: currency_bool_exp | undefined,
-      }>,Sel extends Selection<currency>>(...params: [selectorFn: (s: currency) => [...Sel]] | [args: Args, selectorFn: (s: currency) => [...Sel]]):$Field<"currencies", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<currency>>(args: Args, selectorFn: (s: currency) => [...Sel]):$Field<"currencies", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+currencies<Sel extends Selection<currency>>(selectorFn: (s: currency) => [...Sel]):$Field<"currencies", Array<GetOutput<Sel>> >
+currencies(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19376,8 +19567,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity>>(...params: [selectorFn: (s: entity) => [...Sel]] | [args: Args, selectorFn: (s: entity) => [...Sel]]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity>>(args: Args, selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+entities<Sel extends Selection<entity>>(selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> >
+entities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19445,8 +19638,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entityStatus_order_by> | undefined
 where?: entityStatus_bool_exp | undefined,
-      }>,Sel extends Selection<entityStatus>>(...params: [selectorFn: (s: entityStatus) => [...Sel]] | [args: Args, selectorFn: (s: entityStatus) => [...Sel]]):$Field<"entityStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entityStatus>>(args: Args, selectorFn: (s: entityStatus) => [...Sel]):$Field<"entityStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+entityStatuses<Sel extends Selection<entityStatus>>(selectorFn: (s: entityStatus) => [...Sel]):$Field<"entityStatuses", Array<GetOutput<Sel>> >
+entityStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19514,8 +19709,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integrationType_order_by> | undefined
 where?: integrationType_bool_exp | undefined,
-      }>,Sel extends Selection<integrationType>>(...params: [selectorFn: (s: integrationType) => [...Sel]] | [args: Args, selectorFn: (s: integrationType) => [...Sel]]):$Field<"integrationTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integrationType>>(args: Args, selectorFn: (s: integrationType) => [...Sel]):$Field<"integrationTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+integrationTypes<Sel extends Selection<integrationType>>(selectorFn: (s: integrationType) => [...Sel]):$Field<"integrationTypes", Array<GetOutput<Sel>> >
+integrationTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19543,8 +19740,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integration_order_by> | undefined
 where?: integration_bool_exp | undefined,
-      }>,Sel extends Selection<integration>>(...params: [selectorFn: (s: integration) => [...Sel]] | [args: Args, selectorFn: (s: integration) => [...Sel]]):$Field<"integrations", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integration>>(args: Args, selectorFn: (s: integration) => [...Sel]):$Field<"integrations", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+integrations<Sel extends Selection<integration>>(selectorFn: (s: integration) => [...Sel]):$Field<"integrations", Array<GetOutput<Sel>> >
+integrations(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19592,8 +19791,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue>>(...params: [selectorFn: (s: issue) => [...Sel]] | [args: Args, selectorFn: (s: issue) => [...Sel]]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue>>(args: Args, selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+issues<Sel extends Selection<issue>>(selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> >
+issues(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19661,8 +19862,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobMethod_order_by> | undefined
 where?: jobMethod_bool_exp | undefined,
-      }>,Sel extends Selection<jobMethod>>(...params: [selectorFn: (s: jobMethod) => [...Sel]] | [args: Args, selectorFn: (s: jobMethod) => [...Sel]]):$Field<"jobMethods", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobMethod>>(args: Args, selectorFn: (s: jobMethod) => [...Sel]):$Field<"jobMethods", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobMethods<Sel extends Selection<jobMethod>>(selectorFn: (s: jobMethod) => [...Sel]):$Field<"jobMethods", Array<GetOutput<Sel>> >
+jobMethods(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19710,8 +19913,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobStatus_order_by> | undefined
 where?: jobStatus_bool_exp | undefined,
-      }>,Sel extends Selection<jobStatus>>(...params: [selectorFn: (s: jobStatus) => [...Sel]] | [args: Args, selectorFn: (s: jobStatus) => [...Sel]]):$Field<"jobStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobStatus>>(args: Args, selectorFn: (s: jobStatus) => [...Sel]):$Field<"jobStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobStatuses<Sel extends Selection<jobStatus>>(selectorFn: (s: jobStatus) => [...Sel]):$Field<"jobStatuses", Array<GetOutput<Sel>> >
+jobStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19739,8 +19944,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job>>(...params: [selectorFn: (s: job) => [...Sel]] | [args: Args, selectorFn: (s: job) => [...Sel]]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job>>(args: Args, selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobs<Sel extends Selection<job>>(selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> >
+jobs(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19788,8 +19995,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line>>(...params: [selectorFn: (s: line) => [...Sel]] | [args: Args, selectorFn: (s: line) => [...Sel]]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line>>(args: Args, selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+lines<Sel extends Selection<line>>(selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> >
+lines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19837,8 +20046,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric>>(...params: [selectorFn: (s: metric) => [...Sel]] | [args: Args, selectorFn: (s: metric) => [...Sel]]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric>>(args: Args, selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+metrics<Sel extends Selection<metric>>(selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> >
+metrics(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19886,8 +20097,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<normalizedType_order_by> | undefined
 where?: normalizedType_bool_exp | undefined,
-      }>,Sel extends Selection<normalizedType>>(...params: [selectorFn: (s: normalizedType) => [...Sel]] | [args: Args, selectorFn: (s: normalizedType) => [...Sel]]):$Field<"normalizedTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<normalizedType>>(args: Args, selectorFn: (s: normalizedType) => [...Sel]):$Field<"normalizedTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+normalizedTypes<Sel extends Selection<normalizedType>>(selectorFn: (s: normalizedType) => [...Sel]):$Field<"normalizedTypes", Array<GetOutput<Sel>> >
+normalizedTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -19955,8 +20168,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentStatus_order_by> | undefined
 where?: paymentStatus_bool_exp | undefined,
-      }>,Sel extends Selection<paymentStatus>>(...params: [selectorFn: (s: paymentStatus) => [...Sel]] | [args: Args, selectorFn: (s: paymentStatus) => [...Sel]]):$Field<"paymentStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentStatus>>(args: Args, selectorFn: (s: paymentStatus) => [...Sel]):$Field<"paymentStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+paymentStatuses<Sel extends Selection<paymentStatus>>(selectorFn: (s: paymentStatus) => [...Sel]):$Field<"paymentStatuses", Array<GetOutput<Sel>> >
+paymentStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20004,8 +20219,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentType_order_by> | undefined
 where?: paymentType_bool_exp | undefined,
-      }>,Sel extends Selection<paymentType>>(...params: [selectorFn: (s: paymentType) => [...Sel]] | [args: Args, selectorFn: (s: paymentType) => [...Sel]]):$Field<"paymentTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentType>>(args: Args, selectorFn: (s: paymentType) => [...Sel]):$Field<"paymentTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+paymentTypes<Sel extends Selection<paymentType>>(selectorFn: (s: paymentType) => [...Sel]):$Field<"paymentTypes", Array<GetOutput<Sel>> >
+paymentTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20033,8 +20250,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment>>(...params: [selectorFn: (s: payment) => [...Sel]] | [args: Args, selectorFn: (s: payment) => [...Sel]]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment>>(args: Args, selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+payments<Sel extends Selection<payment>>(selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> >
+payments(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20082,8 +20301,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<subclassification_order_by> | undefined
 where?: subclassification_bool_exp | undefined,
-      }>,Sel extends Selection<subclassification>>(...params: [selectorFn: (s: subclassification) => [...Sel]] | [args: Args, selectorFn: (s: subclassification) => [...Sel]]):$Field<"subclassifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<subclassification>>(args: Args, selectorFn: (s: subclassification) => [...Sel]):$Field<"subclassifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+subclassifications<Sel extends Selection<subclassification>>(selectorFn: (s: subclassification) => [...Sel]):$Field<"subclassifications", Array<GetOutput<Sel>> >
+subclassifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20131,8 +20352,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag>>(...params: [selectorFn: (s: tag) => [...Sel]] | [args: Args, selectorFn: (s: tag) => [...Sel]]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag>>(args: Args, selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+tags<Sel extends Selection<tag>>(selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> >
+tags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20200,8 +20423,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser>>(...params: [selectorFn: (s: teamUser) => [...Sel]] | [args: Args, selectorFn: (s: teamUser) => [...Sel]]):$Field<"teamUsers", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser>>(args: Args, selectorFn: (s: teamUser) => [...Sel]):$Field<"teamUsers", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+teamUsers<Sel extends Selection<teamUser>>(selectorFn: (s: teamUser) => [...Sel]):$Field<"teamUsers", Array<GetOutput<Sel>> >
+teamUsers(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20229,8 +20454,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<team_order_by> | undefined
 where?: team_bool_exp | undefined,
-      }>,Sel extends Selection<team>>(...params: [selectorFn: (s: team) => [...Sel]] | [args: Args, selectorFn: (s: team) => [...Sel]]):$Field<"teams", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<team>>(args: Args, selectorFn: (s: team) => [...Sel]):$Field<"teams", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+teams<Sel extends Selection<team>>(selectorFn: (s: team) => [...Sel]):$Field<"teams", Array<GetOutput<Sel>> >
+teams(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20278,8 +20505,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit>>(...params: [selectorFn: (s: unit) => [...Sel]] | [args: Args, selectorFn: (s: unit) => [...Sel]]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit>>(args: Args, selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+units<Sel extends Selection<unit>>(selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> >
+units(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20347,8 +20576,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<userStatus_order_by> | undefined
 where?: userStatus_bool_exp | undefined,
-      }>,Sel extends Selection<userStatus>>(...params: [selectorFn: (s: userStatus) => [...Sel]] | [args: Args, selectorFn: (s: userStatus) => [...Sel]]):$Field<"userStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<userStatus>>(args: Args, selectorFn: (s: userStatus) => [...Sel]):$Field<"userStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+userStatuses<Sel extends Selection<userStatus>>(selectorFn: (s: userStatus) => [...Sel]):$Field<"userStatuses", Array<GetOutput<Sel>> >
+userStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20376,8 +20607,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<user_order_by> | undefined
 where?: user_bool_exp | undefined,
-      }>,Sel extends Selection<user>>(...params: [selectorFn: (s: user) => [...Sel]] | [args: Args, selectorFn: (s: user) => [...Sel]]):$Field<"users", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<user>>(args: Args, selectorFn: (s: user) => [...Sel]):$Field<"users", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+users<Sel extends Selection<user>>(selectorFn: (s: user) => [...Sel]):$Field<"users", Array<GetOutput<Sel>> >
+users(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20425,8 +20658,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<webhook_order_by> | undefined
 where?: webhook_bool_exp | undefined,
-      }>,Sel extends Selection<webhook>>(...params: [selectorFn: (s: webhook) => [...Sel]] | [args: Args, selectorFn: (s: webhook) => [...Sel]]):$Field<"webhooks", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<webhook>>(args: Args, selectorFn: (s: webhook) => [...Sel]):$Field<"webhooks", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+webhooks<Sel extends Selection<webhook>>(selectorFn: (s: webhook) => [...Sel]):$Field<"webhooks", Array<GetOutput<Sel>> >
+webhooks(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20835,8 +21070,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<bookingStatus_order_by> | undefined
 where?: bookingStatus_bool_exp | undefined,
-      }>,Sel extends Selection<bookingStatus_aggregate>>(...params: [selectorFn: (s: bookingStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: bookingStatus_aggregate) => [...Sel]]):$Field<"aggregateBookingStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<bookingStatus_aggregate>>(args: Args, selectorFn: (s: bookingStatus_aggregate) => [...Sel]):$Field<"aggregateBookingStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateBookingStatuses<Sel extends Selection<bookingStatus_aggregate>>(selectorFn: (s: bookingStatus_aggregate) => [...Sel]):$Field<"aggregateBookingStatuses", GetOutput<Sel> >
+aggregateBookingStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20864,8 +21101,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking_aggregate>>(...params: [selectorFn: (s: booking_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_aggregate) => [...Sel]]):$Field<"aggregateBookings", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_aggregate>>(args: Args, selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"aggregateBookings", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateBookings<Sel extends Selection<booking_aggregate>>(selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"aggregateBookings", GetOutput<Sel> >
+aggregateBookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20893,8 +21132,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<classification_order_by> | undefined
 where?: classification_bool_exp | undefined,
-      }>,Sel extends Selection<classification_aggregate>>(...params: [selectorFn: (s: classification_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: classification_aggregate) => [...Sel]]):$Field<"aggregateClassifications", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<classification_aggregate>>(args: Args, selectorFn: (s: classification_aggregate) => [...Sel]):$Field<"aggregateClassifications", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateClassifications<Sel extends Selection<classification_aggregate>>(selectorFn: (s: classification_aggregate) => [...Sel]):$Field<"aggregateClassifications", GetOutput<Sel> >
+aggregateClassifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20922,8 +21163,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection_aggregate>>(...params: [selectorFn: (s: connection_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: connection_aggregate) => [...Sel]]):$Field<"aggregateConnections", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection_aggregate>>(args: Args, selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"aggregateConnections", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateConnections<Sel extends Selection<connection_aggregate>>(selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"aggregateConnections", GetOutput<Sel> >
+aggregateConnections(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20951,8 +21194,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<currency_order_by> | undefined
 where?: currency_bool_exp | undefined,
-      }>,Sel extends Selection<currency_aggregate>>(...params: [selectorFn: (s: currency_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: currency_aggregate) => [...Sel]]):$Field<"aggregateCurrencies", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<currency_aggregate>>(args: Args, selectorFn: (s: currency_aggregate) => [...Sel]):$Field<"aggregateCurrencies", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateCurrencies<Sel extends Selection<currency_aggregate>>(selectorFn: (s: currency_aggregate) => [...Sel]):$Field<"aggregateCurrencies", GetOutput<Sel> >
+aggregateCurrencies(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -20980,8 +21225,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity_aggregate>>(...params: [selectorFn: (s: entity_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entity_aggregate) => [...Sel]]):$Field<"aggregateEntities", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity_aggregate>>(args: Args, selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"aggregateEntities", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateEntities<Sel extends Selection<entity_aggregate>>(selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"aggregateEntities", GetOutput<Sel> >
+aggregateEntities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21009,8 +21256,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entityStatus_order_by> | undefined
 where?: entityStatus_bool_exp | undefined,
-      }>,Sel extends Selection<entityStatus_aggregate>>(...params: [selectorFn: (s: entityStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entityStatus_aggregate) => [...Sel]]):$Field<"aggregateEntityStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entityStatus_aggregate>>(args: Args, selectorFn: (s: entityStatus_aggregate) => [...Sel]):$Field<"aggregateEntityStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateEntityStatuses<Sel extends Selection<entityStatus_aggregate>>(selectorFn: (s: entityStatus_aggregate) => [...Sel]):$Field<"aggregateEntityStatuses", GetOutput<Sel> >
+aggregateEntityStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21038,8 +21287,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integrationType_order_by> | undefined
 where?: integrationType_bool_exp | undefined,
-      }>,Sel extends Selection<integrationType_aggregate>>(...params: [selectorFn: (s: integrationType_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: integrationType_aggregate) => [...Sel]]):$Field<"aggregateIntegrationTypes", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integrationType_aggregate>>(args: Args, selectorFn: (s: integrationType_aggregate) => [...Sel]):$Field<"aggregateIntegrationTypes", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateIntegrationTypes<Sel extends Selection<integrationType_aggregate>>(selectorFn: (s: integrationType_aggregate) => [...Sel]):$Field<"aggregateIntegrationTypes", GetOutput<Sel> >
+aggregateIntegrationTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21067,8 +21318,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integration_order_by> | undefined
 where?: integration_bool_exp | undefined,
-      }>,Sel extends Selection<integration_aggregate>>(...params: [selectorFn: (s: integration_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: integration_aggregate) => [...Sel]]):$Field<"aggregateIntegrations", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integration_aggregate>>(args: Args, selectorFn: (s: integration_aggregate) => [...Sel]):$Field<"aggregateIntegrations", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateIntegrations<Sel extends Selection<integration_aggregate>>(selectorFn: (s: integration_aggregate) => [...Sel]):$Field<"aggregateIntegrations", GetOutput<Sel> >
+aggregateIntegrations(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21096,8 +21349,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue_aggregate>>(...params: [selectorFn: (s: issue_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: issue_aggregate) => [...Sel]]):$Field<"aggregateIssues", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue_aggregate>>(args: Args, selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"aggregateIssues", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateIssues<Sel extends Selection<issue_aggregate>>(selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"aggregateIssues", GetOutput<Sel> >
+aggregateIssues(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21125,8 +21380,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobMethod_order_by> | undefined
 where?: jobMethod_bool_exp | undefined,
-      }>,Sel extends Selection<jobMethod_aggregate>>(...params: [selectorFn: (s: jobMethod_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: jobMethod_aggregate) => [...Sel]]):$Field<"aggregateJobMethods", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobMethod_aggregate>>(args: Args, selectorFn: (s: jobMethod_aggregate) => [...Sel]):$Field<"aggregateJobMethods", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateJobMethods<Sel extends Selection<jobMethod_aggregate>>(selectorFn: (s: jobMethod_aggregate) => [...Sel]):$Field<"aggregateJobMethods", GetOutput<Sel> >
+aggregateJobMethods(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21154,8 +21411,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobStatus_order_by> | undefined
 where?: jobStatus_bool_exp | undefined,
-      }>,Sel extends Selection<jobStatus_aggregate>>(...params: [selectorFn: (s: jobStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: jobStatus_aggregate) => [...Sel]]):$Field<"aggregateJobStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobStatus_aggregate>>(args: Args, selectorFn: (s: jobStatus_aggregate) => [...Sel]):$Field<"aggregateJobStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateJobStatuses<Sel extends Selection<jobStatus_aggregate>>(selectorFn: (s: jobStatus_aggregate) => [...Sel]):$Field<"aggregateJobStatuses", GetOutput<Sel> >
+aggregateJobStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21183,8 +21442,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job_aggregate>>(...params: [selectorFn: (s: job_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: job_aggregate) => [...Sel]]):$Field<"aggregateJobs", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job_aggregate>>(args: Args, selectorFn: (s: job_aggregate) => [...Sel]):$Field<"aggregateJobs", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateJobs<Sel extends Selection<job_aggregate>>(selectorFn: (s: job_aggregate) => [...Sel]):$Field<"aggregateJobs", GetOutput<Sel> >
+aggregateJobs(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21212,8 +21473,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line_aggregate>>(...params: [selectorFn: (s: line_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: line_aggregate) => [...Sel]]):$Field<"aggregateLines", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line_aggregate>>(args: Args, selectorFn: (s: line_aggregate) => [...Sel]):$Field<"aggregateLines", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateLines<Sel extends Selection<line_aggregate>>(selectorFn: (s: line_aggregate) => [...Sel]):$Field<"aggregateLines", GetOutput<Sel> >
+aggregateLines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21241,8 +21504,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric_aggregate>>(...params: [selectorFn: (s: metric_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: metric_aggregate) => [...Sel]]):$Field<"aggregateMetrics", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric_aggregate>>(args: Args, selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"aggregateMetrics", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateMetrics<Sel extends Selection<metric_aggregate>>(selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"aggregateMetrics", GetOutput<Sel> >
+aggregateMetrics(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21270,8 +21535,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<normalizedType_order_by> | undefined
 where?: normalizedType_bool_exp | undefined,
-      }>,Sel extends Selection<normalizedType_aggregate>>(...params: [selectorFn: (s: normalizedType_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: normalizedType_aggregate) => [...Sel]]):$Field<"aggregateNormalizedTypes", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<normalizedType_aggregate>>(args: Args, selectorFn: (s: normalizedType_aggregate) => [...Sel]):$Field<"aggregateNormalizedTypes", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateNormalizedTypes<Sel extends Selection<normalizedType_aggregate>>(selectorFn: (s: normalizedType_aggregate) => [...Sel]):$Field<"aggregateNormalizedTypes", GetOutput<Sel> >
+aggregateNormalizedTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21299,8 +21566,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentStatus_order_by> | undefined
 where?: paymentStatus_bool_exp | undefined,
-      }>,Sel extends Selection<paymentStatus_aggregate>>(...params: [selectorFn: (s: paymentStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: paymentStatus_aggregate) => [...Sel]]):$Field<"aggregatePaymentStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentStatus_aggregate>>(args: Args, selectorFn: (s: paymentStatus_aggregate) => [...Sel]):$Field<"aggregatePaymentStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregatePaymentStatuses<Sel extends Selection<paymentStatus_aggregate>>(selectorFn: (s: paymentStatus_aggregate) => [...Sel]):$Field<"aggregatePaymentStatuses", GetOutput<Sel> >
+aggregatePaymentStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21328,8 +21597,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentType_order_by> | undefined
 where?: paymentType_bool_exp | undefined,
-      }>,Sel extends Selection<paymentType_aggregate>>(...params: [selectorFn: (s: paymentType_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: paymentType_aggregate) => [...Sel]]):$Field<"aggregatePaymentTypes", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentType_aggregate>>(args: Args, selectorFn: (s: paymentType_aggregate) => [...Sel]):$Field<"aggregatePaymentTypes", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregatePaymentTypes<Sel extends Selection<paymentType_aggregate>>(selectorFn: (s: paymentType_aggregate) => [...Sel]):$Field<"aggregatePaymentTypes", GetOutput<Sel> >
+aggregatePaymentTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21357,8 +21628,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment_aggregate>>(...params: [selectorFn: (s: payment_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: payment_aggregate) => [...Sel]]):$Field<"aggregatePayments", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment_aggregate>>(args: Args, selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"aggregatePayments", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregatePayments<Sel extends Selection<payment_aggregate>>(selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"aggregatePayments", GetOutput<Sel> >
+aggregatePayments(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21386,8 +21659,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<subclassification_order_by> | undefined
 where?: subclassification_bool_exp | undefined,
-      }>,Sel extends Selection<subclassification_aggregate>>(...params: [selectorFn: (s: subclassification_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: subclassification_aggregate) => [...Sel]]):$Field<"aggregateSubclassifications", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<subclassification_aggregate>>(args: Args, selectorFn: (s: subclassification_aggregate) => [...Sel]):$Field<"aggregateSubclassifications", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateSubclassifications<Sel extends Selection<subclassification_aggregate>>(selectorFn: (s: subclassification_aggregate) => [...Sel]):$Field<"aggregateSubclassifications", GetOutput<Sel> >
+aggregateSubclassifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21415,8 +21690,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag_aggregate>>(...params: [selectorFn: (s: tag_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: tag_aggregate) => [...Sel]]):$Field<"aggregateTags", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag_aggregate>>(args: Args, selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"aggregateTags", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateTags<Sel extends Selection<tag_aggregate>>(selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"aggregateTags", GetOutput<Sel> >
+aggregateTags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21444,8 +21721,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser_aggregate>>(...params: [selectorFn: (s: teamUser_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]]):$Field<"aggregateTeamUsers", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser_aggregate>>(args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"aggregateTeamUsers", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateTeamUsers<Sel extends Selection<teamUser_aggregate>>(selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"aggregateTeamUsers", GetOutput<Sel> >
+aggregateTeamUsers(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21473,8 +21752,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<team_order_by> | undefined
 where?: team_bool_exp | undefined,
-      }>,Sel extends Selection<team_aggregate>>(...params: [selectorFn: (s: team_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: team_aggregate) => [...Sel]]):$Field<"aggregateTeams", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<team_aggregate>>(args: Args, selectorFn: (s: team_aggregate) => [...Sel]):$Field<"aggregateTeams", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateTeams<Sel extends Selection<team_aggregate>>(selectorFn: (s: team_aggregate) => [...Sel]):$Field<"aggregateTeams", GetOutput<Sel> >
+aggregateTeams(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21502,8 +21783,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit_aggregate>>(...params: [selectorFn: (s: unit_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: unit_aggregate) => [...Sel]]):$Field<"aggregateUnits", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit_aggregate>>(args: Args, selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"aggregateUnits", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateUnits<Sel extends Selection<unit_aggregate>>(selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"aggregateUnits", GetOutput<Sel> >
+aggregateUnits(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21531,8 +21814,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<userStatus_order_by> | undefined
 where?: userStatus_bool_exp | undefined,
-      }>,Sel extends Selection<userStatus_aggregate>>(...params: [selectorFn: (s: userStatus_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: userStatus_aggregate) => [...Sel]]):$Field<"aggregateUserStatuses", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<userStatus_aggregate>>(args: Args, selectorFn: (s: userStatus_aggregate) => [...Sel]):$Field<"aggregateUserStatuses", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateUserStatuses<Sel extends Selection<userStatus_aggregate>>(selectorFn: (s: userStatus_aggregate) => [...Sel]):$Field<"aggregateUserStatuses", GetOutput<Sel> >
+aggregateUserStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21560,8 +21845,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<user_order_by> | undefined
 where?: user_bool_exp | undefined,
-      }>,Sel extends Selection<user_aggregate>>(...params: [selectorFn: (s: user_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: user_aggregate) => [...Sel]]):$Field<"aggregateUsers", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<user_aggregate>>(args: Args, selectorFn: (s: user_aggregate) => [...Sel]):$Field<"aggregateUsers", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateUsers<Sel extends Selection<user_aggregate>>(selectorFn: (s: user_aggregate) => [...Sel]):$Field<"aggregateUsers", GetOutput<Sel> >
+aggregateUsers(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21589,8 +21876,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<webhook_order_by> | undefined
 where?: webhook_bool_exp | undefined,
-      }>,Sel extends Selection<webhook_aggregate>>(...params: [selectorFn: (s: webhook_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: webhook_aggregate) => [...Sel]]):$Field<"aggregateWebhooks", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<webhook_aggregate>>(args: Args, selectorFn: (s: webhook_aggregate) => [...Sel]):$Field<"aggregateWebhooks", GetOutput<Sel> , GetVariables<Sel, Args>>
+aggregateWebhooks<Sel extends Selection<webhook_aggregate>>(selectorFn: (s: webhook_aggregate) => [...Sel]):$Field<"aggregateWebhooks", GetOutput<Sel> >
+aggregateWebhooks(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21658,8 +21947,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<bookingStatus_order_by> | undefined
 where?: bookingStatus_bool_exp | undefined,
-      }>,Sel extends Selection<bookingStatus>>(...params: [selectorFn: (s: bookingStatus) => [...Sel]] | [args: Args, selectorFn: (s: bookingStatus) => [...Sel]]):$Field<"bookingStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<bookingStatus>>(args: Args, selectorFn: (s: bookingStatus) => [...Sel]):$Field<"bookingStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookingStatuses<Sel extends Selection<bookingStatus>>(selectorFn: (s: bookingStatus) => [...Sel]):$Field<"bookingStatuses", Array<GetOutput<Sel>> >
+bookingStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21687,8 +21978,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_channel_order_by> | undefined
 where?: booking_channel_bool_exp | undefined,
-      }>,Sel extends Selection<booking_channel>>(...params: [selectorFn: (s: booking_channel) => [...Sel]] | [args: Args, selectorFn: (s: booking_channel) => [...Sel]]):$Field<"booking_channel", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_channel>>(args: Args, selectorFn: (s: booking_channel) => [...Sel]):$Field<"booking_channel", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+booking_channel<Sel extends Selection<booking_channel>>(selectorFn: (s: booking_channel) => [...Sel]):$Field<"booking_channel", Array<GetOutput<Sel>> >
+booking_channel(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21716,8 +22009,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_channel_order_by> | undefined
 where?: booking_channel_bool_exp | undefined,
-      }>,Sel extends Selection<booking_channel_aggregate>>(...params: [selectorFn: (s: booking_channel_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_channel_aggregate) => [...Sel]]):$Field<"booking_channel_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_channel_aggregate>>(args: Args, selectorFn: (s: booking_channel_aggregate) => [...Sel]):$Field<"booking_channel_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+booking_channel_aggregate<Sel extends Selection<booking_channel_aggregate>>(selectorFn: (s: booking_channel_aggregate) => [...Sel]):$Field<"booking_channel_aggregate", GetOutput<Sel> >
+booking_channel_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21765,8 +22060,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking>>(...params: [selectorFn: (s: booking) => [...Sel]] | [args: Args, selectorFn: (s: booking) => [...Sel]]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking>>(args: Args, selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookings<Sel extends Selection<booking>>(selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> >
+bookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21814,8 +22111,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<classification_order_by> | undefined
 where?: classification_bool_exp | undefined,
-      }>,Sel extends Selection<classification>>(...params: [selectorFn: (s: classification) => [...Sel]] | [args: Args, selectorFn: (s: classification) => [...Sel]]):$Field<"classifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<classification>>(args: Args, selectorFn: (s: classification) => [...Sel]):$Field<"classifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+classifications<Sel extends Selection<classification>>(selectorFn: (s: classification) => [...Sel]):$Field<"classifications", Array<GetOutput<Sel>> >
+classifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21863,8 +22162,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection>>(...params: [selectorFn: (s: connection) => [...Sel]] | [args: Args, selectorFn: (s: connection) => [...Sel]]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection>>(args: Args, selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+connections<Sel extends Selection<connection>>(selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> >
+connections(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21892,8 +22193,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<currency_order_by> | undefined
 where?: currency_bool_exp | undefined,
-      }>,Sel extends Selection<currency>>(...params: [selectorFn: (s: currency) => [...Sel]] | [args: Args, selectorFn: (s: currency) => [...Sel]]):$Field<"currencies", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<currency>>(args: Args, selectorFn: (s: currency) => [...Sel]):$Field<"currencies", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+currencies<Sel extends Selection<currency>>(selectorFn: (s: currency) => [...Sel]):$Field<"currencies", Array<GetOutput<Sel>> >
+currencies(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -21941,8 +22244,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity>>(...params: [selectorFn: (s: entity) => [...Sel]] | [args: Args, selectorFn: (s: entity) => [...Sel]]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity>>(args: Args, selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+entities<Sel extends Selection<entity>>(selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> >
+entities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22010,8 +22315,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entityStatus_order_by> | undefined
 where?: entityStatus_bool_exp | undefined,
-      }>,Sel extends Selection<entityStatus>>(...params: [selectorFn: (s: entityStatus) => [...Sel]] | [args: Args, selectorFn: (s: entityStatus) => [...Sel]]):$Field<"entityStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entityStatus>>(args: Args, selectorFn: (s: entityStatus) => [...Sel]):$Field<"entityStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+entityStatuses<Sel extends Selection<entityStatus>>(selectorFn: (s: entityStatus) => [...Sel]):$Field<"entityStatuses", Array<GetOutput<Sel>> >
+entityStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22079,8 +22386,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integrationType_order_by> | undefined
 where?: integrationType_bool_exp | undefined,
-      }>,Sel extends Selection<integrationType>>(...params: [selectorFn: (s: integrationType) => [...Sel]] | [args: Args, selectorFn: (s: integrationType) => [...Sel]]):$Field<"integrationTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integrationType>>(args: Args, selectorFn: (s: integrationType) => [...Sel]):$Field<"integrationTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+integrationTypes<Sel extends Selection<integrationType>>(selectorFn: (s: integrationType) => [...Sel]):$Field<"integrationTypes", Array<GetOutput<Sel>> >
+integrationTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22108,8 +22417,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integration_order_by> | undefined
 where?: integration_bool_exp | undefined,
-      }>,Sel extends Selection<integration>>(...params: [selectorFn: (s: integration) => [...Sel]] | [args: Args, selectorFn: (s: integration) => [...Sel]]):$Field<"integrations", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integration>>(args: Args, selectorFn: (s: integration) => [...Sel]):$Field<"integrations", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+integrations<Sel extends Selection<integration>>(selectorFn: (s: integration) => [...Sel]):$Field<"integrations", Array<GetOutput<Sel>> >
+integrations(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22157,8 +22468,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue>>(...params: [selectorFn: (s: issue) => [...Sel]] | [args: Args, selectorFn: (s: issue) => [...Sel]]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue>>(args: Args, selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+issues<Sel extends Selection<issue>>(selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> >
+issues(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22226,8 +22539,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobMethod_order_by> | undefined
 where?: jobMethod_bool_exp | undefined,
-      }>,Sel extends Selection<jobMethod>>(...params: [selectorFn: (s: jobMethod) => [...Sel]] | [args: Args, selectorFn: (s: jobMethod) => [...Sel]]):$Field<"jobMethods", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobMethod>>(args: Args, selectorFn: (s: jobMethod) => [...Sel]):$Field<"jobMethods", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobMethods<Sel extends Selection<jobMethod>>(selectorFn: (s: jobMethod) => [...Sel]):$Field<"jobMethods", Array<GetOutput<Sel>> >
+jobMethods(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22275,8 +22590,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<jobStatus_order_by> | undefined
 where?: jobStatus_bool_exp | undefined,
-      }>,Sel extends Selection<jobStatus>>(...params: [selectorFn: (s: jobStatus) => [...Sel]] | [args: Args, selectorFn: (s: jobStatus) => [...Sel]]):$Field<"jobStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<jobStatus>>(args: Args, selectorFn: (s: jobStatus) => [...Sel]):$Field<"jobStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobStatuses<Sel extends Selection<jobStatus>>(selectorFn: (s: jobStatus) => [...Sel]):$Field<"jobStatuses", Array<GetOutput<Sel>> >
+jobStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22304,8 +22621,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job>>(...params: [selectorFn: (s: job) => [...Sel]] | [args: Args, selectorFn: (s: job) => [...Sel]]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job>>(args: Args, selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobs<Sel extends Selection<job>>(selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> >
+jobs(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22353,8 +22672,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line>>(...params: [selectorFn: (s: line) => [...Sel]] | [args: Args, selectorFn: (s: line) => [...Sel]]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line>>(args: Args, selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+lines<Sel extends Selection<line>>(selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> >
+lines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22402,8 +22723,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric>>(...params: [selectorFn: (s: metric) => [...Sel]] | [args: Args, selectorFn: (s: metric) => [...Sel]]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric>>(args: Args, selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+metrics<Sel extends Selection<metric>>(selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> >
+metrics(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22451,8 +22774,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<normalizedType_order_by> | undefined
 where?: normalizedType_bool_exp | undefined,
-      }>,Sel extends Selection<normalizedType>>(...params: [selectorFn: (s: normalizedType) => [...Sel]] | [args: Args, selectorFn: (s: normalizedType) => [...Sel]]):$Field<"normalizedTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<normalizedType>>(args: Args, selectorFn: (s: normalizedType) => [...Sel]):$Field<"normalizedTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+normalizedTypes<Sel extends Selection<normalizedType>>(selectorFn: (s: normalizedType) => [...Sel]):$Field<"normalizedTypes", Array<GetOutput<Sel>> >
+normalizedTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22520,8 +22845,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentStatus_order_by> | undefined
 where?: paymentStatus_bool_exp | undefined,
-      }>,Sel extends Selection<paymentStatus>>(...params: [selectorFn: (s: paymentStatus) => [...Sel]] | [args: Args, selectorFn: (s: paymentStatus) => [...Sel]]):$Field<"paymentStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentStatus>>(args: Args, selectorFn: (s: paymentStatus) => [...Sel]):$Field<"paymentStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+paymentStatuses<Sel extends Selection<paymentStatus>>(selectorFn: (s: paymentStatus) => [...Sel]):$Field<"paymentStatuses", Array<GetOutput<Sel>> >
+paymentStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22569,8 +22896,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<paymentType_order_by> | undefined
 where?: paymentType_bool_exp | undefined,
-      }>,Sel extends Selection<paymentType>>(...params: [selectorFn: (s: paymentType) => [...Sel]] | [args: Args, selectorFn: (s: paymentType) => [...Sel]]):$Field<"paymentTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<paymentType>>(args: Args, selectorFn: (s: paymentType) => [...Sel]):$Field<"paymentTypes", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+paymentTypes<Sel extends Selection<paymentType>>(selectorFn: (s: paymentType) => [...Sel]):$Field<"paymentTypes", Array<GetOutput<Sel>> >
+paymentTypes(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22598,8 +22927,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment>>(...params: [selectorFn: (s: payment) => [...Sel]] | [args: Args, selectorFn: (s: payment) => [...Sel]]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment>>(args: Args, selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+payments<Sel extends Selection<payment>>(selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> >
+payments(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22647,8 +22978,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<subclassification_order_by> | undefined
 where?: subclassification_bool_exp | undefined,
-      }>,Sel extends Selection<subclassification>>(...params: [selectorFn: (s: subclassification) => [...Sel]] | [args: Args, selectorFn: (s: subclassification) => [...Sel]]):$Field<"subclassifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<subclassification>>(args: Args, selectorFn: (s: subclassification) => [...Sel]):$Field<"subclassifications", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+subclassifications<Sel extends Selection<subclassification>>(selectorFn: (s: subclassification) => [...Sel]):$Field<"subclassifications", Array<GetOutput<Sel>> >
+subclassifications(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22696,8 +23029,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag>>(...params: [selectorFn: (s: tag) => [...Sel]] | [args: Args, selectorFn: (s: tag) => [...Sel]]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag>>(args: Args, selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+tags<Sel extends Selection<tag>>(selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> >
+tags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22765,8 +23100,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser>>(...params: [selectorFn: (s: teamUser) => [...Sel]] | [args: Args, selectorFn: (s: teamUser) => [...Sel]]):$Field<"teamUsers", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser>>(args: Args, selectorFn: (s: teamUser) => [...Sel]):$Field<"teamUsers", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+teamUsers<Sel extends Selection<teamUser>>(selectorFn: (s: teamUser) => [...Sel]):$Field<"teamUsers", Array<GetOutput<Sel>> >
+teamUsers(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22794,8 +23131,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<team_order_by> | undefined
 where?: team_bool_exp | undefined,
-      }>,Sel extends Selection<team>>(...params: [selectorFn: (s: team) => [...Sel]] | [args: Args, selectorFn: (s: team) => [...Sel]]):$Field<"teams", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<team>>(args: Args, selectorFn: (s: team) => [...Sel]):$Field<"teams", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+teams<Sel extends Selection<team>>(selectorFn: (s: team) => [...Sel]):$Field<"teams", Array<GetOutput<Sel>> >
+teams(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22843,8 +23182,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit>>(...params: [selectorFn: (s: unit) => [...Sel]] | [args: Args, selectorFn: (s: unit) => [...Sel]]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit>>(args: Args, selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+units<Sel extends Selection<unit>>(selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> >
+units(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22912,8 +23253,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<userStatus_order_by> | undefined
 where?: userStatus_bool_exp | undefined,
-      }>,Sel extends Selection<userStatus>>(...params: [selectorFn: (s: userStatus) => [...Sel]] | [args: Args, selectorFn: (s: userStatus) => [...Sel]]):$Field<"userStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<userStatus>>(args: Args, selectorFn: (s: userStatus) => [...Sel]):$Field<"userStatuses", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+userStatuses<Sel extends Selection<userStatus>>(selectorFn: (s: userStatus) => [...Sel]):$Field<"userStatuses", Array<GetOutput<Sel>> >
+userStatuses(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22941,8 +23284,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<user_order_by> | undefined
 where?: user_bool_exp | undefined,
-      }>,Sel extends Selection<user>>(...params: [selectorFn: (s: user) => [...Sel]] | [args: Args, selectorFn: (s: user) => [...Sel]]):$Field<"users", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<user>>(args: Args, selectorFn: (s: user) => [...Sel]):$Field<"users", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+users<Sel extends Selection<user>>(selectorFn: (s: user) => [...Sel]):$Field<"users", Array<GetOutput<Sel>> >
+users(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -22990,8 +23335,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<webhook_order_by> | undefined
 where?: webhook_bool_exp | undefined,
-      }>,Sel extends Selection<webhook>>(...params: [selectorFn: (s: webhook) => [...Sel]] | [args: Args, selectorFn: (s: webhook) => [...Sel]]):$Field<"webhooks", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<webhook>>(args: Args, selectorFn: (s: webhook) => [...Sel]):$Field<"webhooks", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+webhooks<Sel extends Selection<webhook>>(selectorFn: (s: webhook) => [...Sel]):$Field<"webhooks", Array<GetOutput<Sel>> >
+webhooks(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -23799,8 +24146,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking>>(...params: [selectorFn: (s: booking) => [...Sel]] | [args: Args, selectorFn: (s: booking) => [...Sel]]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking>>(args: Args, selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookings<Sel extends Selection<booking>>(selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> >
+bookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -23828,8 +24177,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking_aggregate>>(...params: [selectorFn: (s: booking_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_aggregate) => [...Sel]]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_aggregate>>(args: Args, selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+bookings_aggregate<Sel extends Selection<booking_aggregate>>(selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> >
+bookings_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -23862,8 +24213,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection>>(...params: [selectorFn: (s: connection) => [...Sel]] | [args: Args, selectorFn: (s: connection) => [...Sel]]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection>>(args: Args, selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+connections<Sel extends Selection<connection>>(selectorFn: (s: connection) => [...Sel]):$Field<"connections", Array<GetOutput<Sel>> >
+connections(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -23891,8 +24244,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<connection_order_by> | undefined
 where?: connection_bool_exp | undefined,
-      }>,Sel extends Selection<connection_aggregate>>(...params: [selectorFn: (s: connection_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: connection_aggregate) => [...Sel]]):$Field<"connections_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<connection_aggregate>>(args: Args, selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"connections_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+connections_aggregate<Sel extends Selection<connection_aggregate>>(selectorFn: (s: connection_aggregate) => [...Sel]):$Field<"connections_aggregate", GetOutput<Sel> >
+connections_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -23930,8 +24285,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity>>(...params: [selectorFn: (s: entity) => [...Sel]] | [args: Args, selectorFn: (s: entity) => [...Sel]]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity>>(args: Args, selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+entities<Sel extends Selection<entity>>(selectorFn: (s: entity) => [...Sel]):$Field<"entities", Array<GetOutput<Sel>> >
+entities(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -23959,8 +24316,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<entity_order_by> | undefined
 where?: entity_bool_exp | undefined,
-      }>,Sel extends Selection<entity_aggregate>>(...params: [selectorFn: (s: entity_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: entity_aggregate) => [...Sel]]):$Field<"entities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<entity_aggregate>>(args: Args, selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"entities_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+entities_aggregate<Sel extends Selection<entity_aggregate>>(selectorFn: (s: entity_aggregate) => [...Sel]):$Field<"entities_aggregate", GetOutput<Sel> >
+entities_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -23993,8 +24352,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integration_order_by> | undefined
 where?: integration_bool_exp | undefined,
-      }>,Sel extends Selection<integration>>(...params: [selectorFn: (s: integration) => [...Sel]] | [args: Args, selectorFn: (s: integration) => [...Sel]]):$Field<"integrations", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integration>>(args: Args, selectorFn: (s: integration) => [...Sel]):$Field<"integrations", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+integrations<Sel extends Selection<integration>>(selectorFn: (s: integration) => [...Sel]):$Field<"integrations", Array<GetOutput<Sel>> >
+integrations(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24022,8 +24383,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<integration_order_by> | undefined
 where?: integration_bool_exp | undefined,
-      }>,Sel extends Selection<integration_aggregate>>(...params: [selectorFn: (s: integration_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: integration_aggregate) => [...Sel]]):$Field<"integrations_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<integration_aggregate>>(args: Args, selectorFn: (s: integration_aggregate) => [...Sel]):$Field<"integrations_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+integrations_aggregate<Sel extends Selection<integration_aggregate>>(selectorFn: (s: integration_aggregate) => [...Sel]):$Field<"integrations_aggregate", GetOutput<Sel> >
+integrations_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24061,8 +24424,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue>>(...params: [selectorFn: (s: issue) => [...Sel]] | [args: Args, selectorFn: (s: issue) => [...Sel]]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue>>(args: Args, selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+issues<Sel extends Selection<issue>>(selectorFn: (s: issue) => [...Sel]):$Field<"issues", Array<GetOutput<Sel>> >
+issues(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24090,8 +24455,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<issue_order_by> | undefined
 where?: issue_bool_exp | undefined,
-      }>,Sel extends Selection<issue_aggregate>>(...params: [selectorFn: (s: issue_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: issue_aggregate) => [...Sel]]):$Field<"issues_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<issue_aggregate>>(args: Args, selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"issues_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+issues_aggregate<Sel extends Selection<issue_aggregate>>(selectorFn: (s: issue_aggregate) => [...Sel]):$Field<"issues_aggregate", GetOutput<Sel> >
+issues_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24119,8 +24486,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job>>(...params: [selectorFn: (s: job) => [...Sel]] | [args: Args, selectorFn: (s: job) => [...Sel]]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job>>(args: Args, selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+jobs<Sel extends Selection<job>>(selectorFn: (s: job) => [...Sel]):$Field<"jobs", Array<GetOutput<Sel>> >
+jobs(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24148,8 +24517,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<job_order_by> | undefined
 where?: job_bool_exp | undefined,
-      }>,Sel extends Selection<job_aggregate>>(...params: [selectorFn: (s: job_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: job_aggregate) => [...Sel]]):$Field<"jobs_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<job_aggregate>>(args: Args, selectorFn: (s: job_aggregate) => [...Sel]):$Field<"jobs_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+jobs_aggregate<Sel extends Selection<job_aggregate>>(selectorFn: (s: job_aggregate) => [...Sel]):$Field<"jobs_aggregate", GetOutput<Sel> >
+jobs_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24177,8 +24548,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line>>(...params: [selectorFn: (s: line) => [...Sel]] | [args: Args, selectorFn: (s: line) => [...Sel]]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line>>(args: Args, selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+lines<Sel extends Selection<line>>(selectorFn: (s: line) => [...Sel]):$Field<"lines", Array<GetOutput<Sel>> >
+lines(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24206,8 +24579,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<line_order_by> | undefined
 where?: line_bool_exp | undefined,
-      }>,Sel extends Selection<line_aggregate>>(...params: [selectorFn: (s: line_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: line_aggregate) => [...Sel]]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<line_aggregate>>(args: Args, selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+lines_aggregate<Sel extends Selection<line_aggregate>>(selectorFn: (s: line_aggregate) => [...Sel]):$Field<"lines_aggregate", GetOutput<Sel> >
+lines_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24235,8 +24610,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser>>(...params: [selectorFn: (s: teamUser) => [...Sel]] | [args: Args, selectorFn: (s: teamUser) => [...Sel]]):$Field<"members", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser>>(args: Args, selectorFn: (s: teamUser) => [...Sel]):$Field<"members", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+members<Sel extends Selection<teamUser>>(selectorFn: (s: teamUser) => [...Sel]):$Field<"members", Array<GetOutput<Sel>> >
+members(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24264,8 +24641,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser_aggregate>>(...params: [selectorFn: (s: teamUser_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]]):$Field<"members_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser_aggregate>>(args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"members_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+members_aggregate<Sel extends Selection<teamUser_aggregate>>(selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"members_aggregate", GetOutput<Sel> >
+members_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24293,8 +24672,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric>>(...params: [selectorFn: (s: metric) => [...Sel]] | [args: Args, selectorFn: (s: metric) => [...Sel]]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric>>(args: Args, selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+metrics<Sel extends Selection<metric>>(selectorFn: (s: metric) => [...Sel]):$Field<"metrics", Array<GetOutput<Sel>> >
+metrics(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24322,8 +24703,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<metric_order_by> | undefined
 where?: metric_bool_exp | undefined,
-      }>,Sel extends Selection<metric_aggregate>>(...params: [selectorFn: (s: metric_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: metric_aggregate) => [...Sel]]):$Field<"metrics_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<metric_aggregate>>(args: Args, selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"metrics_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+metrics_aggregate<Sel extends Selection<metric_aggregate>>(selectorFn: (s: metric_aggregate) => [...Sel]):$Field<"metrics_aggregate", GetOutput<Sel> >
+metrics_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24356,8 +24739,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment>>(...params: [selectorFn: (s: payment) => [...Sel]] | [args: Args, selectorFn: (s: payment) => [...Sel]]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment>>(args: Args, selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+payments<Sel extends Selection<payment>>(selectorFn: (s: payment) => [...Sel]):$Field<"payments", Array<GetOutput<Sel>> >
+payments(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24385,8 +24770,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<payment_order_by> | undefined
 where?: payment_bool_exp | undefined,
-      }>,Sel extends Selection<payment_aggregate>>(...params: [selectorFn: (s: payment_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: payment_aggregate) => [...Sel]]):$Field<"payments_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<payment_aggregate>>(args: Args, selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"payments_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+payments_aggregate<Sel extends Selection<payment_aggregate>>(selectorFn: (s: payment_aggregate) => [...Sel]):$Field<"payments_aggregate", GetOutput<Sel> >
+payments_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24434,8 +24821,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag>>(...params: [selectorFn: (s: tag) => [...Sel]] | [args: Args, selectorFn: (s: tag) => [...Sel]]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag>>(args: Args, selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+tags<Sel extends Selection<tag>>(selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> >
+tags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24463,8 +24852,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag_aggregate>>(...params: [selectorFn: (s: tag_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: tag_aggregate) => [...Sel]]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag_aggregate>>(args: Args, selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+tags_aggregate<Sel extends Selection<tag_aggregate>>(selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> >
+tags_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24492,8 +24883,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit>>(...params: [selectorFn: (s: unit) => [...Sel]] | [args: Args, selectorFn: (s: unit) => [...Sel]]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit>>(args: Args, selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+units<Sel extends Selection<unit>>(selectorFn: (s: unit) => [...Sel]):$Field<"units", Array<GetOutput<Sel>> >
+units(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24521,8 +24914,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<unit_order_by> | undefined
 where?: unit_bool_exp | undefined,
-      }>,Sel extends Selection<unit_aggregate>>(...params: [selectorFn: (s: unit_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: unit_aggregate) => [...Sel]]):$Field<"units_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<unit_aggregate>>(args: Args, selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"units_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+units_aggregate<Sel extends Selection<unit_aggregate>>(selectorFn: (s: unit_aggregate) => [...Sel]):$Field<"units_aggregate", GetOutput<Sel> >
+units_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24550,8 +24945,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<webhook_order_by> | undefined
 where?: webhook_bool_exp | undefined,
-      }>,Sel extends Selection<webhook>>(...params: [selectorFn: (s: webhook) => [...Sel]] | [args: Args, selectorFn: (s: webhook) => [...Sel]]):$Field<"webhooks", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<webhook>>(args: Args, selectorFn: (s: webhook) => [...Sel]):$Field<"webhooks", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+webhooks<Sel extends Selection<webhook>>(selectorFn: (s: webhook) => [...Sel]):$Field<"webhooks", Array<GetOutput<Sel>> >
+webhooks(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -24579,8 +24976,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<webhook_order_by> | undefined
 where?: webhook_bool_exp | undefined,
-      }>,Sel extends Selection<webhook_aggregate>>(...params: [selectorFn: (s: webhook_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: webhook_aggregate) => [...Sel]]):$Field<"webhooks_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<webhook_aggregate>>(args: Args, selectorFn: (s: webhook_aggregate) => [...Sel]):$Field<"webhooks_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+webhooks_aggregate<Sel extends Selection<webhook_aggregate>>(selectorFn: (s: webhook_aggregate) => [...Sel]):$Field<"webhooks_aggregate", GetOutput<Sel> >
+webhooks_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -25967,8 +26366,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking>>(...params: [selectorFn: (s: booking) => [...Sel]] | [args: Args, selectorFn: (s: booking) => [...Sel]]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking>>(args: Args, selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+bookings<Sel extends Selection<booking>>(selectorFn: (s: booking) => [...Sel]):$Field<"bookings", Array<GetOutput<Sel>> >
+bookings(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -25996,8 +26397,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<booking_order_by> | undefined
 where?: booking_bool_exp | undefined,
-      }>,Sel extends Selection<booking_aggregate>>(...params: [selectorFn: (s: booking_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: booking_aggregate) => [...Sel]]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<booking_aggregate>>(args: Args, selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+bookings_aggregate<Sel extends Selection<booking_aggregate>>(selectorFn: (s: booking_aggregate) => [...Sel]):$Field<"bookings_aggregate", GetOutput<Sel> >
+bookings_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -26104,8 +26507,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag>>(...params: [selectorFn: (s: tag) => [...Sel]] | [args: Args, selectorFn: (s: tag) => [...Sel]]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag>>(args: Args, selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+tags<Sel extends Selection<tag>>(selectorFn: (s: tag) => [...Sel]):$Field<"tags", Array<GetOutput<Sel>> >
+tags(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -26133,8 +26538,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<tag_order_by> | undefined
 where?: tag_bool_exp | undefined,
-      }>,Sel extends Selection<tag_aggregate>>(...params: [selectorFn: (s: tag_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: tag_aggregate) => [...Sel]]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<tag_aggregate>>(args: Args, selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+tags_aggregate<Sel extends Selection<tag_aggregate>>(selectorFn: (s: tag_aggregate) => [...Sel]):$Field<"tags_aggregate", GetOutput<Sel> >
+tags_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -26814,8 +27221,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser>>(...params: [selectorFn: (s: teamUser) => [...Sel]] | [args: Args, selectorFn: (s: teamUser) => [...Sel]]):$Field<"memberships", Array<GetOutput<Sel>> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser>>(args: Args, selectorFn: (s: teamUser) => [...Sel]):$Field<"memberships", Array<GetOutput<Sel>> , GetVariables<Sel, Args>>
+memberships<Sel extends Selection<teamUser>>(selectorFn: (s: teamUser) => [...Sel]):$Field<"memberships", Array<GetOutput<Sel>> >
+memberships(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -26843,8 +27252,10 @@ limit?: number | undefined
 offset?: number | undefined
 order_by?: Array<teamUser_order_by> | undefined
 where?: teamUser_bool_exp | undefined,
-      }>,Sel extends Selection<teamUser_aggregate>>(...params: [selectorFn: (s: teamUser_aggregate) => [...Sel]] | [args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]]):$Field<"memberships_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      }>,Sel extends Selection<teamUser_aggregate>>(args: Args, selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"memberships_aggregate", GetOutput<Sel> , GetVariables<Sel, Args>>
+memberships_aggregate<Sel extends Selection<teamUser_aggregate>>(selectorFn: (s: teamUser_aggregate) => [...Sel]):$Field<"memberships_aggregate", GetOutput<Sel> >
+memberships_aggregate(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
