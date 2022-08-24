@@ -1,4 +1,7 @@
-export const Preamble = `
+type $Atomic = string
+let $InputTypes: { [key: string]: any } = {}
+
+/* BEGIN PREAMBLE */
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
@@ -151,7 +154,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
           Array.from(Object.entries(args))
             .map(([key, val]) => {
               if (!argTypes[key]) {
-                throw new Error(\`Argument type for \${key} not found\`)
+                throw new Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
               return key + ':' + stringifyArgs(val, $InputTypes[cleanType], argTypes[key])
@@ -210,5 +213,3 @@ export function fragment<T, Sel extends Selection<T>>(
 ) {
   return selectFn(new GQLType())
 }
-
-`

@@ -1,6 +1,6 @@
 import * as gq from 'graphql'
 import * as fs from 'fs/promises'
-import { Preamble } from './preamble'
+import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
 
 import { request } from 'undici'
@@ -13,6 +13,10 @@ async function fetchOrRead(schemaUrl: string) {
     return await fs.readFile(schemaUrl, 'utf8')
   }
 }
+
+/**
+ * Compiles the given schema file or URL and writes to the specified output file
+ */
 export async function compile(args: { schema: string; output: string }) {
   const schemaData = await fetchOrRead(args.schema)
 
