@@ -4,22 +4,62 @@ import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
 
 import { request } from 'undici'
+import { UserFacingError } from './user-error'
 
-async function fetchOrRead(schemaUrl: string) {
-  if (/^https?/.test(schemaUrl)) {
-    let res = await request(schemaUrl)
-    return await res.body.text()
-  } else {
-    return await fs.readFile(schemaUrl, 'utf8')
-  }
+type Args = {
+  /**
+   * The schema to compile. Can be a path to a file or an URL to a server supporting introspection
+   */
+  schema: string
+  /**
+   * The path to the output file
+   */
+  output: string
+  /**
+   * If the schema is an URL, additional headers to send
+   */
+  headers?: string[]
 }
 
 /**
  * Compiles the given schema file or URL and writes to the specified output file
  */
-export async function compile(args: { schema: string; output: string }) {
-  const schemaData = await fetchOrRead(args.schema)
+export async function compile(args: Args) {
+  const schemaData = await fetchOrRead(args)
+  const outputScript = compileSchemaString(schemaData)
 
+  if (args.output === '') {
+    console.log(outputScript)
+  } else {
+    await fs.writeFile(args.output, outputScript)
+  }
+}
+
+async function fetchOrRead(args: Args) {
+  if (/^https?:\/\//.test(args.schema)) {
+    let headers = args.headers ?? []
+    let res = await request(args.schema, {
+      method: 'POST',
+      headers: [...headers.flatMap(h => h.split(':')), 'content-type', 'application/json'],
+      body: JSON.stringify({
+        operationName: 'IntrospectionQuery',
+        query: gq.getIntrospectionQuery(),
+      }),
+    })
+    let body = await res.body.json()
+    if (body.errors) {
+      throw new UserFacingError(`Error introspecting schema from ${args.schema}: ${body.errors}`)
+    }
+    return gq.printSchema(gq.buildClientSchema(body.data))
+  } else {
+    return await fs.readFile(args.schema, 'utf8')
+  }
+}
+
+/**
+ * Compiles a schema string directly to output TypeScript code
+ */
+export function compileSchemaString(schemaString: string): string {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
@@ -27,7 +67,7 @@ export async function compile(args: { schema: string; output: string }) {
 
   const outputObjectTypeNames = new Set()
 
-  let res = gq.parse(schemaData)
+  let res = gq.parse(schemaString)
 
   const atomicTypes = new Map(
     res.definitions
@@ -345,8 +385,9 @@ export enum ${def.name.value} {
 
   if (!rootNode) {
     if (!outputObjectTypeNames.has('Query')) {
-      console.error('Could not find toplevel root node or an output objet type named `Query`')
-      process.exit(1)
+      throw new UserFacingError(
+        'Could not find toplevel root node or an output objet type named `Query`'
+      )
     }
     rootNode = {
       kind: gq.Kind.SCHEMA_DEFINITION,
@@ -388,9 +429,5 @@ export enum ${def.name.value} {
     )
   )
 
-  if (args.output === '') {
-    console.log(outputScript)
-  } else {
-    await fs.writeFile(args.output, outputScript)
-  }
+  return outputScript
 }
