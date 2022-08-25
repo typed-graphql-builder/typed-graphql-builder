@@ -210,7 +210,7 @@ export class ${className} extends $Base<"${className}"> {
       return `${field.name.value}<${generics.join(',')}>(${methodArgsSerialized}):$Field<"${
         field.name.value
       }", ${hasSelector ? printTypeWrapped('GetOutput<Sel>', field.type) : printType(field.type)} ${
-        hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '[]'}, Args>` : ''
+        hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '[]'}, Args>` : ', GetVariables<Sel>'
       }>`
     }
   }
