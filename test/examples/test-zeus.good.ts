@@ -108,11 +108,21 @@ let tmString = `mutation {
   }
 }`
 
+let nestedVariable = query(q => [
+  q.drawCard(c => [c.attack({ cardID: $('cardID') }, s => [s.name])]),
+])
+
 export default [
   verify({
     query: tm,
     string: tmString,
     variables: {},
+  }),
+  verify({
+    query: nestedVariable,
+    variables: {
+      cardID: [],
+    },
   }),
   verify({
     query: tq,

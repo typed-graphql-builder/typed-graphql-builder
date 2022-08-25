@@ -57,8 +57,6 @@ for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
 
     let schemaCoreName = path.basename(schema).split('.')[0]
 
-    let goodExamples = glob.sync(`${__dirname}/examples/*-${schemaCoreName}.good.ts`)
-
     t.test('typechecks', t => {
       let output = compileTs(`${schema}.api.ts`)
       if (output.status) {
@@ -66,6 +64,8 @@ for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
       }
       t.end()
     })
+
+    let goodExamples = glob.sync(`${__dirname}/examples/*-${schemaCoreName}.good.ts`)
 
     for (let example of goodExamples) {
       let exampleName = path.basename(example)
@@ -79,6 +79,19 @@ for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
       t.test(`runs the verifications in ${exampleName}`, async t => {
         let loadedExample = require(example)
         for (let test of loadedExample.default) test(t)
+      })
+    }
+
+    let badExamples = glob.sync(`${__dirname}/examples/*-${schemaCoreName}.bad.ts`)
+    for (let example of badExamples) {
+      let exampleName = path.basename(example)
+      t.test(`compile fails with example ${exampleName}`, async t => {
+        let res = compileTs(example)
+        if (res.status) {
+          t.pass('failed to compile ' + res.stdout)
+        } else {
+          t.fail('bad example compiled with no errors')
+        }
       })
     }
   })
