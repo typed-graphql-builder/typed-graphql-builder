@@ -1,6 +1,6 @@
 # Typed GraphQL Builder
 
-Simple, no-nonsense query builder that produces a TypedDocumentNode. That's it.
+A GraphQL query builder compatible with all popular clients that replaces `gql` strings or .graphql files with pure typescript. Generate a compact api file from your schema, then write queries in pure typescript. The generated queries are compatible with any `TypedDocumentNode`-compatible library such as apollo, urql, requst.
 
 ## Generating the API
 
