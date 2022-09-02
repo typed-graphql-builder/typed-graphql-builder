@@ -1,6 +1,6 @@
 # Typed GraphQL Builder
 
-A GraphQL query builder compat that replaces `gql` query strings or .graphql files in your code with pure TypeScript. Compatible with any `TypedDocumentNode`-compatible library such as Apollo Client, Urql and graphql-request.
+A GraphQL query builder that replaces `gql` query strings or .graphql files in your code with pure TypeScript. Compatible with any `TypedDocumentNode`-compatible library such as Apollo Client, Urql and graphql-request.
 
 ## Generating the API
 
