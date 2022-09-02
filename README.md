@@ -16,7 +16,7 @@ The generated API depends on two small libraries that should be added to `packag
 
 ```json
 "dependencies": {
-  "@graphql-typed-document-node/core": "^3.x1.1",
+  "@graphql-typed-document-node/core": "^3.1.1",
   "graphql-tag": "^2.12.6",
 }
 ```
