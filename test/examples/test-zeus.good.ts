@@ -150,9 +150,7 @@ export default [
   verify({
     query: tmWithoutVariable,
     string: tmWithoutVariableString,
-    variables: {
-      skill: SpecialSkills.RAIN,
-    },
+    variables: {},
   }),
   verify({
     query: nestedVariable,
