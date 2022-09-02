@@ -69,13 +69,20 @@ export function compileSchemaString(schemaString: string): string {
 
   let res = gq.parse(schemaString)
 
+  const enumTypes = res.definitions.flatMap(def => {
+    if (def.kind === gq.Kind.ENUM_TYPE_DEFINITION) return [def.name.value]
+    return []
+  })
+
+  const scalarTypes = res.definitions.flatMap(def => {
+    if (def.kind === gq.Kind.SCALAR_TYPE_DEFINITION) return [def.name.value]
+    return []
+  })
+
   const atomicTypes = new Map(
-    res.definitions
-      .flatMap(def => {
-        if (def.kind === gq.Kind.SCALAR_TYPE_DEFINITION) return [[def.name.value, 'string']]
-        if (def.kind === gq.Kind.ENUM_TYPE_DEFINITION) return [[def.name.value, def.name.value]]
-        return []
-      })
+    scalarTypes
+      .map(st => [st, 'string'])
+      .concat(enumTypes.map(et => [et, et]))
       .concat([
         ['Int', 'number'],
         ['Float', 'number'],
@@ -106,6 +113,12 @@ export function compileSchemaString(schemaString: string): string {
     return `type $Atomic = ${Array.from(new Set(atomicTypes.values())).join(' | ')}
 `
   }
+
+  function printEnumList() {
+    return `let $Enums = new Set<string>(${JSON.stringify(enumTypes)})
+`
+  }
+
   function printTypeWrapped(
     wrappedType: string,
     wrapperDef: gq.TypeNode,
@@ -355,6 +368,7 @@ export enum ${def.name.value} {
 
   write(Preamble)
   write(printAtomicTypes())
+  write(printEnumList())
 
   let rootNode: gq.SchemaDefinitionNode | null = null
   for (let def of res.definitions) {
