@@ -1,5 +1,5 @@
 import { verify } from './verify'
-import { query, mutation, SpecialSkills, fragment, Card, $ } from './zeus.graphql.api'
+import { query, mutation, SpecialSkills, fragment, Card, $$, $ } from './zeus.graphql.api'
 
 const cardFragment = fragment(Card, c => [
   c.Attack, //
@@ -9,16 +9,16 @@ const cardFragment = fragment(Card, c => [
 let tq = query(q => [
   q.cardById({ cardId: $('cid') }, c => [
     ...cardFragment,
-    c.attack({ cardID: $('cids') }, aCards => [
+    c.attack({ cardID: $$('cids') }, aCards => [
       aCards.Attack, //
       aCards.Defense,
     ]),
   ]),
 
   q
-    .cardById({ cardId: $('cid2') }, c => [
+    .cardById({ cardId: $$('cid2') }, c => [
       ...cardFragment,
-      c.attack({ cardID: $('cids2') }, aCards => [
+      c.attack({ cardID: $$('cids2') }, aCards => [
         aCards.Attack, //
         aCards.Defense,
       ]),
@@ -91,7 +91,7 @@ let tm = mutation(m => [
         Defense: 2,
         name: 'Hi',
         description: 'Lo',
-        skills: [$('skill')] as const,
+        skills: [$$('skill')] as const,
       },
     },
     c => [c.Attack, c.Defense, c.Children]
@@ -162,7 +162,7 @@ export default [
     query: tq,
     string: tqString,
     variables: {
-      cid: '1',
+      // cid: undefined, - no need to specify value for variables that can be undefined
       cid2: '1',
       cids: ['2'],
       cids2: ['4'],

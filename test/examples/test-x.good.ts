@@ -1,5 +1,3 @@
-// Todo: add big query tests
-
 import { verify } from './verify'
 import { query, order_by, $ } from './x.graphql.api'
 

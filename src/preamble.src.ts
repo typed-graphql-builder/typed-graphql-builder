@@ -24,19 +24,33 @@ class Variable<T, Name extends string> {
 // the array wrapper prevents distributive conditional types
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
 type VariabledInput<T> = [T] extends [$Atomic | undefined]
-  ? Variable<NonNullable<T>, any> | T
+  ? Variable<T, any> | T
   : T extends ReadonlyArray<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | ReadonlyArray<VariabledInput<NonNullable<R>>> | T
+  ? Variable<T, any> | ReadonlyArray<VariabledInput<R>> | T
   : T extends Array<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
-  : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+  ? Variable<T, any> | Array<VariabledInput<R>> | T
+  : Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
   ? I
   : never
 
+/**
+ * Creates a new query variable
+ *
+ * @param name The variable name
+ */
 export const $ = <Type, Name extends string>(name: Name) => {
   return new Variable(name) as Variable<Type, Name>
+}
+
+/**
+ * Creates a new query variable. A value will be required even if the input is optional
+ *
+ * @param name The variable name
+ */
+export const $$ = <Type, Name extends string>(name: Name) => {
+  return new Variable(name) as Variable<NonNullable<Type>, Name>
 }
 
 type SelectOptions = {
@@ -108,8 +122,12 @@ export type GetOutput<X extends Selection<any>> = UnionToIntersection<
     }[keyof X & number]
   >
 
+type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
+  ? { [key in VName]?: VType }
+  : { [key in VName]: VType }
+
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
-  ? { [key in VName]: VType }
+  ? PossiblyOptionalVar<VName, VType>
   : Inputs extends $Atomic
   ? {}
   : Inputs extends any[] | readonly any[]
