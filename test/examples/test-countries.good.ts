@@ -1,3 +1,4 @@
+import path from 'path'
 import { query } from './countries.graphql.api'
 import { verify } from './verify'
 
@@ -22,6 +23,7 @@ export default [
   verify({
     query: twoCountries,
     variables: {},
+    schemaPath: path.join(__dirname, 'countries.graphql'),
     string: twoCountriesString,
   }),
 ]

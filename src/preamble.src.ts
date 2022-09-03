@@ -11,16 +11,16 @@ import gql from 'graphql-tag'
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
-const VariableRequired = ' $1fcbcbff-3e78-462f-b45c-668a3e09bff1'
+const VariableNullable = ' $1fcbcbff-3e78-462f-b45c-668a3e09bff1'
 
-class Variable<T, Name extends string, Required extends boolean> {
+class Variable<T, Name extends string, Nullable extends boolean> {
   private [VariableName]: Name
-  private [VariableRequired]: Required
+  private [VariableNullable]: Nullable
   private [VariableType]?: T
 
-  constructor(name: Name, required: Required) {
+  constructor(name: Name, nullable: Nullable) {
     this[VariableName] = name
-    this[VariableRequired] = required
+    this[VariableNullable] = nullable
   }
 }
 
@@ -43,13 +43,13 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
  *
  * @param name The variable name
  */
-export const $ = <Type, Name extends string, Required extends boolean = true>(
+export const $ = <Type, Name extends string, Nullable extends boolean = false>(
   name: Name,
-  required?: Type extends null ? Required : Required extends true ? Required : never
-): Required extends true
+  nullable?: Type extends null ? Nullable : Nullable extends true ? never : Nullable
+): Nullable extends true
   ? Variable<NonNullable<Type>, Name, true>
   : Variable<NonNullable<Type>, Name, false> => {
-  return new Variable(name, required ?? true) as any
+  return new Variable(name, nullable === true) as any
 }
 
 type SelectOptions = {
@@ -124,17 +124,17 @@ export type GetOutput<X extends Selection<any>> = UnionToIntersection<
 type PossiblyOptionalVar<
   VName extends string,
   VType,
-  VRequired extends boolean
+  VNullable extends boolean
 > = undefined extends VType
   ? { [key in VName]?: VType }
-  : { [key in VName]: VRequired extends true ? VType : VType | null }
+  : { [key in VName]: VNullable extends true ? VType | null : VType }
 
 type ExtractInputVariables<Inputs> = Inputs extends Variable<
   infer VType,
   infer VName,
-  infer VRequired
+  infer VNullable
 >
-  ? PossiblyOptionalVar<VName, VType, VRequired>
+  ? PossiblyOptionalVar<VName, VType, VNullable>
   : Inputs extends $Atomic
   ? {}
   : Inputs extends any[] | readonly any[]
@@ -155,7 +155,7 @@ export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIn
   ExtractInputVariables<ExtraVars>
 
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
-  const variables = new Map<string, { type: string; required: boolean }>()
+  const variables = new Map<string, { type: string; nullable: boolean }>()
 
   function stringifyArgs(
     args: Variable<unknown, any, any>,
@@ -174,7 +174,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
         if (VariableName in (args as any)) {
           if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
           const argVarName = args[VariableName]
-          variables.set(argVarName, { type: argVarType, required: args[VariableRequired] })
+          variables.set(argVarName, { type: argVarType, nullable: args[VariableNullable] })
           return '$' + argVarName
         }
         if (Array.isArray(args))
@@ -236,7 +236,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       varList
         .map(([name, spec]) => {
           let base = `\$${name}: ${spec.type}`
-          if (spec.required && !base.endsWith('!')) base += '!'
+          if (spec.nullable === false && !base.endsWith('!')) base += '!'
           return base
         })
         .join(',') +

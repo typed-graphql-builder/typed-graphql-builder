@@ -1,3 +1,4 @@
+import path from 'path'
 import { verify } from './verify'
 import { query, $ } from './x.graphql.api'
 
@@ -28,6 +29,7 @@ let bookingsBetween = query(q => [
 export default [
   verify({
     query: bookingsBetween,
+    schemaPath: path.join(__dirname, 'x.graphql'),
     variables: {
       endDate: 1,
     }, // variable of incorrect type

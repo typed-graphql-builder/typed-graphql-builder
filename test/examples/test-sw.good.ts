@@ -1,8 +1,9 @@
+import path from 'path'
 import { query, $ } from './sw.graphql.api'
 import { verify } from './verify'
 
 let planetQuery = query(q => [
-  q.planet({ id: $('planet_id', false) }, p => [
+  q.planet({ id: $('planet_id', true) }, p => [
     //
     p.id,
     p.name,
@@ -24,8 +25,9 @@ export default [
   verify({
     query: planetQuery,
     string: planetQueryString,
+    schemaPath: path.join(__dirname, 'sw.graphql'),
     variables: {
-      planet_id: null,
+      planet_id: 'id',
       // planet_id: 'works',
     },
   }),
