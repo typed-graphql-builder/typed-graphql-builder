@@ -1,5 +1,5 @@
 import { verify } from './verify'
-import { query, $$, $ } from './x.graphql.api'
+import { query, $ } from './x.graphql.api'
 
 let bookingsBetween = query(q => [
   q.bookings(

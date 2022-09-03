@@ -1,5 +1,5 @@
 import { verify } from './verify'
-import { query, mutation, SpecialSkills, fragment, Card, $$, $ } from './zeus.graphql.api'
+import { query, mutation, SpecialSkills, fragment, Card, $ } from './zeus.graphql.api'
 
 const cardFragment = fragment(Card, c => [
   c.Attack, //
@@ -7,18 +7,18 @@ const cardFragment = fragment(Card, c => [
 ])
 
 let tq = query(q => [
-  q.cardById({ cardId: $('cid') }, c => [
+  q.cardById({ cardId: $('cid', false) }, c => [
     ...cardFragment,
-    c.attack({ cardID: $$('cids') }, aCards => [
+    c.attack({ cardID: $('cids') }, aCards => [
       aCards.Attack, //
       aCards.Defense,
     ]),
   ]),
 
   q
-    .cardById({ cardId: $$('cid2') }, c => [
+    .cardById({ cardId: $('cid2') }, c => [
       ...cardFragment,
-      c.attack({ cardID: $$('cids2') }, aCards => [
+      c.attack({ cardID: $('cids2') }, aCards => [
         aCards.Attack, //
         aCards.Defense,
       ]),
@@ -46,7 +46,7 @@ let tq = query(q => [
   ]),
 ])
 
-let tqString = `query ($cid: String, $cids: [String!]!, $cid2: String, $cids2: [String!]!) {
+let tqString = `query ($cid: String, $cids: [String!]!, $cid2: String!, $cids2: [String!]!) {
   cardById(cardId: $cid) {
     Attack
     def: Defense
@@ -91,7 +91,7 @@ let tm = mutation(m => [
         Defense: 2,
         name: 'Hi',
         description: 'Lo',
-        skills: [$$('skill')] as const,
+        skills: [$('skill')] as const,
       },
     },
     c => [c.Attack, c.Defense, c.Children]
@@ -99,7 +99,7 @@ let tm = mutation(m => [
 ])
 
 let tmString = `
-mutation ($skill: [SpecialSkills!]) {
+mutation ($skill: [SpecialSkills!]!) {
   addCard(
     card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: [$skill]}
   ) {
@@ -162,10 +162,12 @@ export default [
     query: tq,
     string: tqString,
     variables: {
-      // cid: undefined, - no need to specify value for variables that can be undefined
+      // cid can be nullable
+      cid: null,
       cid2: '1',
       cids: ['2'],
-      cids2: ['4'],
+      cids2: ['works'],
+      // cids2: ['4'],
     },
   }),
 ]

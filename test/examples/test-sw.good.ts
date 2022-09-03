@@ -2,7 +2,7 @@ import { query, $ } from './sw.graphql.api'
 import { verify } from './verify'
 
 let planetQuery = query(q => [
-  q.planet({ id: $('planet_id') }, p => [
+  q.planet({ id: $('planet_id', false) }, p => [
     //
     p.id,
     p.name,
@@ -25,7 +25,8 @@ export default [
     query: planetQuery,
     string: planetQueryString,
     variables: {
-      planet_id: 'str',
+      planet_id: null,
+      // planet_id: 'works',
     },
   }),
 ]

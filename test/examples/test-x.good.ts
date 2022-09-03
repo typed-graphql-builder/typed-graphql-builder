@@ -15,8 +15,8 @@ let bookingsBetween = query(q => [
     {
       where: {
         _and: [
-          { createdAt: { _gte: $('startDate') } },
-          { createdAt: { _lte: $('endDate') } },
+          { createdAt: { _gte: $('startDate', true) } },
+          { createdAt: { _lte: $('endDate', false) } },
         ] as const,
       },
     },
@@ -34,7 +34,7 @@ let bookingsBetween = query(q => [
   ),
 ])
 
-let bookingsBetweenString = `query ($startDate: timestamptz, $endDate: timestamptz) {
+let bookingsBetweenString = `query ($startDate: timestamptz!, $endDate: timestamptz) {
   bookings(
     where: {_and: [{createdAt: {_gte: $startDate}}, {createdAt: {_lte: $endDate}}]}
   ) {
@@ -59,7 +59,7 @@ export default [
     query: bookingsBetween,
     variables: {
       startDate: '2022-01-01',
-      endDate: '2022-12-30',
+      endDate: null,
     },
     string: bookingsBetweenString,
   }),
