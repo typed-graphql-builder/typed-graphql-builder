@@ -1,7 +1,16 @@
 // Todo: add big query tests
 
 import { verify } from './verify'
-import { query, $ } from './x.graphql.api'
+import { query, order_by, $ } from './x.graphql.api'
+
+let orderByTest = query(q => [
+  q.bookings({ order_by: [{ bookerName: $('myvar') }] as const }, o => [
+    o.id,
+    o.guestName,
+    o.nights,
+    o.bookerName,
+  ]),
+])
 
 let bookingsBetween = query(q => [
   q.bookings(
@@ -42,6 +51,12 @@ let bookingsBetweenString = `query ($startDate: timestamptz, $endDate: timestamp
 }`
 
 export default [
+  verify({
+    query: orderByTest,
+    variables: {
+      myvar: order_by.asc_nulls_first,
+    },
+  }),
   verify({
     query: bookingsBetween,
     variables: {

@@ -91,6 +91,32 @@ let tm = mutation(m => [
         Defense: 2,
         name: 'Hi',
         description: 'Lo',
+        skills: [$('skill')] as const,
+      },
+    },
+    c => [c.Attack, c.Defense, c.Children]
+  ),
+])
+
+let tmString = `
+mutation ($skill: [SpecialSkills!]) {
+  addCard(
+    card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: [$skill]}
+  ) {
+    Attack
+    Defense
+    Children
+  }
+}`
+
+let tmWithoutVariable = mutation(m => [
+  m.addCard(
+    {
+      card: {
+        Attack: 1,
+        Defense: 2,
+        name: 'Hi',
+        description: 'Lo',
         skills: [SpecialSkills.FIRE],
       },
     },
@@ -98,9 +124,10 @@ let tm = mutation(m => [
   ),
 ])
 
-let tmString = `mutation {
+let tmWithoutVariableString = `
+mutation {
   addCard(
-    card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: ["FIRE"]}
+    card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: [FIRE]}
   ) {
     Attack
     Defense
@@ -116,6 +143,13 @@ export default [
   verify({
     query: tm,
     string: tmString,
+    variables: {
+      skill: SpecialSkills.RAIN,
+    },
+  }),
+  verify({
+    query: tmWithoutVariable,
+    string: tmWithoutVariableString,
     variables: {},
   }),
   verify({

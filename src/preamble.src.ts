@@ -1,5 +1,6 @@
 type $Atomic = string
 let $InputTypes: { [key: string]: any } = {}
+let $Enums = new Set()
 
 /* BEGIN PREAMBLE */
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
@@ -20,7 +21,9 @@ class Variable<T, Name extends string> {
   }
 }
 
-type VariabledInput<T> = T extends $Atomic | undefined
+// the array wrapper prevents distributive conditional types
+// https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
+type VariabledInput<T> = [T] extends [$Atomic | undefined]
   ? Variable<NonNullable<T>, any> | T
   : T extends ReadonlyArray<infer R> | undefined
   ? Variable<NonNullable<T>, any> | ReadonlyArray<VariabledInput<NonNullable<R>>> | T
@@ -136,6 +139,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   ): string {
     switch (typeof args) {
       case 'string':
+        const cleanType = argVarType!.replace('[', '').replace(']', '').replace('!', '')
+        if ($Enums.has(cleanType!)) return args
+        else return JSON.stringify(args)
       case 'number':
       case 'boolean':
         return JSON.stringify(args)
