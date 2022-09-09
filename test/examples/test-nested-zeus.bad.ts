@@ -8,6 +8,7 @@ let nestedVariable = query(q => [
 export default [
   verify({
     query: nestedVariable,
+    schemaPath: 'zeus.graphql',
     variables: {}, // missing cardID
   }),
 ]

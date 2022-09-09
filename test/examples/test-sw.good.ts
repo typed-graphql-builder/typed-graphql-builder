@@ -24,6 +24,7 @@ export default [
   verify({
     query: planetQuery,
     string: planetQueryString,
+    schemaPath: 'sw.graphql',
     variables: {
       planet_id: 'str',
     },

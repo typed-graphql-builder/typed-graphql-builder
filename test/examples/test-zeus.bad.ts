@@ -26,6 +26,7 @@ export default [
   verify({
     query: tm,
     string: '',
+    schemaPath: 'zeus.graphql',
     variables: {},
   }),
 ]
