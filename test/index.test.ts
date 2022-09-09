@@ -1,8 +1,9 @@
 import t from 'tap'
 import * as glob from 'glob'
 import { compile } from '../src/compile'
-import { spawnSync } from 'child_process'
+import { spawnSync, SpawnSyncOptionsWithBufferEncoding } from 'child_process'
 import path from 'path'
+import os from 'os'
 
 // test dir structure
 // examples/schema1.graphql
@@ -36,23 +37,39 @@ import path from 'path'
 
 t.autoend(true)
 
-function compileTs(path: string) {
+function spawn(cmd: string, args: string[], options?: SpawnSyncOptionsWithBufferEncoding) {
   return spawnSync(
+    path.join(
+      process.cwd(),
+      'node_modules',
+      '.bin',
+      os.platform() === 'win32' ? cmd + '.cmd' : cmd
+    ),
+    args,
+    options
+  )
+}
+
+function compileTs(_file: string) {
+  return spawn(
     `tsc`,
-    ['--noEmit', '--skipLibCheck', '--strict', '--esModuleInterop', '--target', 'es5', path],
+    ['--noEmit', '--skipLibCheck', '--strict', '--esModuleInterop', '--target', 'es5', _file],
     {
       cwd: __dirname,
     }
   )
 }
 
-for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
+for (let schema of glob.sync(`./examples/*.graphql`, { cwd: __dirname })) {
   let schemaName = path.basename(schema)
   t.test(`schema ${schemaName}`, async t => {
     // t.autoend(true)
 
     t.before(async () => {
-      await compile({ schema, output: `${schema}.api.ts` })
+      await compile({
+        schema: path.join(__dirname, schema),
+        output: path.join(__dirname, 'examples', `${schemaName}.api.ts`),
+      })
     })
 
     let schemaCoreName = path.basename(schema).split('.')[0]
@@ -65,7 +82,7 @@ for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
       t.end()
     })
 
-    let goodExamples = glob.sync(`${__dirname}/examples/*-${schemaCoreName}.good.ts`)
+    let goodExamples = glob.sync(`./examples/*-${schemaCoreName}.good.ts`, { cwd: __dirname })
 
     for (let example of goodExamples) {
       let exampleName = path.basename(example)
@@ -82,7 +99,7 @@ for (let schema of glob.sync(`${__dirname}/examples/*.graphql`)) {
       })
     }
 
-    let badExamples = glob.sync(`${__dirname}/examples/*-${schemaCoreName}.bad.ts`)
+    let badExamples = glob.sync(`./examples/*-${schemaCoreName}.bad.ts`, { cwd: __dirname })
     for (let example of badExamples) {
       let exampleName = path.basename(example)
       t.test(`compile fails with example ${exampleName}`, async t => {

@@ -22,6 +22,7 @@ export default [
   verify({
     query: twoCountries,
     variables: {},
+    schemaPath: 'countries.graphql',
     string: twoCountriesString,
   }),
 ]

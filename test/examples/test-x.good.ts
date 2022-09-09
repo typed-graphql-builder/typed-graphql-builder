@@ -53,6 +53,7 @@ let bookingsBetweenString = `query ($startDate: timestamptz, $endDate: timestamp
 export default [
   verify({
     query: orderByTest,
+    schemaPath: 'x.graphql',
     variables: {
       myvar: order_by.asc_nulls_first,
     },
@@ -63,6 +64,7 @@ export default [
       startDate: '2022-01-01',
       endDate: '2022-12-30',
     },
+    schemaPath: 'x.graphql',
     string: bookingsBetweenString,
   }),
 ]

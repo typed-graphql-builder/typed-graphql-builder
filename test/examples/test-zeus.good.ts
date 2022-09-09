@@ -91,7 +91,7 @@ let tm = mutation(m => [
         Defense: 2,
         name: 'Hi',
         description: 'Lo',
-        skills: [$('skill')] as const,
+        skills: $('skills'),
       },
     },
     c => [c.Attack, c.Defense, c.Children]
@@ -99,9 +99,9 @@ let tm = mutation(m => [
 ])
 
 let tmString = `
-mutation ($skill: [SpecialSkills!]) {
+mutation ($skills: [SpecialSkills!]) {
   addCard(
-    card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: [$skill]}
+    card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: $skills}
   ) {
     Attack
     Defense
@@ -143,17 +143,20 @@ export default [
   verify({
     query: tm,
     string: tmString,
+    schemaPath: 'zeus.graphql',
     variables: {
-      skill: SpecialSkills.RAIN,
+      skills: [SpecialSkills.RAIN],
     },
   }),
   verify({
     query: tmWithoutVariable,
     string: tmWithoutVariableString,
+    schemaPath: 'zeus.graphql',
     variables: {},
   }),
   verify({
     query: nestedVariable,
+    schemaPath: 'zeus.graphql',
     variables: {
       cardID: [],
     },
@@ -161,6 +164,7 @@ export default [
   verify({
     query: tq,
     string: tqString,
+    schemaPath: 'zeus.graphql',
     variables: {
       cid: '1',
       cid2: '1',

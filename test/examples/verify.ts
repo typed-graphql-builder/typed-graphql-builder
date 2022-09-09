@@ -1,9 +1,12 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { print, parse } from 'graphql'
+import { print, parse, validate, buildSchema } from 'graphql'
+import fs from 'fs'
+import path from 'path'
 
 export function verify<Inp, Out>(opts: {
   query: TypedDocumentNode<Out, Inp>
   string?: string
+  schemaPath: string
   variables: Inp
 }) {
   return (t: Tap.Test) => {
@@ -16,6 +19,13 @@ export function verify<Inp, Out>(opts: {
       try {
         q = print(opts.query)
       } catch (e) {}
+
+      const schemaFile = fs.readFileSync(path.join(__dirname, opts.schemaPath), {
+        encoding: 'utf-8',
+      })
+      const schema = buildSchema(schemaFile)
+      const errors = validate(schema, opts.query)
+      t.equal(errors.length, 0, `verify doc against schema. errors: ${errors[0]}`)
 
       t.equal(str, q)
     }
