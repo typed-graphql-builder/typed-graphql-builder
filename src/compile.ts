@@ -141,9 +141,9 @@ export function compileSchemaString(schemaString: string): string {
       case gq.Kind.NON_NULL_TYPE:
         return `${printType(def.type, true)}`
       case gq.Kind.LIST_TYPE:
-        return `Array<${printType(def.type)}>${!notNull ? ' | undefined' : ''}`
+        return `Readonly<Array<${printType(def.type)}>>${!notNull ? ' | null | undefined' : ''}`
       case gq.Kind.NAMED_TYPE:
-        return `${toTSType(def.name.value)}${!notNull ? ' | undefined' : ''}`
+        return `${toTSType(def.name.value)}${!notNull ? ' | null | undefined' : ''}`
     }
   }
 

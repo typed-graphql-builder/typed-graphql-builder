@@ -1,15 +1,21 @@
 // Todo: add big query tests
 
 import { verify } from './verify'
-import { query, order_by, $ } from './x.graphql.api'
+import { query, order_by, $, $$ } from './x.graphql.api'
 
 let orderByTest = query(q => [
-  q.bookings({ order_by: [{ bookerName: $('myvar') }] as const }, o => [
-    o.id,
-    o.guestName,
-    o.nights,
-    o.bookerName,
-  ]),
+  q.bookings(
+    {
+      order_by: [
+        {
+          bookerName: $$('myvar'),
+          checkOut: $('optional'),
+          bookedAt: order_by.desc,
+        },
+      ],
+    },
+    o => [o.id, o.guestName, o.nights, o.bookerName]
+  ),
 ])
 
 let bookingsBetween = query(q => [
@@ -17,7 +23,7 @@ let bookingsBetween = query(q => [
     {
       where: {
         _and: [
-          { createdAt: { _gte: $('startDate') } },
+          { createdAt: { _gte: $$('startDate') } },
           { createdAt: { _lte: $('endDate') } },
         ] as const,
       },
@@ -36,7 +42,7 @@ let bookingsBetween = query(q => [
   ),
 ])
 
-let bookingsBetweenString = `query ($startDate: timestamptz, $endDate: timestamptz) {
+let bookingsBetweenString = `query ($startDate: timestamptz!, $endDate: timestamptz) {
   bookings(
     where: {_and: [{createdAt: {_gte: $startDate}}, {createdAt: {_lte: $endDate}}]}
   ) {
@@ -50,10 +56,20 @@ let bookingsBetweenString = `query ($startDate: timestamptz, $endDate: timestamp
   }
 }`
 
+let orderByTestString = `query ($myvar: order_by!, $optional: order_by) {
+  bookings(order_by: [{bookerName: $myvar, checkOut: $optional, bookedAt: desc}]) {
+    id
+    guestName
+    nights
+    bookerName
+  }
+}`
+
 export default [
   verify({
     query: orderByTest,
     schemaPath: 'x.graphql',
+    string: orderByTestString,
     variables: {
       myvar: order_by.asc_nulls_first,
     },
