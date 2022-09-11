@@ -69,7 +69,6 @@ export default [
   verify({
     query: orderByTest,
     schemaPath: 'x.graphql',
-    string: orderByTestString,
     variables: {
       myvar: order_by.asc_nulls_first,
     },
