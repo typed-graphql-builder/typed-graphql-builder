@@ -10,33 +10,50 @@ import gql from 'graphql-tag'
 /* eslint-disable */
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
-const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
 
 class Variable<T, Name extends string> {
   private [VariableName]: Name
-  private [VariableType]?: T
+  private _type?: T
 
-  constructor(name: Name) {
+  constructor(name: Name, public readonly isRequired?: boolean) {
     this[VariableName] = name
   }
 }
 
+type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
+  ? never
+  : ReadonlyArray<VariabledInput<I>>
+
 // the array wrapper prevents distributive conditional types
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
-type VariabledInput<T> = [T] extends [$Atomic | undefined]
-  ? Variable<NonNullable<T>, any> | T
-  : T extends ReadonlyArray<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | ReadonlyArray<VariabledInput<NonNullable<R>>> | T
-  : T extends Array<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
-  : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+type VariabledInput<T> = [T] extends [$Atomic | null | undefined]
+  ? Variable<T, any> | T
+  : T extends ReadonlyArray<infer I>
+  ? Variable<T, any> | T | ArrayInput<I>
+  : T extends Record<string, any>
+  ? { [K in keyof T]: VariabledInput<T[K]> } | T
+  : never
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
   ? I
   : never
 
-export const $ = <Type, Name extends string>(name: Name) => {
-  return new Variable(name) as Variable<Type, Name>
+/**
+ * Creates a new query variable
+ *
+ * @param name The variable name
+ */
+export const $ = <Type, Name extends string>(name: Name): Variable<Type, Name> => {
+  return new Variable(name)
+}
+
+/**
+ * Creates a new query variable. A value will be required even if the input is optional
+ *
+ * @param name The variable name
+ */
+export const $$ = <Type, Name extends string>(name: Name): Variable<NonNullable<Type>, Name> => {
+  return new Variable(name, true)
 }
 
 type SelectOptions = {
@@ -108,8 +125,12 @@ export type GetOutput<X extends Selection<any>> = UnionToIntersection<
     }[keyof X & number]
   >
 
+type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
+  ? { [key in VName]?: VType }
+  : { [key in VName]: VType }
+
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
-  ? { [key in VName]: VType }
+  ? PossiblyOptionalVar<VName, VType>
   : Inputs extends $Atomic
   ? {}
   : Inputs extends any[] | readonly any[]
@@ -129,17 +150,49 @@ export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIn
 > &
   ExtractInputVariables<ExtraVars>
 
+type ArgVarType = {
+  type: string
+  isRequired: boolean
+  array: {
+    isRequired: boolean
+  } | null
+}
+
+const arrRegex = /\[(.*?)\]/
+
+/**
+ * Converts graphql string type to `ArgVarType`
+ * @param input
+ * @returns
+ */
+function getArgVarType(input: string): ArgVarType {
+  const array = input.includes('[')
+    ? {
+        isRequired: input.endsWith('!'),
+      }
+    : null
+
+  const type = array ? arrRegex.exec(input)![1] : input
+  const isRequired = type.endsWith('!')
+
+  return {
+    array,
+    isRequired: isRequired,
+    type: type.replace('!', ''),
+  }
+}
+
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
-  const variables = new Map<string, string>()
+  const variables = new Map<string, { variable: Variable<any, any>; type: ArgVarType }>()
 
   function stringifyArgs(
     args: any,
     argTypes: { [key: string]: string },
-    argVarType?: string
+    argVarType?: ArgVarType
   ): string {
     switch (typeof args) {
       case 'string':
-        const cleanType = argVarType!.replace('[', '').replace(']', '').replace('!', '')
+        const cleanType = argVarType!.type
         if ($Enums.has(cleanType!)) return args
         else return JSON.stringify(args)
       case 'number':
@@ -148,8 +201,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       default:
         if (VariableName in (args as any)) {
           if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
-          const argVarName = (args as any)[VariableName]
-          variables.set(argVarName, argVarType)
+          const variable = args as Variable<any, any>
+          const argVarName = variable[VariableName]
+          variables.set(argVarName, { type: argVarType, variable: variable })
           return '$' + argVarName
         }
         if (Array.isArray(args))
@@ -163,7 +217,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
                 throw new Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
-              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], argTypes[key])
+              return (
+                key + ':' + stringifyArgs(val, $InputTypes[cleanType], getArgVarType(argTypes[key]))
+              )
             })
             .join(',')
         )
@@ -206,7 +262,23 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const varList = Array.from(variables.entries())
   let ret = prefix
   if (varList.length) {
-    ret += '(' + varList.map(([name, kind]) => '$' + name + ':' + kind).join(',') + ')'
+    ret +=
+      '(' +
+      varList
+        .map(([name, { type: kind, variable }]) => {
+          let type = kind.array ? '[' : ''
+          type += kind.type
+          if (kind.isRequired) type += '!'
+          if (kind.array) type += kind.array.isRequired ? ']!' : ']'
+
+          if (!type.endsWith('!') && variable.isRequired === true) {
+            type += '!'
+          }
+
+          return '$' + name + ':' + type
+        })
+        .join(',') +
+      ')'
   }
   ret += queryBody
 

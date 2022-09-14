@@ -1,5 +1,5 @@
 import { verify } from './verify'
-import { query, mutation, SpecialSkills, fragment, Card, $ } from './zeus.graphql.api'
+import { query, mutation, SpecialSkills, fragment, Card, $$, $ } from './zeus.graphql.api'
 
 const cardFragment = fragment(Card, c => [
   c.Attack, //
@@ -7,7 +7,7 @@ const cardFragment = fragment(Card, c => [
 ])
 
 let tq = query(q => [
-  q.cardById({ cardId: $('cid') }, c => [
+  q.cardById({ cardId: $$('cid') }, c => [
     ...cardFragment,
     c.attack({ cardID: $('cids') }, aCards => [
       aCards.Attack, //
@@ -46,7 +46,7 @@ let tq = query(q => [
   ]),
 ])
 
-let tqString = `query ($cid: String, $cids: [String!]!, $cid2: String, $cids2: [String!]!) {
+let tqString = `query ($cid: String!, $cids: [String!]!, $cid2: String, $cids2: [String!]!) {
   cardById(cardId: $cid) {
     Attack
     def: Defense

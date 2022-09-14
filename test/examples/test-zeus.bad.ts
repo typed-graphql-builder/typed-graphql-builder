@@ -8,14 +8,8 @@ const tm = mutation(m => [
         Attack: 1,
         Defense: 2,
         name: 'Hi',
-        description: 'Lo',
+        description: $('description'),
         skills: [SpecialSkills.FIRE],
-        conditions: {
-          _and: [
-            { field1: { eq: $('hiz') } }, //
-            { field2: { eq: $('bye') } },
-          ] as const,
-        },
       },
     },
     c => [c.Attack, c.Defense, c.Children]
