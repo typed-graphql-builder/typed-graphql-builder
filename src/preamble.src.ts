@@ -15,7 +15,7 @@ class Variable<T, Name extends string> {
   private [VariableName]: Name
   private _type?: T
 
-  constructor(name: Name, public readonly isRequired?: boolean) {
+  constructor(name: Name, private readonly isRequired?: boolean) {
     this[VariableName] = name
   }
 }
@@ -271,7 +271,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
           if (kind.isRequired) type += '!'
           if (kind.array) type += kind.array.isRequired ? ']!' : ']'
 
-          if (!type.endsWith('!') && variable.isRequired === true) {
+          if (!type.endsWith('!') && (variable as any).isRequired === true) {
             type += '!'
           }
 

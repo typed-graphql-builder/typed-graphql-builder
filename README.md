@@ -65,7 +65,9 @@ const countryQuery = query(q => [
 ])
 ```
 
-This will generate `TypedDocumentNode<{ countries: Array<{...}>}, { continentCode: string }>`, a typed document node that includes the input variable `continentCode`.
+This will generate `TypedDocumentNode<{ countries: Array<{...}>}, { continentCode?: string | null | undefined }>`, a typed document node that includes the input variable `continentCode`.
+
+> Note: By default, `$` will allow nulls if the input type allows it in the desired position. Use `$$` to force-require the variable to have a non-null value.
 
 The GraphQL version of the above query is shown below:
 
