@@ -196,7 +196,10 @@ export class ${className} extends $Base<"${className}"> {
 }`
   }
 
-  function generateFieldDefinition(field: gq.FieldDefinitionNode, includeArgs: boolean) {
+  function generateFunctionFieldDefinition(
+    field: gq.FieldDefinitionNode,
+    includeArgs: boolean
+  ): string {
     const methodArgs: string[] = []
     const fieldTypeName = printTypeBase(field.type)
     let hasArgs = false,
@@ -225,6 +228,8 @@ export class ${className} extends $Base<"${className}"> {
       }", ${hasSelector ? printTypeWrapped('GetOutput<Sel>', field.type) : printType(field.type)} ${
         hasArgs ? `, GetVariables<${hasSelector ? 'Sel' : '[]'}, Args>` : ', GetVariables<Sel>'
       }>`
+    } else {
+      throw new Error('Attempting to generate function field definition for non-function field')
     }
   }
   function printField(field: gq.FieldDefinitionNode, parentName: string) {
@@ -236,7 +241,7 @@ export class ${className} extends $Base<"${className}"> {
     if (hasArgs || hasSelector) {
       let extractArgs = ''
 
-      let validDefinitions = generateFieldDefinition(field, true)
+      let validDefinitions = generateFunctionFieldDefinition(field, true)
 
       const hasOnlyMaybeInputs = (field.arguments ?? []).every(
         def => def.type.kind !== gq.Kind.NON_NULL_TYPE
@@ -244,7 +249,7 @@ export class ${className} extends $Base<"${className}"> {
       if (hasOnlyMaybeInputs && hasArgs && hasSelector) {
         validDefinitions +=
           '\n' +
-          generateFieldDefinition(field, false) +
+          generateFunctionFieldDefinition(field, false) +
           '\n' +
           `${field.name.value}(arg1: any, arg2?: any)`
         extractArgs = `const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };\n`

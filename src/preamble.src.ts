@@ -252,6 +252,8 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       retVal += '}'
 
       return retVal + ' '
+    } else {
+      throw new Error('Uknown field kind')
     }
   }
 
