@@ -171,7 +171,7 @@ export function compileSchemaString(schemaString: string): string {
 
   function printInputField(def: gq.InputValueDefinitionNode) {
     const maybe = def.type.kind !== gq.Kind.NON_NULL_TYPE ? '?' : ''
-    return `${def.name.value}${maybe}: ${printType(def.type)}`
+    return `${def.name.value}${maybe}: ${printType(def.type)} | Variable<${printType(def.type)}, any>`
   }
 
   function printDocumentation(description?: gq.StringValueNode) {
