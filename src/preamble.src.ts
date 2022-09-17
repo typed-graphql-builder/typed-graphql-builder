@@ -31,7 +31,7 @@ type VariabledInput<T> = [T] extends [$Atomic | null | undefined]
   : T extends ReadonlyArray<infer I>
   ? Variable<T, any> | T | ArrayInput<I>
   : T extends Record<string, any>
-  ? { [K in keyof T]: VariabledInput<T[K]> } | T
+  ? Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
   : never
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void

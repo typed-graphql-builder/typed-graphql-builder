@@ -89,6 +89,7 @@ for (let schema of glob.sync(`./examples/*.graphql`, { cwd: __dirname })) {
       t.test(`compiles with example ${exampleName}`, async t => {
         let res = compileTs(example)
         if (res.status) {
+          console.error(res.stdout.toString())
           t.fail(res.stdout.toString())
         }
       })

@@ -1,7 +1,7 @@
 // Todo: add big query tests
 
 import { verify } from './verify'
-import { query, order_by, $, $$ } from './x.graphql.api'
+import { query, order_by, $, $$, mutation } from './x.graphql.api'
 
 let orderByTest = query(q => [
   q.bookings(
@@ -39,6 +39,15 @@ let bookingsBetween = query(q => [
         c.createdAt,
       ]),
     ]
+  ),
+])
+
+const upsertBookingChannelMutation = mutation(m => [
+  m.insert_booking_channel_one(
+    {
+      object: $$('bc'),
+    },
+    b => [b.name]
   ),
 ])
 
@@ -81,5 +90,10 @@ export default [
     },
     schemaPath: 'x.graphql',
     string: bookingsBetweenString,
+  }),
+  verify({
+    query: upsertBookingChannelMutation,
+    variables: { bc: { name: 'hello' } },
+    schemaPath: 'x.graphql',
   }),
 ]
