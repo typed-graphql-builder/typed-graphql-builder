@@ -28,7 +28,8 @@
   },
   "scripts": {
     "build": "parcel build",
-    "test": "tap test/**/*.test.ts -R spec",
+    "test": "tap src/**/*.test.ts test/**/*.test.ts -R spec",
+    "test:unit": "tap src/**/*.spec.ts -R spec",
     "test:watch": "tap -w test/**/*.test.ts -R spec",
     "regenerate:big-schema": "swc-node src/cli.ts --schema examples/x.graphql --output examples/x.ts",
     "regenerate:small-schema": "swc-node src/cli.ts --schema examples/zeus.graphql --output examples/zeus.ts",

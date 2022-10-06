@@ -1,10 +1,12 @@
 import * as gq from 'graphql'
 import * as fs from 'fs/promises'
+import * as strcon from 'stream/consumers'
 import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
 
 import { request } from 'undici'
 import { UserFacingError } from './user-error'
+import { TypeExtensionNode } from 'graphql'
 
 type Args = {
   /**
@@ -48,18 +50,35 @@ async function fetchOrRead(args: Args) {
     })
     let body = await res.body.json()
     if (body.errors) {
-      throw new UserFacingError(`Error introspecting schema from ${args.schema}: ${body.errors}`)
+      throw new UserFacingError(
+        `Error introspecting schema from ${args.schema}: ${JSON.stringify(body.errors, null, 2)}`
+      )
     }
     return gq.printSchema(gq.buildClientSchema(body.data))
+  } else if (args.schema === '') {
+    return await strcon.text(process.stdin)
   } else {
     return await fs.readFile(args.schema, 'utf8')
   }
 }
 
+type SupportedExtensibleNodes =
+  | gq.InterfaceTypeDefinitionNode
+  | gq.ObjectTypeDefinitionNode
+  | gq.InputObjectTypeDefinitionNode
+
+type FieldOf<T extends SupportedExtensibleNodes> = T extends
+  | gq.ObjectTypeDefinitionNode
+  | gq.InterfaceTypeDefinitionNode
+  ? gq.FieldDefinitionNode
+  : T extends gq.InputObjectTypeDefinitionNode
+  ? gq.InputValueDefinitionNode
+  : never
+
 /**
  * Compiles a schema string directly to output TypeScript code
  */
-export function compileSchemaString(schemaString: string): string {
+export function compileSchemaString(schemaString: string, additionalSchemas?: string[]): string {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
@@ -67,17 +86,39 @@ export function compileSchemaString(schemaString: string): string {
 
   const outputObjectTypeNames = new Set()
 
-  let res = gq.parse(schemaString)
+  let schemas = [gq.parse(schemaString, { noLocation: true })]
 
-  const enumTypes = res.definitions.flatMap(def => {
+  if (additionalSchemas) {
+    for (let extension of additionalSchemas) {
+      let extensionDoc = gq.parse(extension, { noLocation: true })
+      schemas.push(extensionDoc)
+    }
+  }
+
+  let schemaDefinitions = schemas.flatMap(s => s.definitions)
+
+  const enumTypes = schemaDefinitions.flatMap(def => {
     if (def.kind === gq.Kind.ENUM_TYPE_DEFINITION) return [def.name.value]
     return []
   })
 
-  const scalarTypes = res.definitions.flatMap(def => {
+  const scalarTypes = schemaDefinitions.flatMap(def => {
     if (def.kind === gq.Kind.SCALAR_TYPE_DEFINITION) return [def.name.value]
     return []
   })
+
+  const schemaExtensionsMap = schemaDefinitions.filter(gq.isTypeExtensionNode).reduce((acc, el) => {
+    acc.has(el.name.value) ? acc.get(el.name.value)!.push(el) : acc.set(el.name.value, [el])
+    return acc
+  }, new Map<string, gq.TypeExtensionNode[]>())
+
+  function getExtendedFields<T extends SupportedExtensibleNodes>(sd: T) {
+    return ((sd.fields || []) as FieldOf<T>[]).concat(
+      (schemaExtensionsMap.get(sd.name.value) || []).flatMap(
+        n => (n as any).fields || []
+      ) as FieldOf<T>[]
+    )
+  }
 
   const atomicTypes = new Map(
     scalarTypes
@@ -93,7 +134,7 @@ export function compileSchemaString(schemaString: string): string {
   )
 
   const inheritanceMap = new Map(
-    res.definitions.flatMap(def => {
+    schemaDefinitions.flatMap(def => {
       if (def.kind === gq.Kind.OBJECT_TYPE_DEFINITION) {
         return [[def.name.value, def.interfaces?.map(ifc => ifc.name.value)]]
       }
@@ -192,7 +233,9 @@ export class ${className} extends $Base<"${className}"> {
     super("${className}")
   }
 
-  ${def.fields?.map(f => printField(f, className)).join('\n')}
+  ${getExtendedFields(def)
+    .map(f => printField(f, className))
+    .join('\n')}
 }`
   }
 
@@ -293,7 +336,10 @@ export class ${className} extends $Base<"${className}"> {
   constructor() {
     super("${className}")
   }
-  ${def.fields?.map(f => printField(f, className)).join('\n')}
+  ${getExtendedFields(def)
+    .map(f => printField(f, className))
+    .join('\n')}
+
 }`
   }
 
@@ -301,7 +347,9 @@ export class ${className} extends $Base<"${className}"> {
     return `
 ${printDocumentation(def.description)}
 export type ${def.name.value} = {
-  ${def.fields?.map(field => printInputField(field)).join(',\n')}
+  ${getExtendedFields(def)
+    .map(field => printInputField(field))
+    .join(',\n')}
 }
     `
   }
@@ -312,7 +360,9 @@ const $InputTypes: {[key: string]: {[key: string]: string}} = {
   ${defs
     .map(
       def => `  ${def.name.value}: {
-    ${def.fields?.map(field => `${field.name.value}: "${printTypeGql(field.type)}"`).join(',\n')}
+    ${getExtendedFields(def)
+      .map(field => `${field.name.value}: "${printTypeGql(field.type)}"`)
+      .join(',\n')}
   }`
     )
     .join(',\n')}
@@ -376,7 +426,8 @@ export enum ${def.name.value} {
   write(printEnumList())
 
   let rootNode: gq.SchemaDefinitionNode | null = null
-  for (let def of res.definitions) {
+
+  for (let def of schemaDefinitions) {
     switch (def.kind) {
       case gq.Kind.OBJECT_TYPE_DEFINITION:
         write(printObjectType(def))
@@ -444,7 +495,7 @@ export enum ${def.name.value} {
   write(postamble(rootNode.operationTypes.map(o => o.operation.toString())))
   write(
     printInputTypeMap(
-      res.definitions.filter(def => def.kind === gq.Kind.INPUT_OBJECT_TYPE_DEFINITION) as any[]
+      schemaDefinitions.filter(def => def.kind === gq.Kind.INPUT_OBJECT_TYPE_DEFINITION) as any[]
     )
   )
 

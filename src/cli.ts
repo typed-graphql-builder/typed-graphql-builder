@@ -16,6 +16,11 @@ async function main() {
       describe: 'Additional headers to send to the server if passing a server URL',
       default: [] as string[],
     },
+    schemaExtensions: {
+      type: 'array',
+      describe: 'Additional schemas that extend the base',
+      required: false,
+    },
     output: {
       type: 'string',
       describe: 'The output TypeScript file',
