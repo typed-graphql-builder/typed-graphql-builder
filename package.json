@@ -18,7 +18,6 @@
     "@types/tap": "^15.0.7",
     "@types/yargs": "^17.0.12",
     "coveralls": "^3.1.1",
-    "glob": "^8.0.3",
     "parcel": "^2.7.0",
     "swc-node": "^1.0.0",
     "tap": "^16.3.0",
@@ -28,7 +27,8 @@
   },
   "scripts": {
     "build": "parcel build",
-    "test": "tap test/**/*.test.ts -R spec",
+    "test": "tap src/**/*.test.ts test/**/*.test.ts -R spec",
+    "test:unit": "tap src/**/*.spec.ts -R spec",
     "test:watch": "tap -w test/**/*.test.ts -R spec",
     "regenerate:big-schema": "swc-node src/cli.ts --schema examples/x.graphql --output examples/x.ts",
     "regenerate:small-schema": "swc-node src/cli.ts --schema examples/zeus.graphql --output examples/zeus.ts",
@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
+    "glob": "^8.0.3",
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
     "undici": "^5.10.0",

@@ -287,6 +287,16 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   return ret
 }
 
+export type OutputTypeOf<T> = T extends $Base<any>
+  ? { [K in keyof T]?: OutputTypeOf<T[K]> }
+  : [T] extends [$Field<any, infer FieldType, any>]
+  ? FieldType
+  : [T] extends [(selFn: (arg: infer Inner) => any) => any]
+  ? OutputTypeOf<Inner>
+  : [T] extends [(args: any, selFn: (arg: infer Inner) => any) => any]
+  ? OutputTypeOf<Inner>
+  : never
+
 export function fragment<T, Sel extends Selection<T>>(
   GQLType: { new (): T },
   selectFn: (selector: T) => [...Sel]
