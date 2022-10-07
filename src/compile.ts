@@ -1,6 +1,5 @@
 import * as gq from 'graphql'
 import * as fs from 'fs/promises'
-import * as strcon from 'stream/consumers'
 import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
 
@@ -56,7 +55,11 @@ async function fetchOrRead(args: Args) {
     }
     return gq.printSchema(gq.buildClientSchema(body.data))
   } else if (args.schema === '') {
-    return await strcon.text(process.stdin)
+    let res = ''
+    for await (let data of process.stdin) {
+      res += String(data)
+    }
+    return res
   } else {
     return await fs.readFile(args.schema, 'utf8')
   }
