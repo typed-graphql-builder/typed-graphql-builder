@@ -1,7 +1,5 @@
 import t from 'tap'
-import { compileSchemaString } from './compile'
-
-let { describe, it } = t.mocha
+import { compileSchemas } from './compile'
 
 let s1 = `
 schema {
@@ -21,7 +19,7 @@ extend type Query {
 t.autoend(true)
 
 t.test('works with extended schemas', async t => {
-  let res = compileSchemaString(s1, [s2])
+  let res = compileSchemas([s1, s2])
     .split('\n')
     .filter(l => l.includes('this.$_select'))
 

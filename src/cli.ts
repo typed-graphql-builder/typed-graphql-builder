@@ -7,8 +7,9 @@ import { UserFacingError } from './user-error'
 async function main() {
   const args = await yargs.usage('Compiles a GraphQL schema to a TypeScript API').options({
     schema: {
-      type: 'string',
-      describe: 'The path to a local schema file or URL to a server with introspection',
+      type: 'array',
+      string: true,
+      describe: 'Path (or glob) to local schema file or URL to a server with introspection',
       required: true,
     },
     headers: {

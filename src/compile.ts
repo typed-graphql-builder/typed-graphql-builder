@@ -5,13 +5,13 @@ import { postamble } from './postamble'
 
 import { request } from 'undici'
 import { UserFacingError } from './user-error'
-import { TypeExtensionNode } from 'graphql'
+import { glob } from 'glob'
 
 type Args = {
   /**
-   * The schema to compile. Can be a path to a file or an URL to a server supporting introspection
+   * The schema(s) to compile. Can be a path to a file or an URL to a server with introspection
    */
-  schema: string
+  schema: string | string[]
   /**
    * The path to the output file
    */
@@ -27,7 +27,7 @@ type Args = {
  */
 export async function compile(args: Args) {
   const schemaData = await fetchOrRead(args)
-  const outputScript = compileSchemaString(schemaData)
+  const outputScript = compileSchemas(schemaData)
 
   if (args.output === '') {
     console.log(outputScript)
@@ -37,32 +37,40 @@ export async function compile(args: Args) {
 }
 
 async function fetchOrRead(args: Args) {
-  if (/^https?:\/\//.test(args.schema)) {
-    let headers = args.headers ?? []
-    let res = await request(args.schema, {
-      method: 'POST',
-      headers: [...headers.flatMap(h => h.split(':')), 'content-type', 'application/json'],
-      body: JSON.stringify({
-        operationName: 'IntrospectionQuery',
-        query: gq.getIntrospectionQuery(),
-      }),
-    })
-    let body = await res.body.json()
-    if (body.errors) {
-      throw new UserFacingError(
-        `Error introspecting schema from ${args.schema}: ${JSON.stringify(body.errors, null, 2)}`
-      )
+  let loadedSchemas = []
+  let schemas = Array.isArray(args.schema) ? args.schema : [args.schema]
+
+  for (let schemaSpec of schemas) {
+    if (/^https?:\/\//.test(schemaSpec)) {
+      let headers = args.headers ?? []
+      let res = await request(schemaSpec, {
+        method: 'POST',
+        headers: [...headers.flatMap(h => h.split(':')), 'content-type', 'application/json'],
+        body: JSON.stringify({
+          operationName: 'IntrospectionQuery',
+          query: gq.getIntrospectionQuery(),
+        }),
+      })
+      let body = await res.body.json()
+      if (body.errors) {
+        throw new UserFacingError(
+          `Error introspecting schema from ${args.schema}: ${JSON.stringify(body.errors, null, 2)}`
+        )
+      }
+      loadedSchemas.push(gq.printSchema(gq.buildClientSchema(body.data)))
+    } else if (args.schema === '') {
+      let res = ''
+      for await (let data of process.stdin) {
+        res += String(data)
+      }
+      loadedSchemas.push(res)
+    } else {
+      for (let fileName of glob.sync(schemaSpec)) {
+        loadedSchemas.push(await fs.readFile(fileName, 'utf8'))
+      }
     }
-    return gq.printSchema(gq.buildClientSchema(body.data))
-  } else if (args.schema === '') {
-    let res = ''
-    for await (let data of process.stdin) {
-      res += String(data)
-    }
-    return res
-  } else {
-    return await fs.readFile(args.schema, 'utf8')
   }
+  return loadedSchemas
 }
 
 type SupportedExtensibleNodes =
@@ -81,7 +89,7 @@ type FieldOf<T extends SupportedExtensibleNodes> = T extends
 /**
  * Compiles a schema string directly to output TypeScript code
  */
-export function compileSchemaString(schemaString: string, additionalSchemas?: string[]): string {
+export function compileSchemas(schemaStrings: string | string[]): string {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
@@ -89,14 +97,9 @@ export function compileSchemaString(schemaString: string, additionalSchemas?: st
 
   const outputObjectTypeNames = new Set()
 
-  let schemas = [gq.parse(schemaString, { noLocation: true })]
+  let schemaArray = Array.isArray(schemaStrings) ? schemaStrings : [schemaStrings]
 
-  if (additionalSchemas) {
-    for (let extension of additionalSchemas) {
-      let extensionDoc = gq.parse(extension, { noLocation: true })
-      schemas.push(extensionDoc)
-    }
-  }
+  let schemas = schemaArray.map(schemaString => gq.parse(schemaString, { noLocation: true }))
 
   let schemaDefinitions = schemas.flatMap(s => s.definitions)
 
