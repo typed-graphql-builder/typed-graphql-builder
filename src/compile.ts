@@ -1,4 +1,5 @@
 import * as gq from 'graphql'
+import type { DefinitionNode } from 'graphql'
 import * as fs from 'fs/promises'
 import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
@@ -113,7 +114,10 @@ export function compileSchemas(schemaStrings: string | string[], options: Option
 /**
  * Compile a list of schema definitions with the specified options into an output script string
  */
-function compileSchemaDefinitions(schemaDefinitions: gq.DefinitionNode[], options: Options = {}) {
+export function compileSchemaDefinitions(
+  schemaDefinitions: DefinitionNode[],
+  options: Options = {}
+) {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
