@@ -2,13 +2,12 @@ import * as gq from 'graphql'
 import * as fs from 'fs/promises'
 import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
-
 import { request } from 'undici'
 import { UserFacingError } from './user-error'
 import { glob } from 'glob'
 import { getScalars } from './scalars'
 
-type Args = {
+export type Args = {
   /**
    * The schema(s) to compile. Can be a path to a file or an URL to a server with introspection
    */
@@ -94,7 +93,7 @@ type FieldOf<T extends SupportedExtensibleNodes> = T extends
   ? gq.InputValueDefinitionNode
   : never
 
-type Options = {
+export type Options = {
   scalars?: [string, string][]
 }
 
@@ -114,10 +113,7 @@ export function compileSchemas(schemaStrings: string | string[], options: Option
 /**
  * Compile a list of schema definitions with the specified options into an output script string
  */
-export function compileSchemaDefinitions(
-  schemaDefinitions: gq.DefinitionNode[],
-  options: Options = {}
-) {
+function compileSchemaDefinitions(schemaDefinitions: gq.DefinitionNode[], options: Options = {}) {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
