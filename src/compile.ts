@@ -98,24 +98,32 @@ type Options = {
   scalars?: [string, string][]
 }
 
-//export function compileSchemaAST(schemaAST: gq.DocumentNode, options: Options) {}
-
 /**
  * Compiles a schema string directly to output TypeScript code
  */
-export function compileSchemas(schemaStrings: string | string[], options: Options): string {
+export function compileSchemas(schemaStrings: string | string[], options: Options = {}): string {
+  let schemaArray = Array.isArray(schemaStrings) ? schemaStrings : [schemaStrings]
+
+  let schemas = schemaArray.map(schemaString => gq.parse(schemaString, { noLocation: false }))
+
+  let schemaDefinitions = schemas.flatMap(s => s.definitions)
+
+  return compileSchemaDefinitions(schemaDefinitions, options)
+}
+
+/**
+ * Compile a list of schema definitions with the specified options into an output script string
+ */
+export function compileSchemaDefinitions(
+  schemaDefinitions: gq.DefinitionNode[],
+  options: Options = {}
+) {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
   }
 
   const outputObjectTypeNames = new Set()
-
-  let schemaArray = Array.isArray(schemaStrings) ? schemaStrings : [schemaStrings]
-
-  let schemas = schemaArray.map(schemaString => gq.parse(schemaString, { noLocation: true }))
-
-  let schemaDefinitions = schemas.flatMap(s => s.definitions)
 
   const enumTypes = schemaDefinitions.flatMap(def => {
     if (def.kind === gq.Kind.ENUM_TYPE_DEFINITION) return [def.name.value]
@@ -135,11 +143,17 @@ export function compileSchemas(schemaStrings: string | string[], options: Option
   }, new Map<string, gq.TypeExtensionNode[]>())
 
   function getExtendedFields<T extends SupportedExtensibleNodes>(sd: T) {
-    return ((sd.fields || []) as FieldOf<T>[]).concat(
+    let fieldList = ((sd.fields || []) as FieldOf<T>[]).concat(
       (schemaExtensionsMap.get(sd.name.value) || []).flatMap(
         n => (n as any).fields || []
       ) as FieldOf<T>[]
     )
+    fieldList.sort((f1, f2) =>
+      f1.name.value < f2.name.value ? -1 : f1.name.value > f2.name.value ? 1 : 0
+    )
+
+    // Override duplicate fields
+    return fieldList.filter((f, ix) => fieldList[ix + 1]?.name.value !== f.name.value)
   }
 
   const atomicTypes = new Map(
@@ -440,6 +454,7 @@ export enum ${def.name.value} {
   `
   }
 
+  write(scalars.imports.join('\n'))
   write(Preamble)
   write(printAtomicTypes())
   write(printEnumList())
