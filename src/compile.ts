@@ -6,6 +6,7 @@ import { postamble } from './postamble'
 import { request } from 'undici'
 import { UserFacingError } from './user-error'
 import { glob } from 'glob'
+import { getScalars } from './scalars'
 
 type Args = {
   /**
@@ -20,6 +21,11 @@ type Args = {
    * If the schema is an URL, additional headers to send
    */
   headers?: string[]
+
+  /**
+   * A list of scalars and paths to their type definitions
+   */
+  scalar?: string[]
 }
 
 /**
@@ -27,7 +33,9 @@ type Args = {
  */
 export async function compile(args: Args) {
   const schemaData = await fetchOrRead(args)
-  const outputScript = compileSchemas(schemaData)
+
+  const scalars = args.scalar?.map(s => s.split('=') as [string, string])
+  const outputScript = compileSchemas(schemaData, { scalars })
 
   if (args.output === '') {
     console.log(outputScript)
@@ -86,10 +94,16 @@ type FieldOf<T extends SupportedExtensibleNodes> = T extends
   ? gq.InputValueDefinitionNode
   : never
 
+type Options = {
+  scalars?: [string, string][]
+}
+
+//export function compileSchemaAST(schemaAST: gq.DocumentNode, options: Options) {}
+
 /**
  * Compiles a schema string directly to output TypeScript code
  */
-export function compileSchemas(schemaStrings: string | string[]): string {
+export function compileSchemas(schemaStrings: string | string[], options: Options): string {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
@@ -108,10 +122,12 @@ export function compileSchemas(schemaStrings: string | string[]): string {
     return []
   })
 
-  const scalarTypes = schemaDefinitions.flatMap(def => {
+  const scalarTypeNames = schemaDefinitions.flatMap(def => {
     if (def.kind === gq.Kind.SCALAR_TYPE_DEFINITION) return [def.name.value]
     return []
   })
+
+  const scalars = getScalars(scalarTypeNames, options.scalars)
 
   const schemaExtensionsMap = schemaDefinitions.filter(gq.isTypeExtensionNode).reduce((acc, el) => {
     acc.has(el.name.value) ? acc.get(el.name.value)!.push(el) : acc.set(el.name.value, [el])
@@ -127,16 +143,13 @@ export function compileSchemas(schemaStrings: string | string[]): string {
   }
 
   const atomicTypes = new Map(
-    scalarTypes
-      .map(st => [st, 'string'])
-      .concat(enumTypes.map(et => [et, et]))
-      .concat([
-        ['Int', 'number'],
-        ['Float', 'number'],
-        ['ID', 'string'],
-        ['String', 'string'],
-        ['Boolean', 'boolean'],
-      ]) as [string, string][]
+    scalars.map.concat(enumTypes.map(et => [et, et])).concat([
+      ['Int', 'number'],
+      ['Float', 'number'],
+      ['ID', 'string'],
+      ['String', 'string'],
+      ['Boolean', 'boolean'],
+    ]) as [string, string][]
   )
 
   const inheritanceMap = new Map(
