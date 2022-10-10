@@ -14,7 +14,7 @@ type ResolvedScalar = {
 
 function pairsToScalarMap(scalarArgs?: [string, string][]): ScalarMapping[] {
   return (scalarArgs || DEFAULT_SCALAR_MAPPING).map(([nameRegex, typePathPattern]) => ({
-    nameRegex,
+    nameRegex: '^' + nameRegex + '$',
     typePathPattern: typePathPattern ?? nameRegex,
   }))
 }

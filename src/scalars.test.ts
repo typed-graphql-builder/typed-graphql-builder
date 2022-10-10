@@ -15,6 +15,12 @@ t.test('plain string scalar', async t => {
   t.same(scalarInfo.imports, [])
 })
 
+t.test('must not match subpattern', async t => {
+  let scalarInfo = getScalars(['MyTest2'], scalarMapPairs)
+  t.same(scalarInfo.map, [['MyTest2', 'unknown']])
+  t.same(scalarInfo.imports, [])
+})
+
 t.test('scalar with import', async t => {
   let scalarInfo = getScalars(['Another'], scalarMapPairs)
   t.same(scalarInfo.map, [['Another', 'Another']])
@@ -31,4 +37,10 @@ t.test('scalar not matching any other pattern', async t => {
   let scalarInfo = getScalars(['Blaha'], scalarMapPairs)
   t.same(scalarInfo.map, [['Blaha', 'unknown']])
   t.same(scalarInfo.imports, [])
+})
+
+t.test('replacement and rename patterns working', async t => {
+  let scalarInfo = getScalars(['MyScalar'], [['(.+)', './scalars#Rename$1']])
+  t.same(scalarInfo.map, [['MyScalar', 'MyScalar']])
+  t.same(scalarInfo.imports, [`import type { RenameMyScalar as MyScalar } from './scalars'`])
 })
