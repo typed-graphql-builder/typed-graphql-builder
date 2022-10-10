@@ -27,6 +27,12 @@ async function main() {
       describe: 'The output TypeScript file',
       required: true,
     },
+    scalar: {
+      type: 'array',
+      string: true,
+      describe:
+        'List of scalars in the format ScalarName=[./path/to/scalardefinition#ScalarExport]',
+    },
   }).argv
 
   try {

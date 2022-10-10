@@ -1,13 +1,14 @@
 import * as gq from 'graphql'
+import type { DefinitionNode } from 'graphql'
 import * as fs from 'fs/promises'
 import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
-
 import { request } from 'undici'
 import { UserFacingError } from './user-error'
 import { glob } from 'glob'
+import { getScalars } from './scalars'
 
-type Args = {
+export type Args = {
   /**
    * The schema(s) to compile. Can be a path to a file or an URL to a server with introspection
    */
@@ -20,6 +21,11 @@ type Args = {
    * If the schema is an URL, additional headers to send
    */
   headers?: string[]
+
+  /**
+   * A list of scalars and paths to their type definitions
+   */
+  scalar?: string[]
 }
 
 /**
@@ -27,7 +33,9 @@ type Args = {
  */
 export async function compile(args: Args) {
   const schemaData = await fetchOrRead(args)
-  const outputScript = compileSchemas(schemaData)
+
+  const scalars = args.scalar?.map(s => s.split('=') as [string, string])
+  const outputScript = compileSchemas(schemaData, { scalars })
 
   if (args.output === '') {
     console.log(outputScript)
@@ -86,10 +94,30 @@ type FieldOf<T extends SupportedExtensibleNodes> = T extends
   ? gq.InputValueDefinitionNode
   : never
 
+export type Options = {
+  scalars?: [string, string][]
+}
+
 /**
  * Compiles a schema string directly to output TypeScript code
  */
-export function compileSchemas(schemaStrings: string | string[]): string {
+export function compileSchemas(schemaStrings: string | string[], options: Options = {}): string {
+  let schemaArray = Array.isArray(schemaStrings) ? schemaStrings : [schemaStrings]
+
+  let schemas = schemaArray.map(schemaString => gq.parse(schemaString, { noLocation: false }))
+
+  let schemaDefinitions = schemas.flatMap(s => s.definitions)
+
+  return compileSchemaDefinitions(schemaDefinitions, options)
+}
+
+/**
+ * Compile a list of schema definitions with the specified options into an output script string
+ */
+export function compileSchemaDefinitions(
+  schemaDefinitions: DefinitionNode[],
+  options: Options = {}
+) {
   let outputScript = ''
   const write = (s: string) => {
     outputScript += s + '\n'
@@ -97,21 +125,17 @@ export function compileSchemas(schemaStrings: string | string[]): string {
 
   const outputObjectTypeNames = new Set()
 
-  let schemaArray = Array.isArray(schemaStrings) ? schemaStrings : [schemaStrings]
-
-  let schemas = schemaArray.map(schemaString => gq.parse(schemaString, { noLocation: true }))
-
-  let schemaDefinitions = schemas.flatMap(s => s.definitions)
-
   const enumTypes = schemaDefinitions.flatMap(def => {
     if (def.kind === gq.Kind.ENUM_TYPE_DEFINITION) return [def.name.value]
     return []
   })
 
-  const scalarTypes = schemaDefinitions.flatMap(def => {
+  const scalarTypeNames = schemaDefinitions.flatMap(def => {
     if (def.kind === gq.Kind.SCALAR_TYPE_DEFINITION) return [def.name.value]
     return []
   })
+
+  const scalars = getScalars(scalarTypeNames, options.scalars)
 
   const schemaExtensionsMap = schemaDefinitions.filter(gq.isTypeExtensionNode).reduce((acc, el) => {
     acc.has(el.name.value) ? acc.get(el.name.value)!.push(el) : acc.set(el.name.value, [el])
@@ -119,24 +143,27 @@ export function compileSchemas(schemaStrings: string | string[]): string {
   }, new Map<string, gq.TypeExtensionNode[]>())
 
   function getExtendedFields<T extends SupportedExtensibleNodes>(sd: T) {
-    return ((sd.fields || []) as FieldOf<T>[]).concat(
+    let fieldList = ((sd.fields || []) as FieldOf<T>[]).concat(
       (schemaExtensionsMap.get(sd.name.value) || []).flatMap(
         n => (n as any).fields || []
       ) as FieldOf<T>[]
     )
+    fieldList.sort((f1, f2) =>
+      f1.name.value < f2.name.value ? -1 : f1.name.value > f2.name.value ? 1 : 0
+    )
+
+    // Override duplicate fields
+    return fieldList.filter((f, ix) => fieldList[ix + 1]?.name.value !== f.name.value)
   }
 
   const atomicTypes = new Map(
-    scalarTypes
-      .map(st => [st, 'string'])
-      .concat(enumTypes.map(et => [et, et]))
-      .concat([
-        ['Int', 'number'],
-        ['Float', 'number'],
-        ['ID', 'string'],
-        ['String', 'string'],
-        ['Boolean', 'boolean'],
-      ]) as [string, string][]
+    scalars.map.concat(enumTypes.map(et => [et, et])).concat([
+      ['Int', 'number'],
+      ['Float', 'number'],
+      ['ID', 'string'],
+      ['String', 'string'],
+      ['Boolean', 'boolean'],
+    ]) as [string, string][]
   )
 
   const inheritanceMap = new Map(
@@ -427,6 +454,7 @@ export enum ${def.name.value} {
   `
   }
 
+  write(scalars.imports.join('\n'))
   write(Preamble)
   write(printAtomicTypes())
   write(printEnumList())
