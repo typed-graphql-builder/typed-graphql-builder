@@ -372,7 +372,7 @@ export class ${className} extends $Base<"${className}"> {
     }
   }
 
-  function printInterface(def: gq.InterfaceTypeDefinitionNode, all: gq.DefinitionNode[]) {
+  function printInterface(def: gq.InterfaceTypeDefinitionNode) {
     const className = def.name.value
 
     const additionalTypes = reverseInheritanceMap.get(className) ?? []
@@ -490,7 +490,7 @@ export enum ${def.name.value} {
         write(printEnum(def))
         break
       case gq.Kind.INTERFACE_TYPE_DEFINITION:
-        write(printInterface(def, schemaDefinitions))
+        write(printInterface(def))
         break
       case gq.Kind.SCHEMA_DEFINITION:
         rootNode = def
