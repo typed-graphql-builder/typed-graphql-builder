@@ -166,10 +166,22 @@ export function compileSchemaDefinitions(
     ]) as [string, string][]
   )
 
+  const reverseInheritanceMap = new Map<string, string[]>()
   const inheritanceMap = new Map(
     schemaDefinitions.flatMap(def => {
       if (def.kind === gq.Kind.OBJECT_TYPE_DEFINITION) {
-        return [[def.name.value, def.interfaces?.map(ifc => ifc.name.value)]]
+        return [
+          [
+            def.name.value,
+            def.interfaces?.map(ifc => {
+              reverseInheritanceMap.set(
+                ifc.name.value,
+                (reverseInheritanceMap.get(ifc.name.value) ?? []).concat(def.name.value)
+              )
+              return ifc.name.value
+            }),
+          ],
+        ]
       }
       return []
     })
@@ -360,19 +372,17 @@ export class ${className} extends $Base<"${className}"> {
     }
   }
 
-  function printInterface(def: gq.InterfaceTypeDefinitionNode) {
+  function printInterface(def: gq.InterfaceTypeDefinitionNode, all: gq.DefinitionNode[]) {
     const className = def.name.value
 
+    const additionalTypes = reverseInheritanceMap.get(className) ?? []
+    const InterfaceObject = `{${additionalTypes.map(t => `${t}: ${t}`)}}`
     return `
 ${printDocumentation(def.description)}
-export class ${className} extends $Base<"${className}"> {
+export class ${def.name.value} extends $Interface<${InterfaceObject}, "${def.name.value}"> {
   constructor() {
-    super("${className}")
+    super(${InterfaceObject}, "${def.name.value}")
   }
-  ${getExtendedFields(def)
-    .map(f => printField(f, className))
-    .join('\n')}
-
 }`
   }
 
@@ -480,7 +490,7 @@ export enum ${def.name.value} {
         write(printEnum(def))
         break
       case gq.Kind.INTERFACE_TYPE_DEFINITION:
-        write(printInterface(def))
+        write(printInterface(def, schemaDefinitions))
         break
       case gq.Kind.SCHEMA_DEFINITION:
         rootNode = def

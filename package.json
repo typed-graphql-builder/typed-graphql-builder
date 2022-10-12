@@ -32,6 +32,7 @@
     "test:watch": "tap -w test/**/*.test.ts -R spec",
     "regenerate:big-schema": "swc-node src/cli.ts --schema examples/x.graphql --output examples/x.ts",
     "regenerate:small-schema": "swc-node src/cli.ts --schema examples/zeus.graphql --output examples/zeus.ts",
+    "regenerate:sw-schema": "swc-node src/cli.ts --schema examples/schema-sw.graphql --output examples/api-sw.ts",
     "regenerate:country-schema": "swc-node src/cli.ts --schema examples/countries-schema.graphql --output examples/countries-schema.ts",
     "prepublishOnly": "yarn build && yarn test"
   },
