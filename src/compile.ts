@@ -175,6 +175,15 @@ export function compileSchemaDefinitions(
     })
   )
 
+  // reverse map to answer "who implements this"
+  const reverseInheritanceMap = new Map<string, string[]>()
+  for (const [key, values] of inheritanceMap) {
+    if (!values) continue
+    for (const value of values) {
+      reverseInheritanceMap.set(value, (reverseInheritanceMap.get(value) ?? []).concat(key))
+    }
+  }
+
   function isAtomic(typeName: string) {
     return !!atomicTypes.get(typeName)
   }
@@ -363,16 +372,14 @@ export class ${className} extends $Base<"${className}"> {
   function printInterface(def: gq.InterfaceTypeDefinitionNode) {
     const className = def.name.value
 
+    const additionalTypes = reverseInheritanceMap.get(className) ?? []
+    const InterfaceObject = `{${additionalTypes.map(t => `${t}: ${t}`)}}`
     return `
 ${printDocumentation(def.description)}
-export class ${className} extends $Base<"${className}"> {
+export class ${def.name.value} extends $Interface<${InterfaceObject}, "${def.name.value}"> {
   constructor() {
-    super("${className}")
+    super(${InterfaceObject}, "${def.name.value}")
   }
-  ${getExtendedFields(def)
-    .map(f => printField(f, className))
-    .join('\n')}
-
 }`
   }
 

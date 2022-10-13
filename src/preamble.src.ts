@@ -104,6 +104,23 @@ class $Union<T, Name extends String> {
   }
 }
 
+class $Interface<T, Name extends string> extends $Base<Name> {
+  private type!: T
+  private name!: Name
+
+  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
+    super($$name)
+  }
+  $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
+    alternative: Type,
+    selectorFn: (selector: T[Type]) => [...Sel]
+  ): $UnionSelection<GetOutput<Sel>, GetVariables<Sel>> {
+    const selection = selectorFn(new this.selectorClasses[alternative]())
+
+    return new $UnionSelection(alternative as string, selection)
+  }
+}
+
 class $UnionSelection<T, Vars> {
   public kind: 'union' = 'union'
   private vars!: Vars

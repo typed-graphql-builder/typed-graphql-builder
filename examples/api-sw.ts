@@ -1,4 +1,5 @@
 
+
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import gql from 'graphql-tag'
 
@@ -6,31 +7,50 @@ import gql from 'graphql-tag'
 /* eslint-disable */
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
-const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
 
 class Variable<T, Name extends string> {
   private [VariableName]: Name
-  private [VariableType]?: T
+  private _type?: T
 
-  constructor(name: Name) {
+  constructor(name: Name, private readonly isRequired?: boolean) {
     this[VariableName] = name
   }
 }
 
-type VariabledInput<T> = T extends $Atomic | undefined
-  ? Variable<NonNullable<T>, any> | T
-  : T extends ReadonlyArray<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | ReadonlyArray<VariabledInput<NonNullable<R>>> | T
-  : T extends Array<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
-  : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
+  ? never
+  : ReadonlyArray<VariabledInput<I>>
+
+// the array wrapper prevents distributive conditional types
+// https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
+type VariabledInput<T> = [T] extends [$Atomic | null | undefined]
+  ? Variable<T, any> | T
+  : T extends ReadonlyArray<infer I>
+  ? Variable<T, any> | T | ArrayInput<I>
+  : T extends Record<string, any>
+  ? Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+  : never
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
   ? I
   : never
 
-export const $ = <Type, Name extends string>(name: Name) => {
-  return new Variable(name) as Variable<Type, Name>
+/**
+ * Creates a new query variable
+ *
+ * @param name The variable name
+ */
+export const $ = <Type, Name extends string>(name: Name): Variable<Type, Name> => {
+  return new Variable(name)
+}
+
+/**
+ * Creates a new query variable. A value will be required even if the input is optional
+ *
+ * @param name The variable name
+ */
+export const $$ = <Type, Name extends string>(name: Name): Variable<NonNullable<Type>, Name> => {
+  return new Variable(name, true)
 }
 
 type SelectOptions = {
@@ -81,6 +101,23 @@ class $Union<T, Name extends String> {
   }
 }
 
+class $Interface<T, Name extends string> extends $Base<Name> {
+  private type!: T
+  private name!: Name
+
+  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
+    super($$name)
+  }
+  $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
+    alternative: Type,
+    selectorFn: (selector: T[Type]) => [...Sel]
+  ): $UnionSelection<GetOutput<Sel>, GetVariables<Sel>> {
+    const selection = selectorFn(new this.selectorClasses[alternative]())
+
+    return new $UnionSelection(alternative as string, selection)
+  }
+}
+
 class $UnionSelection<T, Vars> {
   public kind: 'union' = 'union'
   private vars!: Vars
@@ -102,8 +139,12 @@ export type GetOutput<X extends Selection<any>> = UnionToIntersection<
     }[keyof X & number]
   >
 
+type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
+  ? { [key in VName]?: VType }
+  : { [key in VName]: VType }
+
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
-  ? { [key in VName]: VType }
+  ? PossiblyOptionalVar<VName, VType>
   : Inputs extends $Atomic
   ? {}
   : Inputs extends any[] | readonly any[]
@@ -123,24 +164,60 @@ export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIn
 > &
   ExtractInputVariables<ExtraVars>
 
+type ArgVarType = {
+  type: string
+  isRequired: boolean
+  array: {
+    isRequired: boolean
+  } | null
+}
+
+const arrRegex = /\[(.*?)\]/
+
+/**
+ * Converts graphql string type to `ArgVarType`
+ * @param input
+ * @returns
+ */
+function getArgVarType(input: string): ArgVarType {
+  const array = input.includes('[')
+    ? {
+        isRequired: input.endsWith('!'),
+      }
+    : null
+
+  const type = array ? arrRegex.exec(input)![1] : input
+  const isRequired = type.endsWith('!')
+
+  return {
+    array,
+    isRequired: isRequired,
+    type: type.replace('!', ''),
+  }
+}
+
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
-  const variables = new Map<string, string>()
+  const variables = new Map<string, { variable: Variable<any, any>; type: ArgVarType }>()
 
   function stringifyArgs(
     args: any,
     argTypes: { [key: string]: string },
-    argVarType?: string
+    argVarType?: ArgVarType
   ): string {
     switch (typeof args) {
       case 'string':
+        const cleanType = argVarType!.type
+        if ($Enums.has(cleanType!)) return args
+        else return JSON.stringify(args)
       case 'number':
       case 'boolean':
         return JSON.stringify(args)
       default:
         if (VariableName in (args as any)) {
           if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
-          const argVarName = (args as any)[VariableName]
-          variables.set(argVarName, argVarType)
+          const variable = args as Variable<any, any>
+          const argVarName = variable[VariableName]
+          variables.set(argVarName, { type: argVarType, variable: variable })
           return '$' + argVarName
         }
         if (Array.isArray(args))
@@ -154,7 +231,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
                 throw new Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
-              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
+              return (
+                key + ':' + stringifyArgs(val, $InputTypes[cleanType], getArgVarType(argTypes[key]))
+              )
             })
             .join(',')
         )
@@ -187,6 +266,8 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       retVal += '}'
 
       return retVal + ' '
+    } else {
+      throw new Error('Uknown field kind')
     }
   }
 
@@ -197,12 +278,38 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const varList = Array.from(variables.entries())
   let ret = prefix
   if (varList.length) {
-    ret += '(' + varList.map(([name, kind]) => '$' + name + ':' + kind).join(',') + ')'
+    ret +=
+      '(' +
+      varList
+        .map(([name, { type: kind, variable }]) => {
+          let type = kind.array ? '[' : ''
+          type += kind.type
+          if (kind.isRequired) type += '!'
+          if (kind.array) type += kind.array.isRequired ? ']!' : ']'
+
+          if (!type.endsWith('!') && (variable as any).isRequired === true) {
+            type += '!'
+          }
+
+          return '$' + name + ':' + type
+        })
+        .join(',') +
+      ')'
   }
   ret += queryBody
 
   return ret
 }
+
+export type OutputTypeOf<T> = T extends $Base<any>
+  ? { [K in keyof T]?: OutputTypeOf<T[K]> }
+  : [T] extends [$Field<any, infer FieldType, any>]
+  ? FieldType
+  : [T] extends [(selFn: (arg: infer Inner) => any) => any]
+  ? OutputTypeOf<Inner>
+  : [T] extends [(args: any, selFn: (arg: infer Inner) => any) => any]
+  ? OutputTypeOf<Inner>
+  : never
 
 export function fragment<T, Sel extends Selection<T>>(
   GQLType: { new (): T },
@@ -211,8 +318,9 @@ export function fragment<T, Sel extends Selection<T>>(
   return selectFn(new GQLType())
 }
 
-
 type $Atomic = number | string | boolean
+
+let $Enums = new Set<string>([])
 
 
 
@@ -226,133 +334,15 @@ export class Film extends $Base<"Film"> {
 
   
       
-/**
- * The title of this film.
- */
-      get title(): $Field<"title", string | undefined>  {
-       return this.$_select("title") as any
-      }
-
-      
-/**
- * The episode number of this film.
- */
-      get episodeID(): $Field<"episodeID", number | undefined>  {
-       return this.$_select("episodeID") as any
-      }
-
-      
-/**
- * The opening paragraphs at the beginning of this film.
- */
-      get openingCrawl(): $Field<"openingCrawl", string | undefined>  {
-       return this.$_select("openingCrawl") as any
-      }
-
-      
-/**
- * The name of the director of this film.
- */
-      get director(): $Field<"director", string | undefined>  {
-       return this.$_select("director") as any
-      }
-
-      
-/**
- * The name(s) of the producer(s) of this film.
- */
-      get producers(): $Field<"producers", Array<string | undefined> | undefined>  {
-       return this.$_select("producers") as any
-      }
-
-      
-/**
- * The ISO 8601 date format of film release at original creator country.
- */
-      get releaseDate(): $Field<"releaseDate", string | undefined>  {
-       return this.$_select("releaseDate") as any
-      }
-
-      
-      speciesConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<FilmSpeciesConnection>>(...params: [selectorFn: (s: FilmSpeciesConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmSpeciesConnection) => [...Sel]]):$Field<"speciesConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              after: "String",
-first: "Int",
-before: "String",
-last: "Int"
-            },
-        args,
-
-        selection: selectorFn(new FilmSpeciesConnection)
-      };
-      return this.$_select("speciesConnection", options) as any
-    }
-  
-
-      
-      starshipConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<FilmStarshipsConnection>>(...params: [selectorFn: (s: FilmStarshipsConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmStarshipsConnection) => [...Sel]]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              after: "String",
-first: "Int",
-before: "String",
-last: "Int"
-            },
-        args,
-
-        selection: selectorFn(new FilmStarshipsConnection)
-      };
-      return this.$_select("starshipConnection", options) as any
-    }
-  
-
-      
-      vehicleConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<FilmVehiclesConnection>>(...params: [selectorFn: (s: FilmVehiclesConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmVehiclesConnection) => [...Sel]]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              after: "String",
-first: "Int",
-before: "String",
-last: "Int"
-            },
-        args,
-
-        selection: selectorFn(new FilmVehiclesConnection)
-      };
-      return this.$_select("vehicleConnection", options) as any
-    }
-  
-
-      
       characterConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<FilmCharactersConnection>>(...params: [selectorFn: (s: FilmCharactersConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmCharactersConnection) => [...Sel]]):$Field<"characterConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<FilmCharactersConnection>>(args: Args, selectorFn: (s: FilmCharactersConnection) => [...Sel]):$Field<"characterConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+characterConnection<Sel extends Selection<FilmCharactersConnection>>(selectorFn: (s: FilmCharactersConnection) => [...Sel]):$Field<"characterConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+characterConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -370,13 +360,63 @@ last: "Int"
   
 
       
+/**
+ * The ISO 8601 date format of the time that this resource was created.
+ */
+      get created(): $Field<"created", string | null | undefined>  {
+       return this.$_select("created") as any
+      }
+
+      
+/**
+ * The name of the director of this film.
+ */
+      get director(): $Field<"director", string | null | undefined>  {
+       return this.$_select("director") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was edited.
+ */
+      get edited(): $Field<"edited", string | null | undefined>  {
+       return this.$_select("edited") as any
+      }
+
+      
+/**
+ * The episode number of this film.
+ */
+      get episodeID(): $Field<"episodeID", number | null | undefined>  {
+       return this.$_select("episodeID") as any
+      }
+
+      
+/**
+ * The ID of an object
+ */
+      get id(): $Field<"id", string>  {
+       return this.$_select("id") as any
+      }
+
+      
+/**
+ * The opening paragraphs at the beginning of this film.
+ */
+      get openingCrawl(): $Field<"openingCrawl", string | null | undefined>  {
+       return this.$_select("openingCrawl") as any
+      }
+
+      
       planetConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<FilmPlanetsConnection>>(...params: [selectorFn: (s: FilmPlanetsConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmPlanetsConnection) => [...Sel]]):$Field<"planetConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<FilmPlanetsConnection>>(args: Args, selectorFn: (s: FilmPlanetsConnection) => [...Sel]):$Field<"planetConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+planetConnection<Sel extends Selection<FilmPlanetsConnection>>(selectorFn: (s: FilmPlanetsConnection) => [...Sel]):$Field<"planetConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+planetConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -395,27 +435,105 @@ last: "Int"
 
       
 /**
- * The ISO 8601 date format of the time that this resource was created.
+ * The name(s) of the producer(s) of this film.
  */
-      get created(): $Field<"created", string | undefined>  {
-       return this.$_select("created") as any
+      get producers(): $Field<"producers", Readonly<Array<string | null | undefined>> | null | undefined>  {
+       return this.$_select("producers") as any
       }
 
       
 /**
- * The ISO 8601 date format of the time that this resource was edited.
+ * The ISO 8601 date format of film release at original creator country.
  */
-      get edited(): $Field<"edited", string | undefined>  {
-       return this.$_select("edited") as any
+      get releaseDate(): $Field<"releaseDate", string | null | undefined>  {
+       return this.$_select("releaseDate") as any
       }
 
       
+      speciesConnection<Args extends VariabledInput<{
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<FilmSpeciesConnection>>(args: Args, selectorFn: (s: FilmSpeciesConnection) => [...Sel]):$Field<"speciesConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+speciesConnection<Sel extends Selection<FilmSpeciesConnection>>(selectorFn: (s: FilmSpeciesConnection) => [...Sel]):$Field<"speciesConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+speciesConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              after: "String",
+first: "Int",
+before: "String",
+last: "Int"
+            },
+        args,
+
+        selection: selectorFn(new FilmSpeciesConnection)
+      };
+      return this.$_select("speciesConnection", options) as any
+    }
+  
+
+      
+      starshipConnection<Args extends VariabledInput<{
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<FilmStarshipsConnection>>(args: Args, selectorFn: (s: FilmStarshipsConnection) => [...Sel]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+starshipConnection<Sel extends Selection<FilmStarshipsConnection>>(selectorFn: (s: FilmStarshipsConnection) => [...Sel]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+starshipConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              after: "String",
+first: "Int",
+before: "String",
+last: "Int"
+            },
+        args,
+
+        selection: selectorFn(new FilmStarshipsConnection)
+      };
+      return this.$_select("starshipConnection", options) as any
+    }
+  
+
+      
 /**
- * The ID of an object
+ * The title of this film.
  */
-      get id(): $Field<"id", string>  {
-       return this.$_select("id") as any
+      get title(): $Field<"title", string | null | undefined>  {
+       return this.$_select("title") as any
       }
+
+      
+      vehicleConnection<Args extends VariabledInput<{
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<FilmVehiclesConnection>>(args: Args, selectorFn: (s: FilmVehiclesConnection) => [...Sel]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+vehicleConnection<Sel extends Selection<FilmVehiclesConnection>>(selectorFn: (s: FilmVehiclesConnection) => [...Sel]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+vehicleConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              after: "String",
+first: "Int",
+before: "String",
+last: "Int"
+            },
+        args,
+
+        selection: selectorFn(new FilmVehiclesConnection)
+      };
+      return this.$_select("vehicleConnection", options) as any
+    }
+  
 }
 
 
@@ -430,17 +548,22 @@ export class FilmCharactersConnection extends $Base<"FilmCharactersConnection"> 
   
       
 /**
- * Information to aid in pagination.
+ * A list of all of the objects returned in the connection. This is a convenience
+field provided for quickly exploring the API; rather than querying for
+"{ edges { node } }" when no edge data is needed, this field can be be used
+instead. Note that when clients like Relay need to fetch the "cursor" field on
+the edge to enable efficient pagination, this shortcut cannot be used, and the
+full "{ edges { node } }" version should be used instead.
  */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
+      characters<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"characters", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
         
 
-        selection: selectorFn(new PageInfo)
+        selection: selectorFn(new Person)
       };
-      return this.$_select("pageInfo", options) as any
+      return this.$_select("characters", options) as any
     }
   
 
@@ -448,7 +571,7 @@ export class FilmCharactersConnection extends $Base<"FilmCharactersConnection"> 
 /**
  * A list of edges.
  */
-      edges<Sel extends Selection<FilmCharactersEdge>>(selectorFn: (s: FilmCharactersEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<FilmCharactersEdge>>(selectorFn: (s: FilmCharactersEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -462,35 +585,30 @@ export class FilmCharactersConnection extends $Base<"FilmCharactersConnection"> 
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
-
-      
-/**
- * A list of all of the objects returned in the connection. This is a convenience
-field provided for quickly exploring the API; rather than querying for
-"{ edges { node } }" when no edge data is needed, this field can be be used
-instead. Note that when clients like Relay need to fetch the "cursor" field on
-the edge to enable efficient pagination, this shortcut cannot be used, and the
-full "{ edges { node } }" version should be used instead.
- */
-      characters<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"characters", Array<GetOutput<Sel> | undefined> | undefined > {
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
       
       const options = {
         
         
 
-        selection: selectorFn(new Person)
+        selection: selectorFn(new PageInfo)
       };
-      return this.$_select("characters", options) as any
+      return this.$_select("pageInfo", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -505,9 +623,17 @@ export class FilmCharactersEdge extends $Base<"FilmCharactersEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -518,14 +644,6 @@ export class FilmCharactersEdge extends $Base<"FilmCharactersEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -540,25 +658,9 @@ export class FilmPlanetsConnection extends $Base<"FilmPlanetsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<FilmPlanetsEdge>>(selectorFn: (s: FilmPlanetsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<FilmPlanetsEdge>>(selectorFn: (s: FilmPlanetsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -572,14 +674,19 @@ export class FilmPlanetsConnection extends $Base<"FilmPlanetsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -590,7 +697,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      planets<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"planets", Array<GetOutput<Sel> | undefined> | undefined > {
+      planets<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"planets", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -601,6 +708,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("planets", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -615,9 +733,17 @@ export class FilmPlanetsEdge extends $Base<"FilmPlanetsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -628,14 +754,6 @@ export class FilmPlanetsEdge extends $Base<"FilmPlanetsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -650,25 +768,9 @@ export class FilmsConnection extends $Base<"FilmsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<FilmsEdge>>(selectorFn: (s: FilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<FilmsEdge>>(selectorFn: (s: FilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -682,17 +784,6 @@ export class FilmsConnection extends $Base<"FilmsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
- */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
-
-      
-/**
  * A list of all of the objects returned in the connection. This is a convenience
 field provided for quickly exploring the API; rather than querying for
 "{ edges { node } }" when no edge data is needed, this field can be be used
@@ -700,7 +791,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -711,6 +802,33 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("films", options) as any
     }
   
+
+      
+/**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -725,9 +843,17 @@ export class FilmsEdge extends $Base<"FilmsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -738,14 +864,6 @@ export class FilmsEdge extends $Base<"FilmsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -760,25 +878,9 @@ export class FilmSpeciesConnection extends $Base<"FilmSpeciesConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<FilmSpeciesEdge>>(selectorFn: (s: FilmSpeciesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<FilmSpeciesEdge>>(selectorFn: (s: FilmSpeciesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -792,14 +894,19 @@ export class FilmSpeciesConnection extends $Base<"FilmSpeciesConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -810,7 +917,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", Array<GetOutput<Sel> | undefined> | undefined > {
+      species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -821,6 +928,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("species", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -835,9 +953,17 @@ export class FilmSpeciesEdge extends $Base<"FilmSpeciesEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -848,14 +974,6 @@ export class FilmSpeciesEdge extends $Base<"FilmSpeciesEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -870,25 +988,9 @@ export class FilmStarshipsConnection extends $Base<"FilmStarshipsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<FilmStarshipsEdge>>(selectorFn: (s: FilmStarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<FilmStarshipsEdge>>(selectorFn: (s: FilmStarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -902,14 +1004,19 @@ export class FilmStarshipsConnection extends $Base<"FilmStarshipsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -920,7 +1027,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined > {
+      starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -931,6 +1038,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("starships", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -945,9 +1063,17 @@ export class FilmStarshipsEdge extends $Base<"FilmStarshipsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -958,14 +1084,6 @@ export class FilmStarshipsEdge extends $Base<"FilmStarshipsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -980,25 +1098,9 @@ export class FilmVehiclesConnection extends $Base<"FilmVehiclesConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<FilmVehiclesEdge>>(selectorFn: (s: FilmVehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<FilmVehiclesEdge>>(selectorFn: (s: FilmVehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1012,12 +1114,28 @@ export class FilmVehiclesConnection extends $Base<"FilmVehiclesConnection"> {
 
       
 /**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
  * A count of the total number of objects in this connection, ignoring pagination.
 This allows a client to fetch the first five objects by passing "5" as the
 argument to "first", then fetch the total count so it could display "5 of 83",
 for example.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
        return this.$_select("totalCount") as any
       }
 
@@ -1030,7 +1148,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined > {
+      vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1055,9 +1173,17 @@ export class FilmVehiclesEdge extends $Base<"FilmVehiclesEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1068,32 +1194,16 @@ export class FilmVehiclesEdge extends $Base<"FilmVehiclesEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
 /**
  * An object with an ID
  */
-export class Node extends $Base<"Node"> {
+export class Node extends $Interface<{Film: Film,Person: Person,Planet: Planet,Species: Species,Starship: Starship,Vehicle: Vehicle}, "Node"> {
   constructor() {
-    super("Node")
+    super({Film: Film,Person: Person,Planet: Planet,Species: Species,Starship: Starship,Vehicle: Vehicle}, "Node")
   }
-  
-      
-/**
- * The id of the object.
- */
-      get id(): $Field<"id", string>  {
-       return this.$_select("id") as any
-      }
 }
 
 
@@ -1106,6 +1216,14 @@ export class PageInfo extends $Base<"PageInfo"> {
   }
 
   
+      
+/**
+ * When paginating forwards, the cursor to continue.
+ */
+      get endCursor(): $Field<"endCursor", string | null | undefined>  {
+       return this.$_select("endCursor") as any
+      }
+
       
 /**
  * When paginating forwards, are there more items?
@@ -1126,16 +1244,8 @@ export class PageInfo extends $Base<"PageInfo"> {
 /**
  * When paginating backwards, the cursor to continue.
  */
-      get startCursor(): $Field<"startCursor", string | undefined>  {
+      get startCursor(): $Field<"startCursor", string | null | undefined>  {
        return this.$_select("startCursor") as any
-      }
-
-      
-/**
- * When paginating forwards, the cursor to continue.
- */
-      get endCursor(): $Field<"endCursor", string | undefined>  {
-       return this.$_select("endCursor") as any
       }
 }
 
@@ -1151,25 +1261,9 @@ export class PeopleConnection extends $Base<"PeopleConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<PeopleEdge>>(selectorFn: (s: PeopleEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<PeopleEdge>>(selectorFn: (s: PeopleEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1183,14 +1277,19 @@ export class PeopleConnection extends $Base<"PeopleConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -1201,7 +1300,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      people<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"people", Array<GetOutput<Sel> | undefined> | undefined > {
+      people<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"people", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1212,6 +1311,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("people", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -1226,9 +1336,17 @@ export class PeopleEdge extends $Base<"PeopleEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1239,14 +1357,6 @@ export class PeopleEdge extends $Base<"PeopleEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -1261,20 +1371,28 @@ export class Person extends $Base<"Person"> {
   
       
 /**
- * The name of this person.
- */
-      get name(): $Field<"name", string | undefined>  {
-       return this.$_select("name") as any
-      }
-
-      
-/**
  * The birth year of the person, using the in-universe standard of BBY or ABY -
 Before the Battle of Yavin or After the Battle of Yavin. The Battle of Yavin is
 a battle that occurs at the end of Star Wars episode IV: A New Hope.
  */
-      get birthYear(): $Field<"birthYear", string | undefined>  {
+      get birthYear(): $Field<"birthYear", string | null | undefined>  {
        return this.$_select("birthYear") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was created.
+ */
+      get created(): $Field<"created", string | null | undefined>  {
+       return this.$_select("created") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was edited.
+ */
+      get edited(): $Field<"edited", string | null | undefined>  {
+       return this.$_select("edited") as any
       }
 
       
@@ -1282,76 +1400,20 @@ a battle that occurs at the end of Star Wars episode IV: A New Hope.
  * The eye color of this person. Will be "unknown" if not known or "n/a" if the
 person does not have an eye.
  */
-      get eyeColor(): $Field<"eyeColor", string | undefined>  {
+      get eyeColor(): $Field<"eyeColor", string | null | undefined>  {
        return this.$_select("eyeColor") as any
       }
 
       
-/**
- * The gender of this person. Either "Male", "Female" or "unknown",
-"n/a" if the person does not have a gender.
- */
-      get gender(): $Field<"gender", string | undefined>  {
-       return this.$_select("gender") as any
-      }
-
-      
-/**
- * The hair color of this person. Will be "unknown" if not known or "n/a" if the
-person does not have hair.
- */
-      get hairColor(): $Field<"hairColor", string | undefined>  {
-       return this.$_select("hairColor") as any
-      }
-
-      
-/**
- * The height of the person in centimeters.
- */
-      get height(): $Field<"height", number | undefined>  {
-       return this.$_select("height") as any
-      }
-
-      
-/**
- * The mass of the person in kilograms.
- */
-      get mass(): $Field<"mass", number | undefined>  {
-       return this.$_select("mass") as any
-      }
-
-      
-/**
- * The skin color of this person.
- */
-      get skinColor(): $Field<"skinColor", string | undefined>  {
-       return this.$_select("skinColor") as any
-      }
-
-      
-/**
- * A planet that this person was born on or inhabits.
- */
-      homeworld<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"homeworld", GetOutput<Sel> | undefined > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new Planet)
-      };
-      return this.$_select("homeworld", options) as any
-    }
-  
-
-      
       filmConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<PersonFilmsConnection>>(...params: [selectorFn: (s: PersonFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PersonFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<PersonFilmsConnection>>(args: Args, selectorFn: (s: PersonFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+filmConnection<Sel extends Selection<PersonFilmsConnection>>(selectorFn: (s: PersonFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+filmConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -1370,9 +1432,83 @@ last: "Int"
 
       
 /**
+ * The gender of this person. Either "Male", "Female" or "unknown",
+"n/a" if the person does not have a gender.
+ */
+      get gender(): $Field<"gender", string | null | undefined>  {
+       return this.$_select("gender") as any
+      }
+
+      
+/**
+ * The hair color of this person. Will be "unknown" if not known or "n/a" if the
+person does not have hair.
+ */
+      get hairColor(): $Field<"hairColor", string | null | undefined>  {
+       return this.$_select("hairColor") as any
+      }
+
+      
+/**
+ * The height of the person in centimeters.
+ */
+      get height(): $Field<"height", number | null | undefined>  {
+       return this.$_select("height") as any
+      }
+
+      
+/**
+ * A planet that this person was born on or inhabits.
+ */
+      homeworld<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"homeworld", GetOutput<Sel> | undefined , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new Planet)
+      };
+      return this.$_select("homeworld", options) as any
+    }
+  
+
+      
+/**
+ * The ID of an object
+ */
+      get id(): $Field<"id", string>  {
+       return this.$_select("id") as any
+      }
+
+      
+/**
+ * The mass of the person in kilograms.
+ */
+      get mass(): $Field<"mass", number | null | undefined>  {
+       return this.$_select("mass") as any
+      }
+
+      
+/**
+ * The name of this person.
+ */
+      get name(): $Field<"name", string | null | undefined>  {
+       return this.$_select("name") as any
+      }
+
+      
+/**
+ * The skin color of this person.
+ */
+      get skinColor(): $Field<"skinColor", string | null | undefined>  {
+       return this.$_select("skinColor") as any
+      }
+
+      
+/**
  * The species that this person belongs to, or null if unknown.
  */
-      species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", GetOutput<Sel> | undefined > {
+      species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1386,12 +1522,14 @@ last: "Int"
 
       
       starshipConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<PersonStarshipsConnection>>(...params: [selectorFn: (s: PersonStarshipsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PersonStarshipsConnection) => [...Sel]]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<PersonStarshipsConnection>>(args: Args, selectorFn: (s: PersonStarshipsConnection) => [...Sel]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+starshipConnection<Sel extends Selection<PersonStarshipsConnection>>(selectorFn: (s: PersonStarshipsConnection) => [...Sel]):$Field<"starshipConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+starshipConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -1410,12 +1548,14 @@ last: "Int"
 
       
       vehicleConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<PersonVehiclesConnection>>(...params: [selectorFn: (s: PersonVehiclesConnection) => [...Sel]] | [args: Args, selectorFn: (s: PersonVehiclesConnection) => [...Sel]]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<PersonVehiclesConnection>>(args: Args, selectorFn: (s: PersonVehiclesConnection) => [...Sel]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+vehicleConnection<Sel extends Selection<PersonVehiclesConnection>>(selectorFn: (s: PersonVehiclesConnection) => [...Sel]):$Field<"vehicleConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+vehicleConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -1431,30 +1571,6 @@ last: "Int"
       return this.$_select("vehicleConnection", options) as any
     }
   
-
-      
-/**
- * The ISO 8601 date format of the time that this resource was created.
- */
-      get created(): $Field<"created", string | undefined>  {
-       return this.$_select("created") as any
-      }
-
-      
-/**
- * The ISO 8601 date format of the time that this resource was edited.
- */
-      get edited(): $Field<"edited", string | undefined>  {
-       return this.$_select("edited") as any
-      }
-
-      
-/**
- * The ID of an object
- */
-      get id(): $Field<"id", string>  {
-       return this.$_select("id") as any
-      }
 }
 
 
@@ -1469,25 +1585,9 @@ export class PersonFilmsConnection extends $Base<"PersonFilmsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<PersonFilmsEdge>>(selectorFn: (s: PersonFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<PersonFilmsEdge>>(selectorFn: (s: PersonFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1501,17 +1601,6 @@ export class PersonFilmsConnection extends $Base<"PersonFilmsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
- */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
-
-      
-/**
  * A list of all of the objects returned in the connection. This is a convenience
 field provided for quickly exploring the API; rather than querying for
 "{ edges { node } }" when no edge data is needed, this field can be be used
@@ -1519,7 +1608,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1530,6 +1619,33 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("films", options) as any
     }
   
+
+      
+/**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -1544,9 +1660,17 @@ export class PersonFilmsEdge extends $Base<"PersonFilmsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1557,14 +1681,6 @@ export class PersonFilmsEdge extends $Base<"PersonFilmsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -1579,25 +1695,9 @@ export class PersonStarshipsConnection extends $Base<"PersonStarshipsConnection"
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<PersonStarshipsEdge>>(selectorFn: (s: PersonStarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<PersonStarshipsEdge>>(selectorFn: (s: PersonStarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1611,14 +1711,19 @@ export class PersonStarshipsConnection extends $Base<"PersonStarshipsConnection"
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -1629,7 +1734,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined > {
+      starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1640,6 +1745,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("starships", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -1654,9 +1770,17 @@ export class PersonStarshipsEdge extends $Base<"PersonStarshipsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1667,14 +1791,6 @@ export class PersonStarshipsEdge extends $Base<"PersonStarshipsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -1689,25 +1805,9 @@ export class PersonVehiclesConnection extends $Base<"PersonVehiclesConnection"> 
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<PersonVehiclesEdge>>(selectorFn: (s: PersonVehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<PersonVehiclesEdge>>(selectorFn: (s: PersonVehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1721,12 +1821,28 @@ export class PersonVehiclesConnection extends $Base<"PersonVehiclesConnection"> 
 
       
 /**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
  * A count of the total number of objects in this connection, ignoring pagination.
 This allows a client to fetch the first five objects by passing "5" as the
 argument to "first", then fetch the total count so it could display "5 of 83",
 for example.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
        return this.$_select("totalCount") as any
       }
 
@@ -1739,7 +1855,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined > {
+      vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1764,9 +1880,17 @@ export class PersonVehiclesEdge extends $Base<"PersonVehiclesEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1777,14 +1901,6 @@ export class PersonVehiclesEdge extends $Base<"PersonVehiclesEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -1800,112 +1916,46 @@ export class Planet extends $Base<"Planet"> {
   
       
 /**
- * The name of this planet.
+ * The climates of this planet.
  */
-      get name(): $Field<"name", string | undefined>  {
-       return this.$_select("name") as any
+      get climates(): $Field<"climates", Readonly<Array<string | null | undefined>> | null | undefined>  {
+       return this.$_select("climates") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was created.
+ */
+      get created(): $Field<"created", string | null | undefined>  {
+       return this.$_select("created") as any
       }
 
       
 /**
  * The diameter of this planet in kilometers.
  */
-      get diameter(): $Field<"diameter", number | undefined>  {
+      get diameter(): $Field<"diameter", number | null | undefined>  {
        return this.$_select("diameter") as any
       }
 
       
 /**
- * The number of standard hours it takes for this planet to complete a single
-rotation on its axis.
+ * The ISO 8601 date format of the time that this resource was edited.
  */
-      get rotationPeriod(): $Field<"rotationPeriod", number | undefined>  {
-       return this.$_select("rotationPeriod") as any
+      get edited(): $Field<"edited", string | null | undefined>  {
+       return this.$_select("edited") as any
       }
-
-      
-/**
- * The number of standard days it takes for this planet to complete a single orbit
-of its local star.
- */
-      get orbitalPeriod(): $Field<"orbitalPeriod", number | undefined>  {
-       return this.$_select("orbitalPeriod") as any
-      }
-
-      
-/**
- * A number denoting the gravity of this planet, where "1" is normal or 1 standard
-G. "2" is twice or 2 standard Gs. "0.5" is half or 0.5 standard Gs.
- */
-      get gravity(): $Field<"gravity", string | undefined>  {
-       return this.$_select("gravity") as any
-      }
-
-      
-/**
- * The average population of sentient beings inhabiting this planet.
- */
-      get population(): $Field<"population", number | undefined>  {
-       return this.$_select("population") as any
-      }
-
-      
-/**
- * The climates of this planet.
- */
-      get climates(): $Field<"climates", Array<string | undefined> | undefined>  {
-       return this.$_select("climates") as any
-      }
-
-      
-/**
- * The terrains of this planet.
- */
-      get terrains(): $Field<"terrains", Array<string | undefined> | undefined>  {
-       return this.$_select("terrains") as any
-      }
-
-      
-/**
- * The percentage of the planet surface that is naturally occurring water or bodies
-of water.
- */
-      get surfaceWater(): $Field<"surfaceWater", number | undefined>  {
-       return this.$_select("surfaceWater") as any
-      }
-
-      
-      residentConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<PlanetResidentsConnection>>(...params: [selectorFn: (s: PlanetResidentsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PlanetResidentsConnection) => [...Sel]]):$Field<"residentConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              after: "String",
-first: "Int",
-before: "String",
-last: "Int"
-            },
-        args,
-
-        selection: selectorFn(new PlanetResidentsConnection)
-      };
-      return this.$_select("residentConnection", options) as any
-    }
-  
 
       
       filmConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<PlanetFilmsConnection>>(...params: [selectorFn: (s: PlanetFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PlanetFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<PlanetFilmsConnection>>(args: Args, selectorFn: (s: PlanetFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+filmConnection<Sel extends Selection<PlanetFilmsConnection>>(selectorFn: (s: PlanetFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+filmConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -1924,18 +1974,11 @@ last: "Int"
 
       
 /**
- * The ISO 8601 date format of the time that this resource was created.
+ * A number denoting the gravity of this planet, where "1" is normal or 1 standard
+G. "2" is twice or 2 standard Gs. "0.5" is half or 0.5 standard Gs.
  */
-      get created(): $Field<"created", string | undefined>  {
-       return this.$_select("created") as any
-      }
-
-      
-/**
- * The ISO 8601 date format of the time that this resource was edited.
- */
-      get edited(): $Field<"edited", string | undefined>  {
-       return this.$_select("edited") as any
+      get gravity(): $Field<"gravity", string | null | undefined>  {
+       return this.$_select("gravity") as any
       }
 
       
@@ -1944,6 +1987,83 @@ last: "Int"
  */
       get id(): $Field<"id", string>  {
        return this.$_select("id") as any
+      }
+
+      
+/**
+ * The name of this planet.
+ */
+      get name(): $Field<"name", string | null | undefined>  {
+       return this.$_select("name") as any
+      }
+
+      
+/**
+ * The number of standard days it takes for this planet to complete a single orbit
+of its local star.
+ */
+      get orbitalPeriod(): $Field<"orbitalPeriod", number | null | undefined>  {
+       return this.$_select("orbitalPeriod") as any
+      }
+
+      
+/**
+ * The average population of sentient beings inhabiting this planet.
+ */
+      get population(): $Field<"population", number | null | undefined>  {
+       return this.$_select("population") as any
+      }
+
+      
+      residentConnection<Args extends VariabledInput<{
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<PlanetResidentsConnection>>(args: Args, selectorFn: (s: PlanetResidentsConnection) => [...Sel]):$Field<"residentConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+residentConnection<Sel extends Selection<PlanetResidentsConnection>>(selectorFn: (s: PlanetResidentsConnection) => [...Sel]):$Field<"residentConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+residentConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              after: "String",
+first: "Int",
+before: "String",
+last: "Int"
+            },
+        args,
+
+        selection: selectorFn(new PlanetResidentsConnection)
+      };
+      return this.$_select("residentConnection", options) as any
+    }
+  
+
+      
+/**
+ * The number of standard hours it takes for this planet to complete a single
+rotation on its axis.
+ */
+      get rotationPeriod(): $Field<"rotationPeriod", number | null | undefined>  {
+       return this.$_select("rotationPeriod") as any
+      }
+
+      
+/**
+ * The percentage of the planet surface that is naturally occurring water or bodies
+of water.
+ */
+      get surfaceWater(): $Field<"surfaceWater", number | null | undefined>  {
+       return this.$_select("surfaceWater") as any
+      }
+
+      
+/**
+ * The terrains of this planet.
+ */
+      get terrains(): $Field<"terrains", Readonly<Array<string | null | undefined>> | null | undefined>  {
+       return this.$_select("terrains") as any
       }
 }
 
@@ -1959,25 +2079,9 @@ export class PlanetFilmsConnection extends $Base<"PlanetFilmsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<PlanetFilmsEdge>>(selectorFn: (s: PlanetFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<PlanetFilmsEdge>>(selectorFn: (s: PlanetFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -1991,17 +2095,6 @@ export class PlanetFilmsConnection extends $Base<"PlanetFilmsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
- */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
-
-      
-/**
  * A list of all of the objects returned in the connection. This is a convenience
 field provided for quickly exploring the API; rather than querying for
 "{ edges { node } }" when no edge data is needed, this field can be be used
@@ -2009,7 +2102,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2020,6 +2113,33 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("films", options) as any
     }
   
+
+      
+/**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -2034,9 +2154,17 @@ export class PlanetFilmsEdge extends $Base<"PlanetFilmsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2047,14 +2175,6 @@ export class PlanetFilmsEdge extends $Base<"PlanetFilmsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -2069,25 +2189,9 @@ export class PlanetResidentsConnection extends $Base<"PlanetResidentsConnection"
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<PlanetResidentsEdge>>(selectorFn: (s: PlanetResidentsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<PlanetResidentsEdge>>(selectorFn: (s: PlanetResidentsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2101,14 +2205,19 @@ export class PlanetResidentsConnection extends $Base<"PlanetResidentsConnection"
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -2119,7 +2228,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      residents<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"residents", Array<GetOutput<Sel> | undefined> | undefined > {
+      residents<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"residents", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2130,6 +2239,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("residents", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -2144,9 +2264,17 @@ export class PlanetResidentsEdge extends $Base<"PlanetResidentsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2157,14 +2285,6 @@ export class PlanetResidentsEdge extends $Base<"PlanetResidentsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -2179,25 +2299,9 @@ export class PlanetsConnection extends $Base<"PlanetsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<PlanetsEdge>>(selectorFn: (s: PlanetsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<PlanetsEdge>>(selectorFn: (s: PlanetsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2211,14 +2315,19 @@ export class PlanetsConnection extends $Base<"PlanetsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -2229,7 +2338,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      planets<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"planets", Array<GetOutput<Sel> | undefined> | undefined > {
+      planets<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"planets", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2240,6 +2349,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("planets", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -2254,9 +2374,17 @@ export class PlanetsEdge extends $Base<"PlanetsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2267,14 +2395,6 @@ export class PlanetsEdge extends $Base<"PlanetsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -2286,12 +2406,14 @@ export class Root extends $Base<"Root"> {
   
       
       allFilms<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<FilmsConnection>>(...params: [selectorFn: (s: FilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: FilmsConnection) => [...Sel]]):$Field<"allFilms", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<FilmsConnection>>(args: Args, selectorFn: (s: FilmsConnection) => [...Sel]):$Field<"allFilms", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+allFilms<Sel extends Selection<FilmsConnection>>(selectorFn: (s: FilmsConnection) => [...Sel]):$Field<"allFilms", GetOutput<Sel> | undefined , GetVariables<Sel>>
+allFilms(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2309,33 +2431,15 @@ last: "Int"
   
 
       
-      film<Args extends VariabledInput<{
-        id?: string | undefined
-filmID?: string | undefined,
-      }>,Sel extends Selection<Film>>(...params: [selectorFn: (s: Film) => [...Sel]] | [args: Args, selectorFn: (s: Film) => [...Sel]]):$Field<"film", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              id: "ID",
-filmID: "ID"
-            },
-        args,
-
-        selection: selectorFn(new Film)
-      };
-      return this.$_select("film", options) as any
-    }
-  
-
-      
       allPeople<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<PeopleConnection>>(...params: [selectorFn: (s: PeopleConnection) => [...Sel]] | [args: Args, selectorFn: (s: PeopleConnection) => [...Sel]]):$Field<"allPeople", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<PeopleConnection>>(args: Args, selectorFn: (s: PeopleConnection) => [...Sel]):$Field<"allPeople", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+allPeople<Sel extends Selection<PeopleConnection>>(selectorFn: (s: PeopleConnection) => [...Sel]):$Field<"allPeople", GetOutput<Sel> | undefined , GetVariables<Sel>>
+allPeople(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2353,33 +2457,15 @@ last: "Int"
   
 
       
-      person<Args extends VariabledInput<{
-        id?: string | undefined
-personID?: string | undefined,
-      }>,Sel extends Selection<Person>>(...params: [selectorFn: (s: Person) => [...Sel]] | [args: Args, selectorFn: (s: Person) => [...Sel]]):$Field<"person", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              id: "ID",
-personID: "ID"
-            },
-        args,
-
-        selection: selectorFn(new Person)
-      };
-      return this.$_select("person", options) as any
-    }
-  
-
-      
       allPlanets<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<PlanetsConnection>>(...params: [selectorFn: (s: PlanetsConnection) => [...Sel]] | [args: Args, selectorFn: (s: PlanetsConnection) => [...Sel]]):$Field<"allPlanets", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<PlanetsConnection>>(args: Args, selectorFn: (s: PlanetsConnection) => [...Sel]):$Field<"allPlanets", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+allPlanets<Sel extends Selection<PlanetsConnection>>(selectorFn: (s: PlanetsConnection) => [...Sel]):$Field<"allPlanets", GetOutput<Sel> | undefined , GetVariables<Sel>>
+allPlanets(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2397,33 +2483,15 @@ last: "Int"
   
 
       
-      planet<Args extends VariabledInput<{
-        id?: string | undefined
-planetID?: string | undefined,
-      }>,Sel extends Selection<Planet>>(...params: [selectorFn: (s: Planet) => [...Sel]] | [args: Args, selectorFn: (s: Planet) => [...Sel]]):$Field<"planet", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              id: "ID",
-planetID: "ID"
-            },
-        args,
-
-        selection: selectorFn(new Planet)
-      };
-      return this.$_select("planet", options) as any
-    }
-  
-
-      
       allSpecies<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<SpeciesConnection>>(...params: [selectorFn: (s: SpeciesConnection) => [...Sel]] | [args: Args, selectorFn: (s: SpeciesConnection) => [...Sel]]):$Field<"allSpecies", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<SpeciesConnection>>(args: Args, selectorFn: (s: SpeciesConnection) => [...Sel]):$Field<"allSpecies", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+allSpecies<Sel extends Selection<SpeciesConnection>>(selectorFn: (s: SpeciesConnection) => [...Sel]):$Field<"allSpecies", GetOutput<Sel> | undefined , GetVariables<Sel>>
+allSpecies(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2441,33 +2509,15 @@ last: "Int"
   
 
       
-      species<Args extends VariabledInput<{
-        id?: string | undefined
-speciesID?: string | undefined,
-      }>,Sel extends Selection<Species>>(...params: [selectorFn: (s: Species) => [...Sel]] | [args: Args, selectorFn: (s: Species) => [...Sel]]):$Field<"species", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              id: "ID",
-speciesID: "ID"
-            },
-        args,
-
-        selection: selectorFn(new Species)
-      };
-      return this.$_select("species", options) as any
-    }
-  
-
-      
       allStarships<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<StarshipsConnection>>(...params: [selectorFn: (s: StarshipsConnection) => [...Sel]] | [args: Args, selectorFn: (s: StarshipsConnection) => [...Sel]]):$Field<"allStarships", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<StarshipsConnection>>(args: Args, selectorFn: (s: StarshipsConnection) => [...Sel]):$Field<"allStarships", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+allStarships<Sel extends Selection<StarshipsConnection>>(selectorFn: (s: StarshipsConnection) => [...Sel]):$Field<"allStarships", GetOutput<Sel> | undefined , GetVariables<Sel>>
+allStarships(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2485,33 +2535,15 @@ last: "Int"
   
 
       
-      starship<Args extends VariabledInput<{
-        id?: string | undefined
-starshipID?: string | undefined,
-      }>,Sel extends Selection<Starship>>(...params: [selectorFn: (s: Starship) => [...Sel]] | [args: Args, selectorFn: (s: Starship) => [...Sel]]):$Field<"starship", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              id: "ID",
-starshipID: "ID"
-            },
-        args,
-
-        selection: selectorFn(new Starship)
-      };
-      return this.$_select("starship", options) as any
-    }
-  
-
-      
       allVehicles<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<VehiclesConnection>>(...params: [selectorFn: (s: VehiclesConnection) => [...Sel]] | [args: Args, selectorFn: (s: VehiclesConnection) => [...Sel]]):$Field<"allVehicles", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<VehiclesConnection>>(args: Args, selectorFn: (s: VehiclesConnection) => [...Sel]):$Field<"allVehicles", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+allVehicles<Sel extends Selection<VehiclesConnection>>(selectorFn: (s: VehiclesConnection) => [...Sel]):$Field<"allVehicles", GetOutput<Sel> | undefined , GetVariables<Sel>>
+allVehicles(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2529,22 +2561,24 @@ last: "Int"
   
 
       
-      vehicle<Args extends VariabledInput<{
-        id?: string | undefined
-vehicleID?: string | undefined,
-      }>,Sel extends Selection<Vehicle>>(...params: [selectorFn: (s: Vehicle) => [...Sel]] | [args: Args, selectorFn: (s: Vehicle) => [...Sel]]):$Field<"vehicle", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+      film<Args extends VariabledInput<{
+        id?: string | null | undefined
+filmID?: string | null | undefined,
+      }>,Sel extends Selection<Film>>(args: Args, selectorFn: (s: Film) => [...Sel]):$Field<"film", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+film<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"film", GetOutput<Sel> | undefined , GetVariables<Sel>>
+film(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
               id: "ID",
-vehicleID: "ID"
+filmID: "ID"
             },
         args,
 
-        selection: selectorFn(new Vehicle)
+        selection: selectorFn(new Film)
       };
-      return this.$_select("vehicle", options) as any
+      return this.$_select("film", options) as any
     }
   
 
@@ -2567,6 +2601,116 @@ vehicleID: "ID"
       return this.$_select("node", options) as any
     }
   
+
+      
+      person<Args extends VariabledInput<{
+        id?: string | null | undefined
+personID?: string | null | undefined,
+      }>,Sel extends Selection<Person>>(args: Args, selectorFn: (s: Person) => [...Sel]):$Field<"person", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+person<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"person", GetOutput<Sel> | undefined , GetVariables<Sel>>
+person(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              id: "ID",
+personID: "ID"
+            },
+        args,
+
+        selection: selectorFn(new Person)
+      };
+      return this.$_select("person", options) as any
+    }
+  
+
+      
+      planet<Args extends VariabledInput<{
+        id?: string | null | undefined
+planetID?: string | null | undefined,
+      }>,Sel extends Selection<Planet>>(args: Args, selectorFn: (s: Planet) => [...Sel]):$Field<"planet", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+planet<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"planet", GetOutput<Sel> | undefined , GetVariables<Sel>>
+planet(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              id: "ID",
+planetID: "ID"
+            },
+        args,
+
+        selection: selectorFn(new Planet)
+      };
+      return this.$_select("planet", options) as any
+    }
+  
+
+      
+      species<Args extends VariabledInput<{
+        id?: string | null | undefined
+speciesID?: string | null | undefined,
+      }>,Sel extends Selection<Species>>(args: Args, selectorFn: (s: Species) => [...Sel]):$Field<"species", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", GetOutput<Sel> | undefined , GetVariables<Sel>>
+species(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              id: "ID",
+speciesID: "ID"
+            },
+        args,
+
+        selection: selectorFn(new Species)
+      };
+      return this.$_select("species", options) as any
+    }
+  
+
+      
+      starship<Args extends VariabledInput<{
+        id?: string | null | undefined
+starshipID?: string | null | undefined,
+      }>,Sel extends Selection<Starship>>(args: Args, selectorFn: (s: Starship) => [...Sel]):$Field<"starship", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+starship<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starship", GetOutput<Sel> | undefined , GetVariables<Sel>>
+starship(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              id: "ID",
+starshipID: "ID"
+            },
+        args,
+
+        selection: selectorFn(new Starship)
+      };
+      return this.$_select("starship", options) as any
+    }
+  
+
+      
+      vehicle<Args extends VariabledInput<{
+        id?: string | null | undefined
+vehicleID?: string | null | undefined,
+      }>,Sel extends Selection<Vehicle>>(args: Args, selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicle", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+vehicle<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicle", GetOutput<Sel> | undefined , GetVariables<Sel>>
+vehicle(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              id: "ID",
+vehicleID: "ID"
+            },
+        args,
+
+        selection: selectorFn(new Vehicle)
+      };
+      return this.$_select("vehicle", options) as any
+    }
+  
 }
 
 
@@ -2581,33 +2725,9 @@ export class Species extends $Base<"Species"> {
   
       
 /**
- * The name of this species.
- */
-      get name(): $Field<"name", string | undefined>  {
-       return this.$_select("name") as any
-      }
-
-      
-/**
- * The classification of this species, such as "mammal" or "reptile".
- */
-      get classification(): $Field<"classification", string | undefined>  {
-       return this.$_select("classification") as any
-      }
-
-      
-/**
- * The designation of this species, such as "sentient".
- */
-      get designation(): $Field<"designation", string | undefined>  {
-       return this.$_select("designation") as any
-      }
-
-      
-/**
  * The average height of this species in centimeters.
  */
-      get averageHeight(): $Field<"averageHeight", number | undefined>  {
+      get averageHeight(): $Field<"averageHeight", number | null | undefined>  {
        return this.$_select("averageHeight") as any
       }
 
@@ -2615,8 +2735,40 @@ export class Species extends $Base<"Species"> {
 /**
  * The average lifespan of this species in years, null if unknown.
  */
-      get averageLifespan(): $Field<"averageLifespan", number | undefined>  {
+      get averageLifespan(): $Field<"averageLifespan", number | null | undefined>  {
        return this.$_select("averageLifespan") as any
+      }
+
+      
+/**
+ * The classification of this species, such as "mammal" or "reptile".
+ */
+      get classification(): $Field<"classification", string | null | undefined>  {
+       return this.$_select("classification") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was created.
+ */
+      get created(): $Field<"created", string | null | undefined>  {
+       return this.$_select("created") as any
+      }
+
+      
+/**
+ * The designation of this species, such as "sentient".
+ */
+      get designation(): $Field<"designation", string | null | undefined>  {
+       return this.$_select("designation") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was edited.
+ */
+      get edited(): $Field<"edited", string | null | undefined>  {
+       return this.$_select("edited") as any
       }
 
       
@@ -2624,84 +2776,20 @@ export class Species extends $Base<"Species"> {
  * Common eye colors for this species, null if this species does not typically
 have eyes.
  */
-      get eyeColors(): $Field<"eyeColors", Array<string | undefined> | undefined>  {
+      get eyeColors(): $Field<"eyeColors", Readonly<Array<string | null | undefined>> | null | undefined>  {
        return this.$_select("eyeColors") as any
       }
 
       
-/**
- * Common hair colors for this species, null if this species does not typically
-have hair.
- */
-      get hairColors(): $Field<"hairColors", Array<string | undefined> | undefined>  {
-       return this.$_select("hairColors") as any
-      }
-
-      
-/**
- * Common skin colors for this species, null if this species does not typically
-have skin.
- */
-      get skinColors(): $Field<"skinColors", Array<string | undefined> | undefined>  {
-       return this.$_select("skinColors") as any
-      }
-
-      
-/**
- * The language commonly spoken by this species.
- */
-      get language(): $Field<"language", string | undefined>  {
-       return this.$_select("language") as any
-      }
-
-      
-/**
- * A planet that this species originates from.
- */
-      homeworld<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"homeworld", GetOutput<Sel> | undefined > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new Planet)
-      };
-      return this.$_select("homeworld", options) as any
-    }
-  
-
-      
-      personConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<SpeciesPeopleConnection>>(...params: [selectorFn: (s: SpeciesPeopleConnection) => [...Sel]] | [args: Args, selectorFn: (s: SpeciesPeopleConnection) => [...Sel]]):$Field<"personConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
-
-      const options = {
-        argTypes: {
-              after: "String",
-first: "Int",
-before: "String",
-last: "Int"
-            },
-        args,
-
-        selection: selectorFn(new SpeciesPeopleConnection)
-      };
-      return this.$_select("personConnection", options) as any
-    }
-  
-
-      
       filmConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<SpeciesFilmsConnection>>(...params: [selectorFn: (s: SpeciesFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: SpeciesFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<SpeciesFilmsConnection>>(args: Args, selectorFn: (s: SpeciesFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+filmConnection<Sel extends Selection<SpeciesFilmsConnection>>(selectorFn: (s: SpeciesFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+filmConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -2720,19 +2808,28 @@ last: "Int"
 
       
 /**
- * The ISO 8601 date format of the time that this resource was created.
+ * Common hair colors for this species, null if this species does not typically
+have hair.
  */
-      get created(): $Field<"created", string | undefined>  {
-       return this.$_select("created") as any
+      get hairColors(): $Field<"hairColors", Readonly<Array<string | null | undefined>> | null | undefined>  {
+       return this.$_select("hairColors") as any
       }
 
       
 /**
- * The ISO 8601 date format of the time that this resource was edited.
+ * A planet that this species originates from.
  */
-      get edited(): $Field<"edited", string | undefined>  {
-       return this.$_select("edited") as any
-      }
+      homeworld<Sel extends Selection<Planet>>(selectorFn: (s: Planet) => [...Sel]):$Field<"homeworld", GetOutput<Sel> | undefined , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new Planet)
+      };
+      return this.$_select("homeworld", options) as any
+    }
+  
 
       
 /**
@@ -2740,6 +2837,57 @@ last: "Int"
  */
       get id(): $Field<"id", string>  {
        return this.$_select("id") as any
+      }
+
+      
+/**
+ * The language commonly spoken by this species.
+ */
+      get language(): $Field<"language", string | null | undefined>  {
+       return this.$_select("language") as any
+      }
+
+      
+/**
+ * The name of this species.
+ */
+      get name(): $Field<"name", string | null | undefined>  {
+       return this.$_select("name") as any
+      }
+
+      
+      personConnection<Args extends VariabledInput<{
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<SpeciesPeopleConnection>>(args: Args, selectorFn: (s: SpeciesPeopleConnection) => [...Sel]):$Field<"personConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+personConnection<Sel extends Selection<SpeciesPeopleConnection>>(selectorFn: (s: SpeciesPeopleConnection) => [...Sel]):$Field<"personConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+personConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              after: "String",
+first: "Int",
+before: "String",
+last: "Int"
+            },
+        args,
+
+        selection: selectorFn(new SpeciesPeopleConnection)
+      };
+      return this.$_select("personConnection", options) as any
+    }
+  
+
+      
+/**
+ * Common skin colors for this species, null if this species does not typically
+have skin.
+ */
+      get skinColors(): $Field<"skinColors", Readonly<Array<string | null | undefined>> | null | undefined>  {
+       return this.$_select("skinColors") as any
       }
 }
 
@@ -2755,25 +2903,9 @@ export class SpeciesConnection extends $Base<"SpeciesConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<SpeciesEdge>>(selectorFn: (s: SpeciesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<SpeciesEdge>>(selectorFn: (s: SpeciesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2787,14 +2919,19 @@ export class SpeciesConnection extends $Base<"SpeciesConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -2805,7 +2942,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", Array<GetOutput<Sel> | undefined> | undefined > {
+      species<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"species", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2816,6 +2953,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("species", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -2830,9 +2978,17 @@ export class SpeciesEdge extends $Base<"SpeciesEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Species>>(selectorFn: (s: Species) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2843,14 +2999,6 @@ export class SpeciesEdge extends $Base<"SpeciesEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -2865,25 +3013,9 @@ export class SpeciesFilmsConnection extends $Base<"SpeciesFilmsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<SpeciesFilmsEdge>>(selectorFn: (s: SpeciesFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<SpeciesFilmsEdge>>(selectorFn: (s: SpeciesFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2897,17 +3029,6 @@ export class SpeciesFilmsConnection extends $Base<"SpeciesFilmsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
- */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
-
-      
-/**
  * A list of all of the objects returned in the connection. This is a convenience
 field provided for quickly exploring the API; rather than querying for
 "{ edges { node } }" when no edge data is needed, this field can be be used
@@ -2915,7 +3036,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2926,6 +3047,33 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("films", options) as any
     }
   
+
+      
+/**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -2940,9 +3088,17 @@ export class SpeciesFilmsEdge extends $Base<"SpeciesFilmsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -2953,14 +3109,6 @@ export class SpeciesFilmsEdge extends $Base<"SpeciesFilmsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -2975,25 +3123,9 @@ export class SpeciesPeopleConnection extends $Base<"SpeciesPeopleConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<SpeciesPeopleEdge>>(selectorFn: (s: SpeciesPeopleEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<SpeciesPeopleEdge>>(selectorFn: (s: SpeciesPeopleEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3007,14 +3139,19 @@ export class SpeciesPeopleConnection extends $Base<"SpeciesPeopleConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -3025,7 +3162,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      people<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"people", Array<GetOutput<Sel> | undefined> | undefined > {
+      people<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"people", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3036,6 +3173,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("people", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -3050,9 +3198,17 @@ export class SpeciesPeopleEdge extends $Base<"SpeciesPeopleEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3063,14 +3219,6 @@ export class SpeciesPeopleEdge extends $Base<"SpeciesPeopleEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -3085,96 +3233,13 @@ export class Starship extends $Base<"Starship"> {
   
       
 /**
- * The name of this starship. The common name, such as "Death Star".
- */
-      get name(): $Field<"name", string | undefined>  {
-       return this.$_select("name") as any
-      }
-
-      
-/**
- * The model or official name of this starship. Such as "T-65 X-wing" or "DS-1
-Orbital Battle Station".
- */
-      get model(): $Field<"model", string | undefined>  {
-       return this.$_select("model") as any
-      }
-
-      
-/**
- * The class of this starship, such as "Starfighter" or "Deep Space Mobile
-Battlestation"
- */
-      get starshipClass(): $Field<"starshipClass", string | undefined>  {
-       return this.$_select("starshipClass") as any
-      }
-
-      
-/**
- * The manufacturers of this starship.
- */
-      get manufacturers(): $Field<"manufacturers", Array<string | undefined> | undefined>  {
-       return this.$_select("manufacturers") as any
-      }
-
-      
-/**
- * The cost of this starship new, in galactic credits.
- */
-      get costInCredits(): $Field<"costInCredits", number | undefined>  {
-       return this.$_select("costInCredits") as any
-      }
-
-      
-/**
- * The length of this starship in meters.
- */
-      get length(): $Field<"length", number | undefined>  {
-       return this.$_select("length") as any
-      }
-
-      
-/**
- * The number of personnel needed to run or pilot this starship.
- */
-      get crew(): $Field<"crew", string | undefined>  {
-       return this.$_select("crew") as any
-      }
-
-      
-/**
- * The number of non-essential people this starship can transport.
- */
-      get passengers(): $Field<"passengers", string | undefined>  {
-       return this.$_select("passengers") as any
-      }
-
-      
-/**
- * The maximum speed of this starship in atmosphere. null if this starship is
-incapable of atmosphering flight.
- */
-      get maxAtmospheringSpeed(): $Field<"maxAtmospheringSpeed", number | undefined>  {
-       return this.$_select("maxAtmospheringSpeed") as any
-      }
-
-      
-/**
- * The class of this starships hyperdrive.
- */
-      get hyperdriveRating(): $Field<"hyperdriveRating", number | undefined>  {
-       return this.$_select("hyperdriveRating") as any
-      }
-
-      
-/**
  * The Maximum number of Megalights this starship can travel in a standard hour.
 A "Megalight" is a standard unit of distance and has never been defined before
 within the Star Wars universe. This figure is only really useful for measuring
 the difference in speed of starships. We can assume it is similar to AU, the
 distance between our Sun (Sol) and Earth.
  */
-      get MGLT(): $Field<"MGLT", number | undefined>  {
+      get MGLT(): $Field<"MGLT", number | null | undefined>  {
        return this.$_select("MGLT") as any
       }
 
@@ -3182,7 +3247,7 @@ distance between our Sun (Sol) and Earth.
 /**
  * The maximum number of kilograms that this starship can transport.
  */
-      get cargoCapacity(): $Field<"cargoCapacity", number | undefined>  {
+      get cargoCapacity(): $Field<"cargoCapacity", number | null | undefined>  {
        return this.$_select("cargoCapacity") as any
       }
 
@@ -3191,42 +3256,52 @@ distance between our Sun (Sol) and Earth.
  * The maximum length of time that this starship can provide consumables for its
 entire crew without having to resupply.
  */
-      get consumables(): $Field<"consumables", string | undefined>  {
+      get consumables(): $Field<"consumables", string | null | undefined>  {
        return this.$_select("consumables") as any
       }
 
       
-      pilotConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<StarshipPilotsConnection>>(...params: [selectorFn: (s: StarshipPilotsConnection) => [...Sel]] | [args: Args, selectorFn: (s: StarshipPilotsConnection) => [...Sel]]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+/**
+ * The cost of this starship new, in galactic credits.
+ */
+      get costInCredits(): $Field<"costInCredits", number | null | undefined>  {
+       return this.$_select("costInCredits") as any
+      }
 
-      const options = {
-        argTypes: {
-              after: "String",
-first: "Int",
-before: "String",
-last: "Int"
-            },
-        args,
+      
+/**
+ * The ISO 8601 date format of the time that this resource was created.
+ */
+      get created(): $Field<"created", string | null | undefined>  {
+       return this.$_select("created") as any
+      }
 
-        selection: selectorFn(new StarshipPilotsConnection)
-      };
-      return this.$_select("pilotConnection", options) as any
-    }
-  
+      
+/**
+ * The number of personnel needed to run or pilot this starship.
+ */
+      get crew(): $Field<"crew", string | null | undefined>  {
+       return this.$_select("crew") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was edited.
+ */
+      get edited(): $Field<"edited", string | null | undefined>  {
+       return this.$_select("edited") as any
+      }
 
       
       filmConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<StarshipFilmsConnection>>(...params: [selectorFn: (s: StarshipFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: StarshipFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<StarshipFilmsConnection>>(args: Args, selectorFn: (s: StarshipFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+filmConnection<Sel extends Selection<StarshipFilmsConnection>>(selectorFn: (s: StarshipFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+filmConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3245,18 +3320,10 @@ last: "Int"
 
       
 /**
- * The ISO 8601 date format of the time that this resource was created.
+ * The class of this starships hyperdrive.
  */
-      get created(): $Field<"created", string | undefined>  {
-       return this.$_select("created") as any
-      }
-
-      
-/**
- * The ISO 8601 date format of the time that this resource was edited.
- */
-      get edited(): $Field<"edited", string | undefined>  {
-       return this.$_select("edited") as any
+      get hyperdriveRating(): $Field<"hyperdriveRating", number | null | undefined>  {
+       return this.$_select("hyperdriveRating") as any
       }
 
       
@@ -3265,6 +3332,91 @@ last: "Int"
  */
       get id(): $Field<"id", string>  {
        return this.$_select("id") as any
+      }
+
+      
+/**
+ * The length of this starship in meters.
+ */
+      get length(): $Field<"length", number | null | undefined>  {
+       return this.$_select("length") as any
+      }
+
+      
+/**
+ * The manufacturers of this starship.
+ */
+      get manufacturers(): $Field<"manufacturers", Readonly<Array<string | null | undefined>> | null | undefined>  {
+       return this.$_select("manufacturers") as any
+      }
+
+      
+/**
+ * The maximum speed of this starship in atmosphere. null if this starship is
+incapable of atmosphering flight.
+ */
+      get maxAtmospheringSpeed(): $Field<"maxAtmospheringSpeed", number | null | undefined>  {
+       return this.$_select("maxAtmospheringSpeed") as any
+      }
+
+      
+/**
+ * The model or official name of this starship. Such as "T-65 X-wing" or "DS-1
+Orbital Battle Station".
+ */
+      get model(): $Field<"model", string | null | undefined>  {
+       return this.$_select("model") as any
+      }
+
+      
+/**
+ * The name of this starship. The common name, such as "Death Star".
+ */
+      get name(): $Field<"name", string | null | undefined>  {
+       return this.$_select("name") as any
+      }
+
+      
+/**
+ * The number of non-essential people this starship can transport.
+ */
+      get passengers(): $Field<"passengers", string | null | undefined>  {
+       return this.$_select("passengers") as any
+      }
+
+      
+      pilotConnection<Args extends VariabledInput<{
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<StarshipPilotsConnection>>(args: Args, selectorFn: (s: StarshipPilotsConnection) => [...Sel]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+pilotConnection<Sel extends Selection<StarshipPilotsConnection>>(selectorFn: (s: StarshipPilotsConnection) => [...Sel]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+pilotConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              after: "String",
+first: "Int",
+before: "String",
+last: "Int"
+            },
+        args,
+
+        selection: selectorFn(new StarshipPilotsConnection)
+      };
+      return this.$_select("pilotConnection", options) as any
+    }
+  
+
+      
+/**
+ * The class of this starship, such as "Starfighter" or "Deep Space Mobile
+Battlestation"
+ */
+      get starshipClass(): $Field<"starshipClass", string | null | undefined>  {
+       return this.$_select("starshipClass") as any
       }
 }
 
@@ -3280,25 +3432,9 @@ export class StarshipFilmsConnection extends $Base<"StarshipFilmsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<StarshipFilmsEdge>>(selectorFn: (s: StarshipFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<StarshipFilmsEdge>>(selectorFn: (s: StarshipFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3312,17 +3448,6 @@ export class StarshipFilmsConnection extends $Base<"StarshipFilmsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
- */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
-
-      
-/**
  * A list of all of the objects returned in the connection. This is a convenience
 field provided for quickly exploring the API; rather than querying for
 "{ edges { node } }" when no edge data is needed, this field can be be used
@@ -3330,7 +3455,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3341,6 +3466,33 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("films", options) as any
     }
   
+
+      
+/**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -3355,9 +3507,17 @@ export class StarshipFilmsEdge extends $Base<"StarshipFilmsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3368,14 +3528,6 @@ export class StarshipFilmsEdge extends $Base<"StarshipFilmsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -3390,25 +3542,9 @@ export class StarshipPilotsConnection extends $Base<"StarshipPilotsConnection"> 
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<StarshipPilotsEdge>>(selectorFn: (s: StarshipPilotsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<StarshipPilotsEdge>>(selectorFn: (s: StarshipPilotsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3422,14 +3558,19 @@ export class StarshipPilotsConnection extends $Base<"StarshipPilotsConnection"> 
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -3440,7 +3581,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      pilots<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"pilots", Array<GetOutput<Sel> | undefined> | undefined > {
+      pilots<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"pilots", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3451,6 +3592,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("pilots", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -3465,9 +3617,17 @@ export class StarshipPilotsEdge extends $Base<"StarshipPilotsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3478,14 +3638,6 @@ export class StarshipPilotsEdge extends $Base<"StarshipPilotsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -3500,25 +3652,9 @@ export class StarshipsConnection extends $Base<"StarshipsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<StarshipsEdge>>(selectorFn: (s: StarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<StarshipsEdge>>(selectorFn: (s: StarshipsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3532,14 +3668,19 @@ export class StarshipsConnection extends $Base<"StarshipsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -3550,7 +3691,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined > {
+      starships<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"starships", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3561,6 +3702,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("starships", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -3575,9 +3727,17 @@ export class StarshipsEdge extends $Base<"StarshipsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Starship>>(selectorFn: (s: Starship) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3588,14 +3748,6 @@ export class StarshipsEdge extends $Base<"StarshipsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -3610,83 +3762,9 @@ export class Vehicle extends $Base<"Vehicle"> {
   
       
 /**
- * The name of this vehicle. The common name, such as "Sand Crawler" or "Speeder
-bike".
- */
-      get name(): $Field<"name", string | undefined>  {
-       return this.$_select("name") as any
-      }
-
-      
-/**
- * The model or official name of this vehicle. Such as "All-Terrain Attack
-Transport".
- */
-      get model(): $Field<"model", string | undefined>  {
-       return this.$_select("model") as any
-      }
-
-      
-/**
- * The class of this vehicle, such as "Wheeled" or "Repulsorcraft".
- */
-      get vehicleClass(): $Field<"vehicleClass", string | undefined>  {
-       return this.$_select("vehicleClass") as any
-      }
-
-      
-/**
- * The manufacturers of this vehicle.
- */
-      get manufacturers(): $Field<"manufacturers", Array<string | undefined> | undefined>  {
-       return this.$_select("manufacturers") as any
-      }
-
-      
-/**
- * The cost of this vehicle new, in Galactic Credits.
- */
-      get costInCredits(): $Field<"costInCredits", number | undefined>  {
-       return this.$_select("costInCredits") as any
-      }
-
-      
-/**
- * The length of this vehicle in meters.
- */
-      get length(): $Field<"length", number | undefined>  {
-       return this.$_select("length") as any
-      }
-
-      
-/**
- * The number of personnel needed to run or pilot this vehicle.
- */
-      get crew(): $Field<"crew", string | undefined>  {
-       return this.$_select("crew") as any
-      }
-
-      
-/**
- * The number of non-essential people this vehicle can transport.
- */
-      get passengers(): $Field<"passengers", string | undefined>  {
-       return this.$_select("passengers") as any
-      }
-
-      
-/**
- * The maximum speed of this vehicle in atmosphere.
- */
-      get maxAtmospheringSpeed(): $Field<"maxAtmospheringSpeed", number | undefined>  {
-       return this.$_select("maxAtmospheringSpeed") as any
-      }
-
-      
-/**
  * The maximum number of kilograms that this vehicle can transport.
  */
-      get cargoCapacity(): $Field<"cargoCapacity", number | undefined>  {
+      get cargoCapacity(): $Field<"cargoCapacity", number | null | undefined>  {
        return this.$_select("cargoCapacity") as any
       }
 
@@ -3695,42 +3773,52 @@ Transport".
  * The maximum length of time that this vehicle can provide consumables for its
 entire crew without having to resupply.
  */
-      get consumables(): $Field<"consumables", string | undefined>  {
+      get consumables(): $Field<"consumables", string | null | undefined>  {
        return this.$_select("consumables") as any
       }
 
       
-      pilotConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<VehiclePilotsConnection>>(...params: [selectorFn: (s: VehiclePilotsConnection) => [...Sel]] | [args: Args, selectorFn: (s: VehiclePilotsConnection) => [...Sel]]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+/**
+ * The cost of this vehicle new, in Galactic Credits.
+ */
+      get costInCredits(): $Field<"costInCredits", number | null | undefined>  {
+       return this.$_select("costInCredits") as any
+      }
 
-      const options = {
-        argTypes: {
-              after: "String",
-first: "Int",
-before: "String",
-last: "Int"
-            },
-        args,
+      
+/**
+ * The ISO 8601 date format of the time that this resource was created.
+ */
+      get created(): $Field<"created", string | null | undefined>  {
+       return this.$_select("created") as any
+      }
 
-        selection: selectorFn(new VehiclePilotsConnection)
-      };
-      return this.$_select("pilotConnection", options) as any
-    }
-  
+      
+/**
+ * The number of personnel needed to run or pilot this vehicle.
+ */
+      get crew(): $Field<"crew", string | null | undefined>  {
+       return this.$_select("crew") as any
+      }
+
+      
+/**
+ * The ISO 8601 date format of the time that this resource was edited.
+ */
+      get edited(): $Field<"edited", string | null | undefined>  {
+       return this.$_select("edited") as any
+      }
 
       
       filmConnection<Args extends VariabledInput<{
-        after?: string | undefined
-first?: number | undefined
-before?: string | undefined
-last?: number | undefined,
-      }>,Sel extends Selection<VehicleFilmsConnection>>(...params: [selectorFn: (s: VehicleFilmsConnection) => [...Sel]] | [args: Args, selectorFn: (s: VehicleFilmsConnection) => [...Sel]]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<VehicleFilmsConnection>>(args: Args, selectorFn: (s: VehicleFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+filmConnection<Sel extends Selection<VehicleFilmsConnection>>(selectorFn: (s: VehicleFilmsConnection) => [...Sel]):$Field<"filmConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+filmConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -3749,26 +3837,94 @@ last: "Int"
 
       
 /**
- * The ISO 8601 date format of the time that this resource was created.
- */
-      get created(): $Field<"created", string | undefined>  {
-       return this.$_select("created") as any
-      }
-
-      
-/**
- * The ISO 8601 date format of the time that this resource was edited.
- */
-      get edited(): $Field<"edited", string | undefined>  {
-       return this.$_select("edited") as any
-      }
-
-      
-/**
  * The ID of an object
  */
       get id(): $Field<"id", string>  {
        return this.$_select("id") as any
+      }
+
+      
+/**
+ * The length of this vehicle in meters.
+ */
+      get length(): $Field<"length", number | null | undefined>  {
+       return this.$_select("length") as any
+      }
+
+      
+/**
+ * The manufacturers of this vehicle.
+ */
+      get manufacturers(): $Field<"manufacturers", Readonly<Array<string | null | undefined>> | null | undefined>  {
+       return this.$_select("manufacturers") as any
+      }
+
+      
+/**
+ * The maximum speed of this vehicle in atmosphere.
+ */
+      get maxAtmospheringSpeed(): $Field<"maxAtmospheringSpeed", number | null | undefined>  {
+       return this.$_select("maxAtmospheringSpeed") as any
+      }
+
+      
+/**
+ * The model or official name of this vehicle. Such as "All-Terrain Attack
+Transport".
+ */
+      get model(): $Field<"model", string | null | undefined>  {
+       return this.$_select("model") as any
+      }
+
+      
+/**
+ * The name of this vehicle. The common name, such as "Sand Crawler" or "Speeder
+bike".
+ */
+      get name(): $Field<"name", string | null | undefined>  {
+       return this.$_select("name") as any
+      }
+
+      
+/**
+ * The number of non-essential people this vehicle can transport.
+ */
+      get passengers(): $Field<"passengers", string | null | undefined>  {
+       return this.$_select("passengers") as any
+      }
+
+      
+      pilotConnection<Args extends VariabledInput<{
+        after?: string | null | undefined
+first?: number | null | undefined
+before?: string | null | undefined
+last?: number | null | undefined,
+      }>,Sel extends Selection<VehiclePilotsConnection>>(args: Args, selectorFn: (s: VehiclePilotsConnection) => [...Sel]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+pilotConnection<Sel extends Selection<VehiclePilotsConnection>>(selectorFn: (s: VehiclePilotsConnection) => [...Sel]):$Field<"pilotConnection", GetOutput<Sel> | undefined , GetVariables<Sel>>
+pilotConnection(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
+
+      const options = {
+        argTypes: {
+              after: "String",
+first: "Int",
+before: "String",
+last: "Int"
+            },
+        args,
+
+        selection: selectorFn(new VehiclePilotsConnection)
+      };
+      return this.$_select("pilotConnection", options) as any
+    }
+  
+
+      
+/**
+ * The class of this vehicle, such as "Wheeled" or "Repulsorcraft".
+ */
+      get vehicleClass(): $Field<"vehicleClass", string | null | undefined>  {
+       return this.$_select("vehicleClass") as any
       }
 }
 
@@ -3784,25 +3940,9 @@ export class VehicleFilmsConnection extends $Base<"VehicleFilmsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<VehicleFilmsEdge>>(selectorFn: (s: VehicleFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<VehicleFilmsEdge>>(selectorFn: (s: VehicleFilmsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3816,17 +3956,6 @@ export class VehicleFilmsConnection extends $Base<"VehicleFilmsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
- */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
-
-      
-/**
  * A list of all of the objects returned in the connection. This is a convenience
 field provided for quickly exploring the API; rather than querying for
 "{ edges { node } }" when no edge data is needed, this field can be be used
@@ -3834,7 +3963,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined > {
+      films<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"films", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3845,6 +3974,33 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("films", options) as any
     }
   
+
+      
+/**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -3859,9 +4015,17 @@ export class VehicleFilmsEdge extends $Base<"VehicleFilmsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Film>>(selectorFn: (s: Film) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3872,14 +4036,6 @@ export class VehicleFilmsEdge extends $Base<"VehicleFilmsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -3894,25 +4050,9 @@ export class VehiclePilotsConnection extends $Base<"VehiclePilotsConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<VehiclePilotsEdge>>(selectorFn: (s: VehiclePilotsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<VehiclePilotsEdge>>(selectorFn: (s: VehiclePilotsEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3926,14 +4066,19 @@ export class VehiclePilotsConnection extends $Base<"VehiclePilotsConnection"> {
 
       
 /**
- * A count of the total number of objects in this connection, ignoring pagination.
-This allows a client to fetch the first five objects by passing "5" as the
-argument to "first", then fetch the total count so it could display "5 of 83",
-for example.
+ * Information to aid in pagination.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
-       return this.$_select("totalCount") as any
-      }
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
 
       
 /**
@@ -3944,7 +4089,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      pilots<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"pilots", Array<GetOutput<Sel> | undefined> | undefined > {
+      pilots<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"pilots", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3955,6 +4100,17 @@ full "{ edges { node } }" version should be used instead.
       return this.$_select("pilots", options) as any
     }
   
+
+      
+/**
+ * A count of the total number of objects in this connection, ignoring pagination.
+This allows a client to fetch the first five objects by passing "5" as the
+argument to "first", then fetch the total count so it could display "5 of 83",
+for example.
+ */
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
+       return this.$_select("totalCount") as any
+      }
 }
 
 
@@ -3969,9 +4125,17 @@ export class VehiclePilotsEdge extends $Base<"VehiclePilotsEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Person>>(selectorFn: (s: Person) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -3982,14 +4146,6 @@ export class VehiclePilotsEdge extends $Base<"VehiclePilotsEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
 
@@ -4004,25 +4160,9 @@ export class VehiclesConnection extends $Base<"VehiclesConnection"> {
   
       
 /**
- * Information to aid in pagination.
- */
-      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> > {
-      
-      const options = {
-        
-        
-
-        selection: selectorFn(new PageInfo)
-      };
-      return this.$_select("pageInfo", options) as any
-    }
-  
-
-      
-/**
  * A list of edges.
  */
-      edges<Sel extends Selection<VehiclesEdge>>(selectorFn: (s: VehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined > {
+      edges<Sel extends Selection<VehiclesEdge>>(selectorFn: (s: VehiclesEdge) => [...Sel]):$Field<"edges", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -4036,12 +4176,28 @@ export class VehiclesConnection extends $Base<"VehiclesConnection"> {
 
       
 /**
+ * Information to aid in pagination.
+ */
+      pageInfo<Sel extends Selection<PageInfo>>(selectorFn: (s: PageInfo) => [...Sel]):$Field<"pageInfo", GetOutput<Sel> , GetVariables<Sel>> {
+      
+      const options = {
+        
+        
+
+        selection: selectorFn(new PageInfo)
+      };
+      return this.$_select("pageInfo", options) as any
+    }
+  
+
+      
+/**
  * A count of the total number of objects in this connection, ignoring pagination.
 This allows a client to fetch the first five objects by passing "5" as the
 argument to "first", then fetch the total count so it could display "5 of 83",
 for example.
  */
-      get totalCount(): $Field<"totalCount", number | undefined>  {
+      get totalCount(): $Field<"totalCount", number | null | undefined>  {
        return this.$_select("totalCount") as any
       }
 
@@ -4054,7 +4210,7 @@ instead. Note that when clients like Relay need to fetch the "cursor" field on
 the edge to enable efficient pagination, this shortcut cannot be used, and the
 full "{ edges { node } }" version should be used instead.
  */
-      vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined > {
+      vehicles<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"vehicles", Array<GetOutput<Sel> | undefined> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -4079,9 +4235,17 @@ export class VehiclesEdge extends $Base<"VehiclesEdge"> {
   
       
 /**
+ * A cursor for use in pagination
+ */
+      get cursor(): $Field<"cursor", string>  {
+       return this.$_select("cursor") as any
+      }
+
+      
+/**
  * The item at the end of the edge
  */
-      node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined > {
+      node<Sel extends Selection<Vehicle>>(selectorFn: (s: Vehicle) => [...Sel]):$Field<"node", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -4092,14 +4256,6 @@ export class VehiclesEdge extends $Base<"VehiclesEdge"> {
       return this.$_select("node", options) as any
     }
   
-
-      
-/**
- * A cursor for use in pagination
- */
-      get cursor(): $Field<"cursor", string>  {
-       return this.$_select("cursor") as any
-      }
 }
 
   const $Root = {
