@@ -166,26 +166,23 @@ export function compileSchemaDefinitions(
     ]) as [string, string][]
   )
 
-  const reverseInheritanceMap = new Map<string, string[]>()
   const inheritanceMap = new Map(
     schemaDefinitions.flatMap(def => {
       if (def.kind === gq.Kind.OBJECT_TYPE_DEFINITION) {
-        return [
-          [
-            def.name.value,
-            def.interfaces?.map(ifc => {
-              reverseInheritanceMap.set(
-                ifc.name.value,
-                (reverseInheritanceMap.get(ifc.name.value) ?? []).concat(def.name.value)
-              )
-              return ifc.name.value
-            }),
-          ],
-        ]
+        return [[def.name.value, def.interfaces?.map(ifc => ifc.name.value)]]
       }
       return []
     })
   )
+
+  // reverse map to answer "who implements this"
+  const reverseInheritanceMap = new Map<string, string[]>()
+  for (const [key, values] of inheritanceMap) {
+    if (!values) continue
+    for (const value of values) {
+      reverseInheritanceMap.set(value, (reverseInheritanceMap.get(value) ?? []).concat(key))
+    }
+  }
 
   function isAtomic(typeName: string) {
     return !!atomicTypes.get(typeName)
