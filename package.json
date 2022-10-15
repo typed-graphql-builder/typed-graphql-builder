@@ -26,7 +26,7 @@
     "util": "^0.12.4"
   },
   "scripts": {
-    "build": "parcel build",
+    "build": "parcel build  --no-cache",
     "test": "tap src/**/*.test.ts test/**/*.test.ts -R spec",
     "test:unit": "tap src/**/*.spec.ts -R spec",
     "test:watch": "tap -w test/**/*.test.ts -R spec",
