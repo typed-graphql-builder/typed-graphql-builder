@@ -157,14 +157,19 @@ export function compileSchemaDefinitions(
   }
 
   const atomicTypes = new Map(
-    scalars.map.concat(enumTypes.map(et => [et, et])).concat([
-      ['Int', 'number'],
-      ['Float', 'number'],
-      ['ID', 'string'],
-      ['String', 'string'],
-      ['Boolean', 'boolean'],
-    ]) as [string, string][]
+    scalars.map
+      .filter(([_, mapping]) => mapping !== 'unknown' && mapping !== 'any')
+      .concat(enumTypes.map(et => [et, et]))
+      .concat([
+        ['Int', 'number'],
+        ['Float', 'number'],
+        ['ID', 'string'],
+        ['String', 'string'],
+        ['Boolean', 'boolean'],
+      ]) as [string, string][]
   )
+
+  const scalarMap = new Map(scalars.map)
 
   const inheritanceMap = new Map(
     schemaDefinitions.flatMap(def => {
@@ -184,8 +189,8 @@ export function compileSchemaDefinitions(
     }
   }
 
-  function isAtomic(typeName: string) {
-    return !!atomicTypes.get(typeName)
+  function gqlTypeHasSelector(typeName: string) {
+    return !atomicTypes.get(typeName) && !scalarMap.get(typeName)
   }
 
   function toTSType(scalar: string) {
@@ -293,7 +298,7 @@ export class ${className} extends $Base<"${className}"> {
       hasArgs = true
       methodArgs.push(`args: Args`)
     }
-    if (!isAtomic(fieldTypeName)) {
+    if (gqlTypeHasSelector(fieldTypeName)) {
       hasSelector = true
 
       methodArgs.push(`selectorFn: (s: ${fieldTypeName}) => [...Sel]`)
@@ -321,7 +326,7 @@ export class ${className} extends $Base<"${className}"> {
     const fieldTypeName = printTypeBase(field.type)
 
     let hasArgs = !!field.arguments?.length,
-      hasSelector = !isAtomic(fieldTypeName)
+      hasSelector = gqlTypeHasSelector(fieldTypeName)
 
     if (hasArgs || hasSelector) {
       let extractArgs = ''
@@ -411,9 +416,12 @@ const $InputTypes: {[key: string]: {[key: string]: string}} = {
   }
 
   function printScalar(def: gq.ScalarTypeDefinitionNode) {
+    let typeName = def.name.value
+    if (scalarMap.get(typeName) === typeName) return ''
+
     return `
 ${printDocumentation(def.description)}
-export type ${def.name.value} = unknown
+export type ${def.name.value} = ${scalarMap.get(typeName) ?? 'unknown'}
 `
   }
 
