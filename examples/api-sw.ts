@@ -1,7 +1,7 @@
 
 
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import gql from 'graphql-tag'
+import { gql } from 'graphql-tag'
 
 /* tslint:disable */
 /* eslint-disable */

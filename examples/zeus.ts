@@ -1,36 +1,56 @@
 
+
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import gql from 'graphql-tag'
+import { gql } from 'graphql-tag'
 
 /* tslint:disable */
 /* eslint-disable */
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
-const VariableType = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
 
 class Variable<T, Name extends string> {
   private [VariableName]: Name
-  private [VariableType]?: T
+  private _type?: T
 
-  constructor(name: Name) {
+  constructor(name: Name, private readonly isRequired?: boolean) {
     this[VariableName] = name
   }
 }
 
-type VariabledInput<T> = T extends $Atomic | undefined
-  ? Variable<NonNullable<T>, any> | T
-  : T extends ReadonlyArray<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | ReadonlyArray<VariabledInput<NonNullable<R>>> | T
-  : T extends Array<infer R> | undefined
-  ? Variable<NonNullable<T>, any> | Array<VariabledInput<NonNullable<R>>> | T
-  : Variable<NonNullable<T>, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
+  ? never
+  : ReadonlyArray<VariabledInput<I>>
+
+// the array wrapper prevents distributive conditional types
+// https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
+type VariabledInput<T> = [T] extends [$Atomic | null | undefined]
+  ? Variable<T, any> | T
+  : T extends ReadonlyArray<infer I>
+  ? Variable<T, any> | T | ArrayInput<I>
+  : T extends Record<string, any>
+  ? Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+  : never
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
   ? I
   : never
 
-export const $ = <Type, Name extends string>(name: Name) => {
-  return new Variable(name) as Variable<Type, Name>
+/**
+ * Creates a new query variable
+ *
+ * @param name The variable name
+ */
+export const $ = <Type, Name extends string>(name: Name): Variable<Type, Name> => {
+  return new Variable(name)
+}
+
+/**
+ * Creates a new query variable. A value will be required even if the input is optional
+ *
+ * @param name The variable name
+ */
+export const $$ = <Type, Name extends string>(name: Name): Variable<NonNullable<Type>, Name> => {
+  return new Variable(name, true)
 }
 
 type SelectOptions = {
@@ -81,6 +101,23 @@ class $Union<T, Name extends String> {
   }
 }
 
+class $Interface<T, Name extends string> extends $Base<Name> {
+  private type!: T
+  private name!: Name
+
+  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
+    super($$name)
+  }
+  $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
+    alternative: Type,
+    selectorFn: (selector: T[Type]) => [...Sel]
+  ): $UnionSelection<GetOutput<Sel>, GetVariables<Sel>> {
+    const selection = selectorFn(new this.selectorClasses[alternative]())
+
+    return new $UnionSelection(alternative as string, selection)
+  }
+}
+
 class $UnionSelection<T, Vars> {
   public kind: 'union' = 'union'
   private vars!: Vars
@@ -102,8 +139,12 @@ export type GetOutput<X extends Selection<any>> = UnionToIntersection<
     }[keyof X & number]
   >
 
+type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
+  ? { [key in VName]?: VType }
+  : { [key in VName]: VType }
+
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
-  ? { [key in VName]: VType }
+  ? PossiblyOptionalVar<VName, VType>
   : Inputs extends $Atomic
   ? {}
   : Inputs extends any[] | readonly any[]
@@ -123,24 +164,60 @@ export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIn
 > &
   ExtractInputVariables<ExtraVars>
 
+type ArgVarType = {
+  type: string
+  isRequired: boolean
+  array: {
+    isRequired: boolean
+  } | null
+}
+
+const arrRegex = /\[(.*?)\]/
+
+/**
+ * Converts graphql string type to `ArgVarType`
+ * @param input
+ * @returns
+ */
+function getArgVarType(input: string): ArgVarType {
+  const array = input.includes('[')
+    ? {
+        isRequired: input.endsWith('!'),
+      }
+    : null
+
+  const type = array ? arrRegex.exec(input)![1] : input
+  const isRequired = type.endsWith('!')
+
+  return {
+    array,
+    isRequired: isRequired,
+    type: type.replace('!', ''),
+  }
+}
+
 function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
-  const variables = new Map<string, string>()
+  const variables = new Map<string, { variable: Variable<any, any>; type: ArgVarType }>()
 
   function stringifyArgs(
     args: any,
     argTypes: { [key: string]: string },
-    argVarType?: string
+    argVarType?: ArgVarType
   ): string {
     switch (typeof args) {
       case 'string':
+        const cleanType = argVarType!.type
+        if ($Enums.has(cleanType!)) return args
+        else return JSON.stringify(args)
       case 'number':
       case 'boolean':
         return JSON.stringify(args)
       default:
         if (VariableName in (args as any)) {
           if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
-          const argVarName = (args as any)[VariableName]
-          variables.set(argVarName, argVarType)
+          const variable = args as Variable<any, any>
+          const argVarName = variable[VariableName]
+          variables.set(argVarName, { type: argVarType, variable: variable })
           return '$' + argVarName
         }
         if (Array.isArray(args))
@@ -154,7 +231,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
                 throw new Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
-              return key + ':' + stringifyArgs(val, $InputTypes[cleanType], cleanType)
+              return (
+                key + ':' + stringifyArgs(val, $InputTypes[cleanType], getArgVarType(argTypes[key]))
+              )
             })
             .join(',')
         )
@@ -187,6 +266,8 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       retVal += '}'
 
       return retVal + ' '
+    } else {
+      throw new Error('Uknown field kind')
     }
   }
 
@@ -197,12 +278,38 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
   const varList = Array.from(variables.entries())
   let ret = prefix
   if (varList.length) {
-    ret += '(' + varList.map(([name, kind]) => '$' + name + ':' + kind).join(',') + ')'
+    ret +=
+      '(' +
+      varList
+        .map(([name, { type: kind, variable }]) => {
+          let type = kind.array ? '[' : ''
+          type += kind.type
+          if (kind.isRequired) type += '!'
+          if (kind.array) type += kind.array.isRequired ? ']!' : ']'
+
+          if (!type.endsWith('!') && (variable as any).isRequired === true) {
+            type += '!'
+          }
+
+          return '$' + name + ':' + type
+        })
+        .join(',') +
+      ')'
   }
   ret += queryBody
 
   return ret
 }
+
+export type OutputTypeOf<T> = T extends $Base<any>
+  ? { [K in keyof T]?: OutputTypeOf<T[K]> }
+  : [T] extends [$Field<any, infer FieldType, any>]
+  ? FieldType
+  : [T] extends [(selFn: (arg: infer Inner) => any) => any]
+  ? OutputTypeOf<Inner>
+  : [T] extends [(args: any, selFn: (arg: infer Inner) => any) => any]
+  ? OutputTypeOf<Inner>
+  : never
 
 export function fragment<T, Sel extends Selection<T>>(
   GQLType: { new (): T },
@@ -211,8 +318,9 @@ export function fragment<T, Sel extends Selection<T>>(
   return selectFn(new GQLType())
 }
 
+type $Atomic = string | SpecialSkills | number | boolean
 
-type $Atomic = SpecialSkills | string | number | boolean
+let $Enums = new Set<string>(["SpecialSkills"])
 
 
 
@@ -227,9 +335,11 @@ export class Query extends $Base<"Query"> {
   
       
       cardById<Args extends VariabledInput<{
-        cardId?: string | undefined,
-      }>,Sel extends Selection<Card>>(...params: [selectorFn: (s: Card) => [...Sel]] | [args: Args, selectorFn: (s: Card) => [...Sel]]):$Field<"cardById", GetOutput<Sel> | undefined , GetVariables<Sel, Args>> {
-      const { args, selectorFn } = params.length === 1 ? { args: {}, selectorFn: params[0] } : { args: params[0], selectorFn: params[1] };
+        cardId?: string | null | undefined,
+      }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"cardById", GetOutput<Sel> | undefined , GetVariables<Sel, Args>>
+cardById<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"cardById", GetOutput<Sel> | undefined , GetVariables<Sel>>
+cardById(arg1: any, arg2?: any) {
+      const { args, selectorFn } = !arg2 ? { args: {}, selectorFn: arg1 } : { args: arg1, selectorFn: arg2 };
 
       const options = {
         argTypes: {
@@ -247,7 +357,7 @@ export class Query extends $Base<"Query"> {
 /**
  * Draw a card<br>
  */
-      drawCard<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"drawCard", GetOutput<Sel> > {
+      drawCard<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"drawCard", GetOutput<Sel> , GetVariables<Sel>> {
       
       const options = {
         
@@ -260,7 +370,7 @@ export class Query extends $Base<"Query"> {
   
 
       
-      drawChangeCard<Sel extends Selection<ChangeCard>>(selectorFn: (s: ChangeCard) => [...Sel]):$Field<"drawChangeCard", GetOutput<Sel> > {
+      drawChangeCard<Sel extends Selection<ChangeCard>>(selectorFn: (s: ChangeCard) => [...Sel]):$Field<"drawChangeCard", GetOutput<Sel> , GetVariables<Sel>> {
       
       const options = {
         
@@ -276,7 +386,7 @@ export class Query extends $Base<"Query"> {
 /**
  * list All Cards availble<br>
  */
-      listCards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"listCards", Array<GetOutput<Sel>> > {
+      listCards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"listCards", Array<GetOutput<Sel>> , GetVariables<Sel>> {
       
       const options = {
         
@@ -289,7 +399,7 @@ export class Query extends $Base<"Query"> {
   
 
       
-      myStacks<Sel extends Selection<CardStack>>(selectorFn: (s: CardStack) => [...Sel]):$Field<"myStacks", Array<GetOutput<Sel>> | undefined > {
+      myStacks<Sel extends Selection<CardStack>>(selectorFn: (s: CardStack) => [...Sel]):$Field<"myStacks", Array<GetOutput<Sel>> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -302,7 +412,7 @@ export class Query extends $Base<"Query"> {
   
 
       
-      nameables<Sel extends Selection<Nameable>>(selectorFn: (s: Nameable) => [...Sel]):$Field<"nameables", Array<GetOutput<Sel>> > {
+      nameables<Sel extends Selection<Nameable>>(selectorFn: (s: Nameable) => [...Sel]):$Field<"nameables", Array<GetOutput<Sel>> , GetVariables<Sel>> {
       
       const options = {
         
@@ -329,7 +439,7 @@ export class CardStack extends $Base<"CardStack"> {
 /**
  * The list of cards
  */
-      cards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"cards", Array<GetOutput<Sel>> | undefined > {
+      cards<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"cards", Array<GetOutput<Sel>> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -397,7 +507,7 @@ export class S3Object extends $Base<"S3Object"> {
 }
 
 
-export type JSON = unknown
+export type JSON = string
 
 
 
@@ -408,15 +518,10 @@ export class ChangeCard extends $Union<{SpecialCard: SpecialCard,EffectCard: Eff
 }
 
 
-export class Nameable extends $Base<"Nameable"> {
+export class Nameable extends $Interface<{CardStack: CardStack,Card: Card,SpecialCard: SpecialCard,EffectCard: EffectCard}, "Nameable"> {
   constructor() {
-    super("Nameable")
+    super({CardStack: CardStack,Card: Card,SpecialCard: SpecialCard,EffectCard: EffectCard}, "Nameable")
   }
-  
-      
-      get name(): $Field<"name", string>  {
-       return this.$_select("name") as any
-      }
 }
 
 
@@ -441,7 +546,7 @@ export class Card extends $Base<"Card"> {
 /**
  * <div>How many children the greek god had</div>
  */
-      get Children(): $Field<"Children", number | undefined>  {
+      get Children(): $Field<"Children", number | null | undefined>  {
        return this.$_select("Children") as any
       }
 
@@ -458,7 +563,7 @@ export class Card extends $Base<"Card"> {
  * Attack other cards on the table , returns Cards after attack<br>
  */
       attack<Args extends VariabledInput<{
-        cardID: Array<string>,
+        cardID: Readonly<Array<string>>,
       }>,Sel extends Selection<Card>>(args: Args, selectorFn: (s: Card) => [...Sel]):$Field<"attack", Array<GetOutput<Sel>> | undefined , GetVariables<Sel, Args>> {
       
       const options = {
@@ -477,7 +582,7 @@ export class Card extends $Base<"Card"> {
 /**
  * Put your description here
  */
-      cardImage<Sel extends Selection<S3Object>>(selectorFn: (s: S3Object) => [...Sel]):$Field<"cardImage", GetOutput<Sel> | undefined > {
+      cardImage<Sel extends Selection<S3Object>>(selectorFn: (s: S3Object) => [...Sel]):$Field<"cardImage", GetOutput<Sel> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -521,7 +626,7 @@ export class Card extends $Base<"Card"> {
       }
 
       
-      get skills(): $Field<"skills", Array<SpecialSkills> | undefined>  {
+      get skills(): $Field<"skills", Readonly<Array<SpecialSkills>> | null | undefined>  {
        return this.$_select("skills") as any
       }
 }
@@ -562,7 +667,7 @@ export class Subscription extends $Base<"Subscription"> {
 
   
       
-      deck<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"deck", Array<GetOutput<Sel>> | undefined > {
+      deck<Sel extends Selection<Card>>(selectorFn: (s: Card) => [...Sel]):$Field<"deck", Array<GetOutput<Sel>> | undefined , GetVariables<Sel>> {
       
       const options = {
         
@@ -616,30 +721,30 @@ export class EffectCard extends $Base<"EffectCard"> {
  * create card inputs<br>
  */
 export type createCard = {
-  skills?: Array<SpecialSkills> | undefined,
-conditions?: ConditionType | undefined,
-name: string,
+  Attack: number,
+Children?: number | null | undefined,
+Defense: number,
+conditions?: ConditionType | null | undefined,
 description: string,
-Children?: number | undefined,
-Attack: number,
-Defense: number
+name: string,
+skills?: Readonly<Array<SpecialSkills>> | null | undefined
 }
     
 
 
 export type ConditionType = {
-  field1?: CheckType | undefined,
-field2?: CheckType | undefined,
-_and?: Array<ConditionType | undefined> | undefined,
-_or?: Array<ConditionType | undefined> | undefined
+  _and?: Readonly<Array<ConditionType | null | undefined>> | null | undefined,
+_or?: Readonly<Array<ConditionType | null | undefined>> | null | undefined,
+field1?: CheckType | null | undefined,
+field2?: CheckType | null | undefined
 }
     
 
 
 export type CheckType = {
-  eq?: number | undefined,
-lt?: number | undefined,
-gt?: number | undefined
+  eq?: number | null | undefined,
+gt?: number | null | undefined,
+lt?: number | null | undefined
 }
     
 
@@ -694,24 +799,24 @@ export function subscription<Sel extends Selection<$RootTypes.subscription>>(
 
 const $InputTypes: {[key: string]: {[key: string]: string}} = {
     createCard: {
-    skills: "[SpecialSkills!]",
-conditions: "ConditionType",
-name: "String!",
-description: "String!",
+    Attack: "Int!",
 Children: "Int",
-Attack: "Int!",
-Defense: "Int!"
+Defense: "Int!",
+conditions: "ConditionType",
+description: "String!",
+name: "String!",
+skills: "[SpecialSkills!]"
   },
   ConditionType: {
-    field1: "CheckType",
-field2: "CheckType",
-_and: "[ConditionType]",
-_or: "[ConditionType]"
+    _and: "[ConditionType]",
+_or: "[ConditionType]",
+field1: "CheckType",
+field2: "CheckType"
   },
   CheckType: {
     eq: "Int",
-lt: "Int",
-gt: "Int"
+gt: "Int",
+lt: "Int"
   }
 }
 
