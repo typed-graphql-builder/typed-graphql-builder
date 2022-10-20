@@ -74,6 +74,24 @@ let orderByTestString = `query ($myvar: order_by!, $optional: order_by) {
   }
 }`
 
+const nullableArgument = mutation(m => [
+  m.updateBooking(
+    {
+      pk_columns: { id: $$('id') },
+      _set: {
+        bookedAt: null,
+      },
+    },
+    r => [r.id]
+  ),
+])
+
+const nullableArgumentString = `mutation ($id: uuid!) {
+  updateBooking(pk_columns: {id: $id}, _set: {bookedAt: null}) {
+    id
+  }
+}`
+
 export default [
   verify({
     query: orderByTest,
@@ -95,5 +113,13 @@ export default [
     query: upsertBookingChannelMutation,
     variables: { bc: { name: 'hello' } },
     schemaPath: 'x.graphql',
+  }),
+  verify({
+    query: nullableArgument,
+    variables: {
+      id: 'abc',
+    },
+    schemaPath: 'x.graphql',
+    string: nullableArgumentString,
   }),
 ]
