@@ -216,6 +216,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       case 'boolean':
         return JSON.stringify(args)
       default:
+        if (args == null) return 'null'
         if (VariableName in (args as any)) {
           if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
           const variable = args as Variable<any, any>
@@ -225,7 +226,6 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
         }
         if (Array.isArray(args))
           return '[' + args.map(arg => stringifyArgs(arg, argTypes, argVarType)).join(',') + ']'
-        if (args == null) return 'null'
         const wrapped = (content: string) => (argVarType ? '{' + content + '}' : content)
         return wrapped(
           Array.from(Object.entries(args))
