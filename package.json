@@ -1,6 +1,6 @@
 {
   "name": "typed-graphql-builder",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "source": "src/compile.ts",
   "main": "dist/compile.js",
   "cli": "dist/cli.js",
