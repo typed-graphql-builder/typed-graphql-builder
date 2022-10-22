@@ -76,6 +76,9 @@
 
     /* Type Checking */
     "strict": true /* Enable all strict type-checking options. */,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "noImplicitReturns": true
   }

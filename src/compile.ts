@@ -304,7 +304,6 @@ export class ${className} extends $Base<"${className}"> {
       methodArgs.push(`selectorFn: (s: ${fieldTypeName}) => [...Sel]`)
     }
     if (methodArgs.length > 0) {
-      let extractArgs = ''
       let methodArgsSerialized = methodArgs.join(', ')
       const argsType = `{
         ${(field.arguments ?? []).map(arg => printInputField(arg)).join('\n')},
@@ -322,7 +321,7 @@ export class ${className} extends $Base<"${className}"> {
       throw new Error('Attempting to generate function field definition for non-function field')
     }
   }
-  function printField(field: gq.FieldDefinitionNode, parentName: string) {
+  function printField(field: gq.FieldDefinitionNode, _parentName: string) {
     const fieldTypeName = printTypeBase(field.type)
 
     let hasArgs = !!field.arguments?.length,
