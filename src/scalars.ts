@@ -21,7 +21,6 @@ function pairsToScalarMap(scalarArgs?: [string, string][]): ScalarMapping[] {
 
 function resolveFromPattern(scalarMap: ScalarMapping[], scalar: string): ResolvedScalar {
   for (let { nameRegex: regex, typePathPattern } of scalarMap) {
-    let m = scalar.match(regex)
     if (scalar.match(regex)) {
       let resolvedTypePath = scalar.replace(new RegExp(regex), typePathPattern)
       return resolveFromTypePath(scalar, resolvedTypePath)
@@ -44,7 +43,7 @@ function resolveFromTypePath(name: string, typePath: string) {
       } } from '${importFile}'`
     : undefined
 
-  return { name, resolvedType: importStatement ? name : importName, importStatement }
+  return { name, resolvedType: importStatement ? name : importName!, importStatement }
 }
 
 export function getScalars(scalars: string[], scalarMapPairs?: [string, string][]) {

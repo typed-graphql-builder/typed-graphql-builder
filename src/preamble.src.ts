@@ -1,5 +1,5 @@
 type $Atomic = string
-let $InputTypes: { [key: string]: any } = {}
+let $InputTypes: { [key: string]: { [key: string]: string } } = {}
 let $Enums = new Set()
 
 /* BEGIN PREAMBLE */
@@ -13,8 +13,10 @@ const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 
 class Variable<T, Name extends string> {
   private [VariableName]: Name
+  // @ts-ignore
   private _type?: T
 
+  // @ts-ignore
   constructor(name: Name, private readonly isRequired?: boolean) {
     this[VariableName] = name
   }
@@ -79,6 +81,7 @@ class $Field<Name extends string, Type, Vars = {}> {
 }
 
 class $Base<Name extends string> {
+  // @ts-ignore
   constructor(private $$name: Name) {}
 
   protected $_select<Key extends string>(
@@ -89,8 +92,11 @@ class $Base<Name extends string> {
   }
 }
 
+// @ts-ignore
 class $Union<T, Name extends String> {
+  // @ts-ignore
   private type!: T
+  // @ts-ignore
   private name!: Name
 
   constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }) {}
@@ -104,8 +110,11 @@ class $Union<T, Name extends String> {
   }
 }
 
+// @ts-ignore
 class $Interface<T, Name extends string> extends $Base<Name> {
+  // @ts-ignore
   private type!: T
+  // @ts-ignore
   private name!: Name
 
   constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
@@ -123,6 +132,7 @@ class $Interface<T, Name extends string> extends $Base<Name> {
 
 class $UnionSelection<T, Vars> {
   public kind: 'union' = 'union'
+  // @ts-ignore
   private vars!: Vars
   constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
 }
@@ -189,7 +199,7 @@ function getArgVarType(input: string): ArgVarType {
       }
     : null
 
-  const type = array ? arrRegex.exec(input)![1] : input
+  const type = array ? arrRegex.exec(input)![1]! : input
   const isRequired = type.endsWith('!')
 
   return {
@@ -230,12 +240,15 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
         return wrapped(
           Array.from(Object.entries(args))
             .map(([key, val]) => {
-              if (!argTypes[key]) {
+              let argTypeForKey = argTypes[key]
+              if (!argTypeForKey) {
                 throw new Error(`Argument type for ${key} not found`)
               }
-              const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
+              const cleanType = argTypeForKey.replace('[', '').replace(']', '').replace('!', '')
               return (
-                key + ':' + stringifyArgs(val, $InputTypes[cleanType], getArgVarType(argTypes[key]))
+                key +
+                ':' +
+                stringifyArgs(val, $InputTypes[cleanType]!, getArgVarType(argTypeForKey))
               )
             })
             .join(',')
