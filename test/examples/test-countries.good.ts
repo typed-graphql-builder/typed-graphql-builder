@@ -63,7 +63,7 @@ query ($continentCode: String!) {
 let namedQuery = query('MyName', q => [q.continent({ code: $$('test') }, c => [c.code, c.name])])
 
 let namedQueryString = `
-query MyName($test: String!) {
+query MyName($test: ID!) {
   continent(code: $test) {
     code
     name
