@@ -22,16 +22,5 @@ export function ${op}<Sel extends Selection<$RootTypes.query>>(name: any, select
   return gql(str) as any
 }
 `
-      // `
-      // export function ${op}<Sel extends Selection<$RootTypes.${op}>>(
-      //   selectFn: (q: $RootTypes.${op}) => [...Sel]
-      // ) {
-      //   let field = new $Field<'${op}', GetOutput<Sel>, GetVariables<Sel>>('${op}', {
-      //     selection: selectFn(new $Root.${op}()),
-      //   })
-      //   const str = fieldToQuery('${op}', field)
-
-      //   return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
-      // }`
     )
     .join('\n')
