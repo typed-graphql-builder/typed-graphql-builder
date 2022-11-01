@@ -60,6 +60,17 @@ query ($continentCode: String!) {
   }
 }`
 
+let namedQuery = query('MyName', q => [q.continent({ code: $$('test') }, c => [c.code, c.name])])
+
+let namedQueryString = `
+query MyName($test: ID!) {
+  continent(code: $test) {
+    code
+    name
+  }
+}
+`
+
 export default [
   verify({
     query: twoCountries,
@@ -82,5 +93,14 @@ export default [
     },
     schemaPath: 'countries.graphql',
     string: countryQueryStringRequired,
+  }),
+
+  verify({
+    query: namedQuery,
+    string: namedQueryString,
+    schemaPath: 'countries.graphql',
+    variables: {
+      test: 'x',
+    },
   }),
 ]
