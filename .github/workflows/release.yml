@@ -4,13 +4,15 @@ on:
     branches:
       - 'main'
 jobs:
-  test:
+  Release:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '16'
+      - name: Install
+        run: yarn install --frozen-lockfile
       - name: Prepublish
         run: yarn prepublishOnly
       - name: Release
