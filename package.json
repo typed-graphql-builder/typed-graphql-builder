@@ -1,6 +1,6 @@
 {
   "name": "typed-graphql-builder",
-  "version": "3.2.4",
+  "version": "0.0.0-development",
   "source": "src/compile.ts",
   "main": "dist/compile.js",
   "cli": "dist/cli.js",
@@ -24,7 +24,8 @@
     "tap": "^16.3.0",
     "ts-node": "^10.9.1",
     "typescript": "~4.7.0",
-    "util": "^0.12.4"
+    "util": "^0.12.4",
+    "semantic-release": "^19.0.5"
   },
   "scripts": {
     "build": "parcel build  --no-cache",
@@ -36,7 +37,8 @@
     "regenerate:small-schema": "swc-node src/cli.ts --schema examples/zeus.graphql --output examples/zeus.ts",
     "regenerate:sw-schema": "swc-node src/cli.ts --schema examples/schema-sw.graphql --output examples/api-sw.ts",
     "regenerate:country-schema": "swc-node src/cli.ts --schema examples/countries-schema.graphql --output examples/countries-schema.ts",
-    "prepublishOnly": "yarn build && yarn test"
+    "prepublishOnly": "yarn build && yarn test",
+    "semantic-release": "semantic-release"
   },
   "targets": {
     "main": {
@@ -65,5 +67,14 @@
     "graphql-tag": "^2.12.6",
     "undici": "^5.10.0",
     "yargs": "^17.5.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/typed-graphql-builder/typed-graphql-builder.git"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
   }
 }
