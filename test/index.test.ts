@@ -69,6 +69,7 @@ for (let schema of glob.sync(`./examples/*.graphql`, { cwd: __dirname })) {
       await compile({
         schema: path.join(__dirname, schema),
         output: path.join(__dirname, 'examples', `${schemaName}.api.ts`),
+        includeTypename: true,
       })
     })
 
@@ -106,7 +107,7 @@ for (let schema of glob.sync(`./examples/*.graphql`, { cwd: __dirname })) {
       t.test(`compile fails with example ${exampleName}`, async t => {
         let res = compileTs(example)
         if (res.status) {
-          t.pass('failed to compile ' + res.stdout)
+          t.pass('failed to compile ' + res.stdout.toString().substring(0, 255))
         } else {
           t.fail('bad example compiled with no errors')
         }

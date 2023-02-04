@@ -33,6 +33,11 @@ async function main() {
       describe:
         'List of scalars in the format ScalarName=[./path/to/scalardefinition#ScalarExport]',
     },
+    includeTypename: {
+      type: 'boolean',
+      boolean: true,
+      describe: 'Include the __typename field in all objects',
+    },
   }).argv
 
   try {

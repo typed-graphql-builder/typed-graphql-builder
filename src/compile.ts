@@ -26,6 +26,11 @@ export type Args = {
    * A list of scalars and paths to their type definitions
    */
   scalar?: string[]
+
+  /**
+   * Should we include __typename in the fields?
+   */
+  includeTypename?: boolean
 }
 
 /**
@@ -35,7 +40,10 @@ export async function compile(args: Args) {
   const schemaData = await fetchOrRead(args)
 
   const scalars = args.scalar?.map(s => s.split('=') as [string, string])
-  const outputScript = compileSchemas(schemaData, { scalars })
+  const outputScript = compileSchemas(schemaData, {
+    scalars,
+    includeTypename: args.includeTypename,
+  })
 
   if (args.output === '') {
     console.log(outputScript)
@@ -96,6 +104,7 @@ type FieldOf<T extends SupportedExtensibleNodes> = T extends
 
 export type Options = {
   scalars?: [string, string][]
+  includeTypename?: boolean
 }
 
 /**
@@ -151,6 +160,18 @@ export function compileSchemaDefinitions(
     fieldList.sort((f1, f2) =>
       f1.name.value < f2.name.value ? -1 : f1.name.value > f2.name.value ? 1 : 0
     )
+
+    if (options.includeTypename) {
+      fieldList.push({
+        // kind: gq.Kind.FIELD,
+        // name:
+        kind: gq.Kind.FIELD_DEFINITION,
+        name: { kind: gq.Kind.NAME, value: '__typename' },
+        type: { kind: gq.Kind.NAMED_TYPE, name: { value: 'String', kind: gq.Kind.NAME } },
+        description: { kind: gq.Kind.STRING, value: '' },
+        directives: [],
+      } as any)
+    }
 
     // Override duplicate fields
     return fieldList.filter((f, ix) => fieldList[ix + 1]?.name.value !== f.name.value)
@@ -281,7 +302,7 @@ export class ${className} extends $Base<"${className}"> {
   }
 
   ${getExtendedFields(def)
-    .map(f => printField(f, className))
+    .map(f => printField(f, `"${className}"`))
     .join('\n')}
 }`
   }
@@ -321,7 +342,7 @@ export class ${className} extends $Base<"${className}"> {
       throw new Error('Attempting to generate function field definition for non-function field')
     }
   }
-  function printField(field: gq.FieldDefinitionNode, _parentName: string) {
+  function printField(field: gq.FieldDefinitionNode, typename: string) {
     const fieldTypeName = printTypeBase(field.type)
 
     let hasArgs = !!field.arguments?.length,
@@ -365,9 +386,10 @@ export class ${className} extends $Base<"${className}"> {
     }
   `
     } else {
+      let fieldType = field.name.value === '__typename' ? typename : printType(field.type)
       return `
       ${printDocumentation(field.description)}
-      get ${field.name.value}(): $Field<"${field.name.value}", ${printType(field.type)}>  {
+      get ${field.name.value}(): $Field<"${field.name.value}", ${fieldType}>  {
        return this.$_select("${field.name.value}") as any
       }`
     }
@@ -377,6 +399,8 @@ export class ${className} extends $Base<"${className}"> {
     const className = def.name.value
 
     const additionalTypes = reverseInheritanceMap.get(className) ?? []
+    const typenameList = additionalTypes.map(t => `"${t}"`).join(' | ')
+
     const InterfaceObject = `{${additionalTypes.map(t => `${t}: ${t}`)}}`
     return `
 ${printDocumentation(def.description)}
@@ -384,6 +408,9 @@ export class ${def.name.value} extends $Interface<${InterfaceObject}, "${def.nam
   constructor() {
     super(${InterfaceObject}, "${def.name.value}")
   }
+  ${getExtendedFields(def)
+    .map(f => printField(f, typenameList))
+    .join('\n')}
 }`
   }
 
@@ -436,7 +463,7 @@ export type ${def.name.value} = ${scalarMap.get(typeName) ?? 'unknown'}
 ${printDocumentation(def.description)}
 export class ${def.name.value} extends $Union<${UnionObject}, "${def.name.value}"> {
   constructor() {
-    super(${UnionObject})
+    super(${UnionObject}, "${def.name.value}")
   }
 }`
   }
