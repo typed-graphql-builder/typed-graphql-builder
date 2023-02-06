@@ -330,13 +330,13 @@ export type OutputTypeOf<T> = T extends $Base<any>
   ? OutputTypeOf<Inner>
   : never
 
-export type TypedDocumentOutput<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
+export type QueryOutputType<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
   infer Out
 >
   ? Out
   : never
 
-export type TypedDocumentInput<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
+export type QueryInputType<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
   any,
   infer In
 >
