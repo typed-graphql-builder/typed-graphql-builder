@@ -36,6 +36,7 @@ async function main() {
     includeTypename: {
       type: 'boolean',
       boolean: true,
+      default: false,
       describe: 'Include the __typename field in all objects',
     },
   }).argv
