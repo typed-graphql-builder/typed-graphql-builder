@@ -161,10 +161,8 @@ export function compileSchemaDefinitions(
       f1.name.value < f2.name.value ? -1 : f1.name.value > f2.name.value ? 1 : 0
     )
 
-    if (options.includeTypename) {
+    if (options.includeTypename && sd.kind != gq.Kind.INTERFACE_TYPE_DEFINITION) {
       fieldList.push({
-        // kind: gq.Kind.FIELD,
-        // name:
         kind: gq.Kind.FIELD_DEFINITION,
         name: { kind: gq.Kind.NAME, value: '__typename' },
         type: { kind: gq.Kind.NAMED_TYPE, name: { value: 'String', kind: gq.Kind.NAME } },
