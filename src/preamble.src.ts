@@ -93,13 +93,16 @@ class $Base<Name extends string> {
 }
 
 // @ts-ignore
-class $Union<T, Name extends String> {
+class $Union<T, Name extends String> extends $Base<Name> {
   // @ts-ignore
-  private type!: T
+  private $$type!: T
   // @ts-ignore
-  private name!: Name
+  private $$name!: Name
 
-  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }) {}
+  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
+    super($$name)
+  }
+
   $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
     alternative: Type,
     selectorFn: (selector: T[Type]) => [...Sel]
@@ -113,9 +116,9 @@ class $Union<T, Name extends String> {
 // @ts-ignore
 class $Interface<T, Name extends string> extends $Base<Name> {
   // @ts-ignore
-  private type!: T
+  private $$type!: T
   // @ts-ignore
-  private name!: Name
+  private $$name!: Name
 
   constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
     super($$name)
@@ -325,6 +328,19 @@ export type OutputTypeOf<T> = T extends $Base<any>
   ? OutputTypeOf<Inner>
   : [T] extends [(args: any, selFn: (arg: infer Inner) => any) => any]
   ? OutputTypeOf<Inner>
+  : never
+
+export type QueryOutputType<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
+  infer Out
+>
+  ? Out
+  : never
+
+export type QueryInputType<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
+  any,
+  infer In
+>
+  ? In
   : never
 
 export function fragment<T, Sel extends Selection<T>>(
