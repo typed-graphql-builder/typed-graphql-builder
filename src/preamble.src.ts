@@ -144,16 +144,22 @@ type Selection<_any> = ReadonlyArray<$Field<any, any, any> | $UnionSelection<any
 
 type NeverNever<T> = [T] extends [never] ? {} : T
 
-export type GetOutput<X extends Selection<any>> = UnionToIntersection<
-  {
-    [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any> ? { [K in Name]: Type } : never
-  }[keyof X & number]
-> &
-  NeverNever<
+type Simplify<T> = { [K in keyof T]: T[K] } & {}
+
+export type GetOutput<X extends Selection<any>> = Simplify<
+  UnionToIntersection<
     {
-      [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
+      [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any>
+        ? { [K in Name]: Type }
+        : never
     }[keyof X & number]
-  >
+  > &
+    NeverNever<
+      {
+        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
+      }[keyof X & number]
+    >
+>
 
 type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
   ? { [key in VName]?: VType }
@@ -247,7 +253,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
               if (!argTypeForKey) {
                 throw new Error(`Argument type for ${key} not found`)
               }
-              const cleanType = argTypeForKey.replace('[', '').replace(']', '').replace('!', '')
+              const cleanType = argTypeForKey.replace('[', '').replace(']', '').replace(/!/g, '')
               return (
                 key +
                 ':' +
