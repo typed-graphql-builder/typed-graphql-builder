@@ -8,7 +8,7 @@ export function ${op}<Sel extends Selection<$RootTypes.${op}>>(
 ): TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
 export function ${op}<Sel extends Selection<$RootTypes.${op}>>(
   selectFn: (q: $RootTypes.${op}) => [...Sel]
-): TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
+): TypedDocumentNode<GetOutput<Sel>, Simplify<GetVariables<Sel>>>
 export function ${op}<Sel extends Selection<$RootTypes.query>>(name: any, selectFn?: any) {
   if (!selectFn) {
     selectFn = name
