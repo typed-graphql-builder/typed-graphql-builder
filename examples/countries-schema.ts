@@ -1,6 +1,6 @@
 
 
-import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { gql } from 'graphql-tag'
 
 /* tslint:disable */
@@ -10,8 +10,10 @@ const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
 
 class Variable<T, Name extends string> {
   private [VariableName]: Name
+  // @ts-ignore
   private _type?: T
 
+  // @ts-ignore
   constructor(name: Name, private readonly isRequired?: boolean) {
     this[VariableName] = name
   }
@@ -76,6 +78,7 @@ class $Field<Name extends string, Type, Vars = {}> {
 }
 
 class $Base<Name extends string> {
+  // @ts-ignore
   constructor(private $$name: Name) {}
 
   protected $_select<Key extends string>(
@@ -86,11 +89,17 @@ class $Base<Name extends string> {
   }
 }
 
-class $Union<T, Name extends String> {
-  private type!: T
-  private name!: Name
+// @ts-ignore
+class $Union<T, Name extends String> extends $Base<Name> {
+  // @ts-ignore
+  private $$type!: T
+  // @ts-ignore
+  private $$name!: Name
 
-  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }) {}
+  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
+    super($$name)
+  }
+
   $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
     alternative: Type,
     selectorFn: (selector: T[Type]) => [...Sel]
@@ -101,9 +110,12 @@ class $Union<T, Name extends String> {
   }
 }
 
+// @ts-ignore
 class $Interface<T, Name extends string> extends $Base<Name> {
-  private type!: T
-  private name!: Name
+  // @ts-ignore
+  private $$type!: T
+  // @ts-ignore
+  private $$name!: Name
 
   constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
     super($$name)
@@ -120,6 +132,7 @@ class $Interface<T, Name extends string> extends $Base<Name> {
 
 class $UnionSelection<T, Vars> {
   public kind: 'union' = 'union'
+  // @ts-ignore
   private vars!: Vars
   constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
 }
@@ -128,16 +141,22 @@ type Selection<_any> = ReadonlyArray<$Field<any, any, any> | $UnionSelection<any
 
 type NeverNever<T> = [T] extends [never] ? {} : T
 
-export type GetOutput<X extends Selection<any>> = UnionToIntersection<
-  {
-    [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any> ? { [K in Name]: Type } : never
-  }[keyof X & number]
-> &
-  NeverNever<
+type Simplify<T> = { [K in keyof T]: T[K] } & {}
+
+export type GetOutput<X extends Selection<any>> = Simplify<
+  UnionToIntersection<
     {
-      [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
+      [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any>
+        ? { [K in Name]: Type }
+        : never
     }[keyof X & number]
-  >
+  > &
+    NeverNever<
+      {
+        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
+      }[keyof X & number]
+    >
+>
 
 type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
   ? { [key in VName]?: VType }
@@ -186,7 +205,7 @@ function getArgVarType(input: string): ArgVarType {
       }
     : null
 
-  const type = array ? arrRegex.exec(input)![1] : input
+  const type = array ? arrRegex.exec(input)![1]! : input
   const isRequired = type.endsWith('!')
 
   return {
@@ -227,12 +246,15 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
         return wrapped(
           Array.from(Object.entries(args))
             .map(([key, val]) => {
-              if (!argTypes[key]) {
+              let argTypeForKey = argTypes[key]
+              if (!argTypeForKey) {
                 throw new Error(`Argument type for ${key} not found`)
               }
-              const cleanType = argTypes[key].replace('[', '').replace(']', '').replace('!', '')
+              const cleanType = argTypeForKey.replace('[', '').replace(']', '').replace(/!/g, '')
               return (
-                key + ':' + stringifyArgs(val, $InputTypes[cleanType], getArgVarType(argTypes[key]))
+                key +
+                ':' +
+                stringifyArgs(val, $InputTypes[cleanType]!, getArgVarType(argTypeForKey))
               )
             })
             .join(',')
@@ -311,6 +333,19 @@ export type OutputTypeOf<T> = T extends $Base<any>
   ? OutputTypeOf<Inner>
   : never
 
+export type QueryOutputType<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
+  infer Out
+>
+  ? Out
+  : never
+
+export type QueryInputType<T extends TypedDocumentNode<any>> = T extends TypedDocumentNode<
+  any,
+  infer In
+>
+  ? In
+  : never
+
 export function fragment<T, Sel extends Selection<T>>(
   GQLType: { new (): T },
   selectFn: (selector: T) => [...Sel]
@@ -330,7 +365,7 @@ export type _Any = string
 
 export class _Entity extends $Union<{Country: Country,Continent: Continent,Language: Language}, "_Entity"> {
   constructor() {
-    super({Country: Country,Continent: Continent,Language: Language})
+    super({Country: Country,Continent: Continent,Language: Language}, "_Entity")
   }
 }
 
@@ -719,14 +754,23 @@ regex?: string | null | undefined
   
 
 export function query<Sel extends Selection<$RootTypes.query>>(
+  name: string,
   selectFn: (q: $RootTypes.query) => [...Sel]
-) {
+): TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
+export function query<Sel extends Selection<$RootTypes.query>>(
+  selectFn: (q: $RootTypes.query) => [...Sel]
+): TypedDocumentNode<GetOutput<Sel>, Simplify<GetVariables<Sel>>>
+export function query<Sel extends Selection<$RootTypes.query>>(name: any, selectFn?: any) {
+  if (!selectFn) {
+    selectFn = name
+    name = ''
+  }
   let field = new $Field<'query', GetOutput<Sel>, GetVariables<Sel>>('query', {
     selection: selectFn(new $Root.query()),
   })
-  const str = fieldToQuery('query', field)
+  const str = fieldToQuery(`query ${name}`, field)
 
-  return gql(str) as any as TypedDocumentNode<GetOutput<Sel>, GetVariables<Sel>>
+  return gql(str) as any
 }
 
 
