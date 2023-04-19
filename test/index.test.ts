@@ -1,6 +1,6 @@
 import t from 'tap'
 import * as glob from 'glob'
-import { compile } from '../src/compile'
+import { compile } from '../src/compile-api'
 import { spawnSync, SpawnSyncOptionsWithBufferEncoding } from 'child_process'
 import path from 'path'
 import os from 'os'

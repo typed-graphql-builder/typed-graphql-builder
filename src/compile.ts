@@ -1,93 +1,10 @@
 import * as gq from 'graphql'
-import type { DefinitionNode } from 'graphql'
-import * as fs from 'fs/promises'
+import { DefinitionNode } from 'graphql'
 import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
-import { request } from 'undici'
 import { UserFacingError } from './user-error'
-import { glob } from 'glob'
 import { getScalars } from './scalars'
-
-export type Args = {
-  /**
-   * The schema(s) to compile. Can be a path to a file or an URL to a server with introspection
-   */
-  schema: string | string[]
-  /**
-   * The path to the output file
-   */
-  output: string
-  /**
-   * If the schema is an URL, additional headers to send
-   */
-  headers?: string[]
-
-  /**
-   * A list of scalars and paths to their type definitions
-   */
-  scalar?: string[]
-
-  /**
-   * Should we include __typename in the fields?
-   */
-  includeTypename?: boolean
-}
-
-/**
- * Compiles the given schema file or URL and writes to the specified output file
- */
-export async function compile(args: Args) {
-  const schemaData = await fetchOrRead(args)
-
-  const scalars = args.scalar?.map(s => s.split('=') as [string, string])
-  const outputScript = compileSchemas(schemaData, {
-    scalars,
-    includeTypename: args.includeTypename,
-  })
-
-  if (args.output === '') {
-    console.log(outputScript)
-  } else {
-    await fs.writeFile(args.output, outputScript)
-  }
-}
-
-async function fetchOrRead(args: Args) {
-  let loadedSchemas = []
-  let schemas = Array.isArray(args.schema) ? args.schema : [args.schema]
-
-  for (let schemaSpec of schemas) {
-    if (/^https?:\/\//.test(schemaSpec)) {
-      let headers = args.headers ?? []
-      let res = await request(schemaSpec, {
-        method: 'POST',
-        headers: [...headers.flatMap(h => h.split(':')), 'content-type', 'application/json'],
-        body: JSON.stringify({
-          operationName: 'IntrospectionQuery',
-          query: gq.getIntrospectionQuery(),
-        }),
-      })
-      let body = await res.body.json()
-      if (body.errors) {
-        throw new UserFacingError(
-          `Error introspecting schema from ${args.schema}: ${JSON.stringify(body.errors, null, 2)}`
-        )
-      }
-      loadedSchemas.push(gq.printSchema(gq.buildClientSchema(body.data)))
-    } else if (args.schema === '') {
-      let res = ''
-      for await (let data of process.stdin) {
-        res += String(data)
-      }
-      loadedSchemas.push(res)
-    } else {
-      for (let fileName of glob.sync(schemaSpec)) {
-        loadedSchemas.push(await fs.readFile(fileName, 'utf8'))
-      }
-    }
-  }
-  return loadedSchemas
-}
+import { Options } from './compile-options'
 
 type SupportedExtensibleNodes =
   | gq.InterfaceTypeDefinitionNode
@@ -102,24 +19,6 @@ type FieldOf<T extends SupportedExtensibleNodes> = T extends
   ? gq.InputValueDefinitionNode
   : never
 
-export type Options = {
-  scalars?: [string, string][]
-  includeTypename?: boolean
-}
-
-/**
- * Compiles a schema string directly to output TypeScript code
- */
-export function compileSchemas(schemaStrings: string | string[], options: Options = {}): string {
-  let schemaArray = Array.isArray(schemaStrings) ? schemaStrings : [schemaStrings]
-
-  let schemas = schemaArray.map(schemaString => gq.parse(schemaString, { noLocation: false }))
-
-  let schemaDefinitions = schemas.flatMap(s => s.definitions)
-
-  return compileSchemaDefinitions(schemaDefinitions, options)
-}
-
 /**
  * Compile a list of schema definitions with the specified options into an output script string
  */
@@ -128,7 +27,8 @@ export function compileSchemaDefinitions(
   options: Options = {}
 ) {
   let outputScript = ''
-  const write = (s: string) => {
+
+  function write(s: string) {
     outputScript += s + '\n'
   }
 
@@ -147,16 +47,21 @@ export function compileSchemaDefinitions(
   const scalars = getScalars(scalarTypeNames, options.scalars)
 
   const schemaExtensionsMap = schemaDefinitions.filter(gq.isTypeExtensionNode).reduce((acc, el) => {
-    acc.has(el.name.value) ? acc.get(el.name.value)!.push(el) : acc.set(el.name.value, [el])
+    if (acc.has(el.name.value)) {
+      acc.get(el.name.value)!.push(el)
+    } else {
+      acc.set(el.name.value, [el])
+    }
     return acc
   }, new Map<string, gq.TypeExtensionNode[]>())
 
   function getExtendedFields<T extends SupportedExtensibleNodes>(sd: T) {
-    let fieldList = ((sd.fields || []) as FieldOf<T>[]).concat(
-      (schemaExtensionsMap.get(sd.name.value) || []).flatMap(
-        n => (n as any).fields || []
-      ) as FieldOf<T>[]
-    )
+    let fieldExtensions = (schemaExtensionsMap.get(sd.name.value) || []).flatMap(
+      n => (n as any).fields || []
+    ) as FieldOf<T>[]
+
+    let fieldList = ((sd.fields || []) as FieldOf<T>[]).concat(fieldExtensions)
+
     fieldList.sort((f1, f2) =>
       f1.name.value < f2.name.value ? -1 : f1.name.value > f2.name.value ? 1 : 0
     )
@@ -340,6 +245,7 @@ export class ${className} extends $Base<"${className}"> {
       throw new Error('Attempting to generate function field definition for non-function field')
     }
   }
+
   function printField(field: gq.FieldDefinitionNode, typename: string) {
     const fieldTypeName = printTypeBase(field.type)
 
@@ -492,6 +398,8 @@ export enum ${def.name.value} {
   }
   `
   }
+
+  // main
 
   write(scalars.imports.join('\n'))
   write(Preamble)

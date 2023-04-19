@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import * as yargs from 'yargs'
-import { compile } from './compile'
+import { compile } from './compile-api'
 import { UserFacingError } from './user-error'
 
 async function main() {
-  const args = await yargs.usage('Compiles a GraphQL schema to a TypeScript API').options({
+  let args = await yargs.usage('Compiles a GraphQL schema to a TypeScript API').options({
     schema: {
       type: 'array',
       string: true,
