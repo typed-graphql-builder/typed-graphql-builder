@@ -1,5 +1,5 @@
 import t from 'tap'
-import { compileSchemas } from './compile'
+import { compileSchemas } from './compile-api'
 
 // ------------------------------------------------------------------------------
 
