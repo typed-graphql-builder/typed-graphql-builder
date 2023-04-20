@@ -1,0 +1,21 @@
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+input MyInput {
+  content: JSONObject
+}
+
+type Mutation {
+  createObject(input: MyInput!): Boolean!
+}
+
+type Query {
+  test(input: String!): String!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

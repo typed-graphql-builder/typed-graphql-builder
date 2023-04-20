@@ -1,6 +1,7 @@
 type $Atomic = string
 let $InputTypes: { [key: string]: { [key: string]: string } } = {}
 let $Enums = new Set()
+let $Scalars = new Set()
 
 /* BEGIN PREAMBLE */
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
@@ -235,7 +236,9 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       case 'boolean':
         return JSON.stringify(args)
       default:
-        if (args == null) return 'null'
+        if (args == null) {
+          return 'null'
+        }
         if (VariableName in (args as any)) {
           if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
           const variable = args as Variable<any, any>
@@ -243,15 +246,21 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
           variables.set(argVarName, { type: argVarType, variable: variable })
           return '$' + argVarName
         }
-        if (Array.isArray(args))
+        if ($Scalars.has(argVarType?.type!)) {
+          // This may be a decent default but we might want to support custom serializers
+          // for custom scalars in the future.
+          throw new Error(`Scalar type ${argVarType?.type} can only be passed as variable`)
+        }
+        if (Array.isArray(args)) {
           return '[' + args.map(arg => stringifyArgs(arg, argTypes, argVarType)).join(',') + ']'
+        }
         const wrapped = (content: string) => (argVarType ? '{' + content + '}' : content)
         return wrapped(
           Array.from(Object.entries(args))
             .map(([key, val]) => {
               let argTypeForKey = argTypes[key]
               if (!argTypeForKey) {
-                throw new Error(`Argument type for ${key} not found`)
+                throw new Error(`Argument type for ${argVarType?.type}.${key} not found`)
               }
               const cleanType = argTypeForKey.replace('[', '').replace(']', '').replace(/!/g, '')
               return (

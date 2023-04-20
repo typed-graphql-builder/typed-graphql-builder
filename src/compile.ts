@@ -130,6 +130,10 @@ export function compileSchemaDefinitions(
 `
   }
 
+  function printScalarsList() {
+    return `let $Scalars = new Set<string>(${JSON.stringify(Array.from(scalarMap.keys()))})`
+  }
+
   function printTypeWrapped(
     wrappedType: string,
     wrapperDef: gq.TypeNode,
@@ -404,6 +408,7 @@ export enum ${def.name.value} {
   write(Preamble)
   write(printAtomicTypes())
   write(printEnumList())
+  write(printScalarsList())
 
   let rootNode: gq.SchemaDefinitionNode | null = null
 
