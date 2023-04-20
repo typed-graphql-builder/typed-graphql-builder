@@ -181,6 +181,11 @@ type Mutation {
   add Card to Cards database<br>
   """
   addCard(card: createCard!): Card!
+
+  """
+  add Card with hitpoints only
+  """
+  addCardDefault(card: createCardWithDefault!): Card!
 }
 
 """
@@ -256,6 +261,17 @@ input createCard {
   The defense power<br>
   """
   Defense: Int!
+
+}
+
+"""
+create card default test
+"""
+input createCardWithDefault {
+  """
+  The hitpoints
+  """
+  hitpoints: Int! = 100
 }
 
 input AndType {
