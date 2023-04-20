@@ -5,7 +5,7 @@ import { glob } from 'glob'
 
 import { UserFacingError } from './user-error'
 import { compileSchemaDefinitions } from './compile'
-import { Args, Options } from './compile-options'
+import type { Args, Options } from './compile-options'
 
 /**
  * Compiles the given schema file or URL and writes to the specified output file
