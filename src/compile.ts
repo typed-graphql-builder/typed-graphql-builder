@@ -182,8 +182,8 @@ export function compileSchemaDefinitions(
   }
 
   function printInputField(def: gq.InputValueDefinitionNode) {
-    const maybe = def.type.kind !== gq.Kind.NON_NULL_TYPE ? '?' : ''
-    return `${def.name.value}${maybe}: ${printType(def.type)}`
+    const canBeOmitted = def.type.kind !== gq.Kind.NON_NULL_TYPE || def.defaultValue !== undefined
+    return `${def.name.value}${canBeOmitted ? '?' : ''}: ${printType(def.type)}`
   }
 
   function printDocumentation(description?: gq.StringValueNode) {

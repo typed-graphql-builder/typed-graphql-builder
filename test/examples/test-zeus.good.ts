@@ -139,6 +139,15 @@ let nestedVariable = query(q => [
   q.drawCard(c => [c.attack({ cardID: $('cardID') }, s => [s.name])]),
 ])
 
+let omitDefaultsTest = mutation(m => [
+  m.addCardDefault(
+    {
+      card: {},
+    },
+    c => [c.Attack]
+  ),
+])
+
 export default [
   verify({
     query: tm,
@@ -171,5 +180,10 @@ export default [
       cids: ['2'],
       cids2: ['4'],
     },
+  }),
+  verify({
+    query: omitDefaultsTest,
+    schemaPath: 'zeus.graphql',
+    variables: {},
   }),
 ]
