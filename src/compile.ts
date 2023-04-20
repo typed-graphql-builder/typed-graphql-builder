@@ -1,10 +1,9 @@
 import * as gq from 'graphql'
-import { DefinitionNode } from 'graphql'
 import { Preamble } from './preamble.lib'
 import { postamble } from './postamble'
 import { UserFacingError } from './user-error'
 import { getScalars } from './scalars'
-import { Options } from './compile-options'
+import type { Options } from './compile-options'
 
 type SupportedExtensibleNodes =
   | gq.InterfaceTypeDefinitionNode
@@ -23,7 +22,7 @@ type FieldOf<T extends SupportedExtensibleNodes> = T extends
  * Compile a list of schema definitions with the specified options into an output script string
  */
 export function compileSchemaDefinitions(
-  schemaDefinitions: DefinitionNode[],
+  schemaDefinitions: gq.DefinitionNode[],
   options: Options = {}
 ) {
   let outputScript = ''
