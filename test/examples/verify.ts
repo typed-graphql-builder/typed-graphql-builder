@@ -1,4 +1,4 @@
-import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { print, parse, validate, buildSchema } from 'graphql'
 import fs from 'fs'
 import path from 'path'

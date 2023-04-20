@@ -3,7 +3,7 @@ let $InputTypes: { [key: string]: { [key: string]: string } } = {}
 let $Enums = new Set()
 
 /* BEGIN PREAMBLE */
-import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { gql } from 'graphql-tag'
 
 /* tslint:disable */
