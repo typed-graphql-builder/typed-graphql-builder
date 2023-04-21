@@ -70,6 +70,7 @@ for (let schema of glob.sync(`./examples/*.graphql`, { cwd: __dirname })) {
         schema: path.join(__dirname, schema),
         output: path.join(__dirname, 'examples', `${schemaName}.api.ts`),
         includeTypename: true,
+        scalar: schemaName === 'zeus.graphql' ? ['JSON={[key:string]:string|null}'] : undefined,
       })
     })
 

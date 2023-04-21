@@ -262,6 +262,10 @@ input createCard {
   """
   Defense: Int!
 
+  """
+  The extra info"
+  """
+  info: JSON
 }
 
 """

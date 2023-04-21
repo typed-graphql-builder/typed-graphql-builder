@@ -28,7 +28,7 @@ type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
 
 // the array wrapper prevents distributive conditional types
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
-type VariabledInput<T> = [T] extends [$Atomic | null | undefined]
+type VariabledInput<T> = [T] extends [Exclude<$Atomic, Record<string, any>> | null | undefined]
   ? Variable<T, any> | T
   : T extends ReadonlyArray<infer I>
   ? Variable<T, any> | T | ArrayInput<I>

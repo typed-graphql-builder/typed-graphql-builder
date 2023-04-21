@@ -148,6 +148,33 @@ let omitDefaultsTest = mutation(m => [
   ),
 ])
 
+let tmWithJsonVariable = mutation(m => [
+  m.addCard(
+    {
+      card: {
+        Attack: 1,
+        Defense: 2,
+        name: 'Hi',
+        description: 'Lo',
+        skills: [SpecialSkills.FIRE],
+        info: $('info'),
+      },
+    },
+    c => [c.Attack, c.Defense, c.Children]
+  ),
+])
+
+let tmWithJsonVariableString = `
+mutation ($info: JSON) {
+  addCard(
+    card: {Attack: 1, Defense: 2, name: "Hi", description: "Lo", skills: [FIRE], info: $info}
+  ) {
+    Attack
+    Defense
+    Children
+  }
+}`
+
 export default [
   verify({
     query: tm,
@@ -162,6 +189,12 @@ export default [
     string: tmWithoutVariableString,
     schemaPath: 'zeus.graphql',
     variables: {},
+  }),
+  verify({
+    query: tmWithJsonVariable,
+    string: tmWithJsonVariableString,
+    schemaPath: 'zeus.graphql',
+    variables: { info: { foo: 'bar' } },
   }),
   verify({
     query: nestedVariable,
