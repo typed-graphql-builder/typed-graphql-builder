@@ -2,13 +2,16 @@ import { mutation, $ } from './scalars.graphql.api'
 
 let createScalarMutation = () =>
   mutation(m => [
-    m.createObject({
-      input: {
-        content: {
-          scalarContent: $('variable'),
+    m.createObject(
+      {
+        input: {
+          content: {
+            scalarContent: $('variable'),
+          },
         },
       },
-    }),
+      () => []
+    ),
   ])
 
 export default [
