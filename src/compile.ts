@@ -80,9 +80,8 @@ export function compileSchemaDefinitions(
   }
 
   const atomicTypes = new Map(
-    scalars.map
-      .filter(([_, mapping]) => mapping !== 'unknown' && mapping !== 'any')
-      .concat(enumTypes.map(et => [et, et]))
+    enumTypes
+      .map(et => [et, et])
       .concat([
         ['Int', 'number'],
         ['Float', 'number'],
@@ -116,8 +115,11 @@ export function compileSchemaDefinitions(
     return !atomicTypes.get(typeName) && !scalarMap.get(typeName)
   }
 
-  function toTSType(scalar: string) {
-    return atomicTypes.get(scalar) ?? scalar
+  function toTSType(namedType: string) {
+    return (
+      atomicTypes.get(namedType) ??
+      (scalarMap.get(namedType) ? `CustomScalar<${namedType}>` : namedType)
+    )
   }
 
   function printAtomicTypes() {

@@ -1,0 +1,5 @@
+{
+  "scalar": [
+    "JSON={[key:string]:string|null}"
+  ]
+}
