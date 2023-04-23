@@ -32,6 +32,16 @@ type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
 
 type AllowedInlineScalars<S> = S extends string | number ? S : never
 
+type RemoveInnerScalars<T> = T extends CustomScalar<infer S>
+  ? S
+  : T extends ReadonlyArray<infer I>
+  ? ReadonlyArray<RemoveInnerScalars<I>>
+  : T extends Record<string, any>
+  ? { [K in keyof T]: RemoveInnerScalars<T[K]> }
+  : T
+
+type VariableWithoutScalars<T, Str extends string> = Variable<RemoveInnerScalars<T>, Str>
+
 // the array wrapper prevents distributive conditional types
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
 type VariabledInput<T> = [T] extends [CustomScalar<infer S> | null | undefined]
@@ -42,9 +52,9 @@ type VariabledInput<T> = [T] extends [CustomScalar<infer S> | null | undefined]
   : [T] extends [$Atomic | null | undefined]
   ? Variable<T, any> | T
   : T extends ReadonlyArray<infer I>
-  ? Variable<T, any> | T | ArrayInput<I>
+  ? VariableWithoutScalars<T, any> | T | ArrayInput<I>
   : T extends Record<string, any>
-  ? Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+  ? VariableWithoutScalars<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
   : never
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void

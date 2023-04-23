@@ -9,6 +9,7 @@ input MyInput {
 
 type Mutation {
   createObject(input: MyInput!): MyOutput
+  createMany(inputs: [MyInput!]!): Boolean
 }
 
 type MyOutput {
