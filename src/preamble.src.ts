@@ -32,15 +32,15 @@ type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
 
 type AllowedInlineScalars<S> = S extends string | number ? S : never
 
-type RemoveInnerScalars<T> = T extends CustomScalar<infer S>
+export type UnwrapCustomScalars<T> = T extends CustomScalar<infer S>
   ? S
   : T extends ReadonlyArray<infer I>
-  ? ReadonlyArray<RemoveInnerScalars<I>>
+  ? ReadonlyArray<UnwrapCustomScalars<I>>
   : T extends Record<string, any>
-  ? { [K in keyof T]: RemoveInnerScalars<T[K]> }
+  ? { [K in keyof T]: UnwrapCustomScalars<T[K]> }
   : T
 
-type VariableWithoutScalars<T, Str extends string> = Variable<RemoveInnerScalars<T>, Str>
+type VariableWithoutScalars<T, Str extends string> = Variable<UnwrapCustomScalars<T>, Str>
 
 // the array wrapper prevents distributive conditional types
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
