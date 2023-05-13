@@ -31,4 +31,4 @@ export function verify<Inp, Out>(opts: {
       t.equal(str, q)
     }
   }
-} 
+}
