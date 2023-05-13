@@ -51,3 +51,34 @@ t.test('works with custom scalars', async t => {
 
   t.same(importList, [`import type { A } from './scalars'`, `import type { B } from './scalars'`])
 })
+
+// ------------------------------------------------------------------------------
+
+let schemaInputTypes = `
+scalar A
+scalar B
+
+input MyInput {
+  a: String
+}
+type Query {
+  test(myInput: MyInput): string
+}
+`
+
+t.test('does not add typename to input types', async t => {
+  let res = compileSchemas([schemaInputTypes], {
+    includeTypename: true,
+  })
+
+  let lines = res.split('\n')
+
+  let firstTypeLine = lines.findIndex(l => l.startsWith('export type MyInput'))
+  let lastTypeLine = lines.slice(firstTypeLine).findIndex(l => l === '}')
+  let typeLines = lines.slice(firstTypeLine + 1, firstTypeLine + lastTypeLine)
+  let typenameLine = typeLines.find(l => l.includes('__typename'))
+  t.same(typenameLine, null, 'should not contian __typename')
+  // let inputType = res
+
+  // console.log(res)
+})
