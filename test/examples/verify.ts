@@ -8,6 +8,7 @@ export function verify<Inp, Out>(opts: {
   string?: string
   schemaPath: string
   variables: Inp
+  useOutputType?: (output: Out) => void
 }) {
   return (t: Tap.Test) => {
     if (opts.string) {

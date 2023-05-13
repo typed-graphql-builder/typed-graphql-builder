@@ -1,4 +1,4 @@
-type $Atomic = string
+type $Atomic = string | number
 let $InputTypes: { [key: string]: { [key: string]: string } } = {}
 let $Enums = new Set()
 
@@ -10,6 +10,10 @@ import { gql } from 'graphql-tag'
 /* eslint-disable */
 
 const VariableName = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd8'
+
+const ScalarBrandingField = ' $1fcbcbff-3e78-462f-b45c-668a3e09bfd9'
+
+type CustomScalar<T> = { [ScalarBrandingField]: T }
 
 class Variable<T, Name extends string> {
   private [VariableName]: Name
@@ -26,14 +30,31 @@ type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
   ? never
   : ReadonlyArray<VariabledInput<I>>
 
+type AllowedInlineScalars<S> = S extends string | number ? S : never
+
+export type UnwrapCustomScalars<T> = T extends CustomScalar<infer S>
+  ? S
+  : T extends ReadonlyArray<infer I>
+  ? ReadonlyArray<UnwrapCustomScalars<I>>
+  : T extends Record<string, any>
+  ? { [K in keyof T]: UnwrapCustomScalars<T[K]> }
+  : T
+
+type VariableWithoutScalars<T, Str extends string> = Variable<UnwrapCustomScalars<T>, Str>
+
 // the array wrapper prevents distributive conditional types
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
-type VariabledInput<T> = [T] extends [$Atomic | null | undefined]
+type VariabledInput<T> = [T] extends [CustomScalar<infer S> | null | undefined]
+  ? // scalars only support variable input
+    Variable<S, any> | AllowedInlineScalars<S> | null | undefined
+  : [T] extends [CustomScalar<infer S>]
+  ? Variable<S, any> | AllowedInlineScalars<S>
+  : [T] extends [$Atomic | null | undefined]
   ? Variable<T, any> | T
   : T extends ReadonlyArray<infer I>
-  ? Variable<T, any> | T | ArrayInput<I>
+  ? VariableWithoutScalars<T, any> | T | ArrayInput<I>
   : T extends Record<string, any>
-  ? Variable<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
+  ? VariableWithoutScalars<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
   : never
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
@@ -146,17 +167,19 @@ type NeverNever<T> = [T] extends [never] ? {} : T
 
 type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
+type LeafType<T> = T extends CustomScalar<infer S> ? S : T
+
 export type GetOutput<X extends Selection<any>> = Simplify<
   UnionToIntersection<
     {
       [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any>
-        ? { [K in Name]: Type }
+        ? { [K in Name]: LeafType<Type> }
         : never
     }[keyof X & number]
   > &
     NeverNever<
       {
-        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? Type : never
+        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? LeafType<Type> : never
       }[keyof X & number]
     >
 >

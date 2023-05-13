@@ -80,9 +80,8 @@ export function compileSchemaDefinitions(
   }
 
   const atomicTypes = new Map(
-    scalars.map
-      .filter(([_, mapping]) => mapping !== 'unknown' && mapping !== 'any')
-      .concat(enumTypes.map(et => [et, et]))
+    enumTypes
+      .map(et => [et, et])
       .concat([
         ['Int', 'number'],
         ['Float', 'number'],
@@ -116,8 +115,19 @@ export function compileSchemaDefinitions(
     return !atomicTypes.get(typeName) && !scalarMap.get(typeName)
   }
 
-  function toTSType(scalar: string) {
-    return atomicTypes.get(scalar) ?? scalar
+  function toTSTypeName(graphqlType: string) {
+    let atomic = atomicTypes.get(graphqlType)
+    if (atomic) {
+      return atomic
+    }
+
+    let scalar = scalarMap.get(graphqlType)
+    if (scalar) {
+      if (scalar === 'string' || scalar === 'number') return graphqlType
+      else return `CustomScalar<${graphqlType}>`
+    }
+
+    return graphqlType
   }
 
   function printAtomicTypes() {
@@ -143,7 +153,7 @@ export function compileSchemaDefinitions(
           !notNull ? ' | undefined' : ''
         }`
       case gq.Kind.NAMED_TYPE:
-        return `${toTSType(wrappedType)}${!notNull ? ' | undefined' : ''}`
+        return `${toTSTypeName(wrappedType)}${!notNull ? ' | undefined' : ''}`
     }
   }
 
@@ -154,7 +164,7 @@ export function compileSchemaDefinitions(
       case gq.Kind.LIST_TYPE:
         return `Readonly<Array<${printType(def.type)}>>${!notNull ? ' | null | undefined' : ''}`
       case gq.Kind.NAMED_TYPE:
-        return `${toTSType(def.name.value)}${!notNull ? ' | null | undefined' : ''}`
+        return `${toTSTypeName(def.name.value)}${!notNull ? ' | null | undefined' : ''}`
     }
   }
 
