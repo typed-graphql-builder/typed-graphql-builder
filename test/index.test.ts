@@ -4,6 +4,7 @@ import { compile } from '../src/compile-api'
 import { spawnSync, SpawnSyncOptionsWithBufferEncoding } from 'child_process'
 import path from 'path'
 import os from 'os'
+import fs from 'fs/promises'
 
 // test dir structure
 // examples/schema1.graphql
@@ -66,10 +67,25 @@ for (let schema of glob.sync(`./examples/*.graphql`, { cwd: __dirname })) {
     // t.autoend(true)
 
     t.before(async () => {
+      let extraOptionsPath = path.join(__dirname, `examples`, `${schemaName}.opts.json`)
+
+      let extraOptions = await fs.readFile(extraOptionsPath, 'utf8').then(
+        opts => {
+          try {
+            return JSON.parse(opts)
+          } catch (e) {
+            console.error(`Eror parsing schema options for ${schemaName}: ${opts}`)
+            return {}
+          }
+        },
+        _ => ({})
+      )
+
       await compile({
         schema: path.join(__dirname, schema),
         output: path.join(__dirname, 'examples', `${schemaName}.api.ts`),
         includeTypename: true,
+        ...extraOptions,
       })
     })
 
