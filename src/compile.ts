@@ -65,7 +65,11 @@ export function compileSchemaDefinitions(
       f1.name.value < f2.name.value ? -1 : f1.name.value > f2.name.value ? 1 : 0
     )
 
-    if (options.includeTypename && sd.kind != gq.Kind.INTERFACE_TYPE_DEFINITION) {
+    if (
+      options.includeTypename &&
+      sd.kind != gq.Kind.INTERFACE_TYPE_DEFINITION &&
+      sd.kind != gq.Kind.INPUT_OBJECT_TYPE_DEFINITION
+    ) {
       fieldList.push({
         kind: gq.Kind.FIELD_DEFINITION,
         name: { kind: gq.Kind.NAME, value: '__typename' },
