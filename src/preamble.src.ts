@@ -85,7 +85,7 @@ type SelectOptions = {
   selection?: Selection<any>
 }
 
-class $Field<Name extends string, Type, Vars = {}> {
+export class $Field<Name extends string, Type, Vars = {}> {
   public kind: 'field' = 'field'
   public type!: Type
 
@@ -101,7 +101,7 @@ class $Field<Name extends string, Type, Vars = {}> {
   }
 }
 
-class $Base<Name extends string> {
+export class $Base<Name extends string> {
   // @ts-ignore
   constructor(private $$name: Name) {}
 
