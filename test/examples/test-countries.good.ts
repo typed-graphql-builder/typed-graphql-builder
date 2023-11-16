@@ -1,4 +1,4 @@
-import { query, $, $$ } from './countries.graphql.api'
+import { all, query, $, $$ } from './countries.graphql.api'
 import { verify } from './verify'
 
 // Allow both overloads
@@ -71,6 +71,78 @@ query MyName($test: ID!) {
 }
 `
 
+let allQuery = query('AllFields', q => [
+  q.countries(all),
+])
+
+let allQueryString = `
+query AllFields {
+  countries {
+    capital
+    code
+    currency
+    emoji
+    emojiU
+    name
+    native
+    phone
+    __typename
+  }
+}
+`
+
+let nestedAllQuery = query('NestedAllFields', q => [
+  q.countries(c => [
+    c.capital,
+    c.languages(all),
+  ]),
+])
+
+let nestedAllQueryString = `
+query NestedAllFields {
+  countries {
+    capital
+    languages {
+      code
+      name
+      native
+      rtl
+      __typename
+    }
+  }
+}
+`
+
+let doubleAllQuery = query('DoubleAllFields', q => [
+  q.countries(c => [
+    ...all(c),
+    c.languages(all),
+  ]),
+])
+
+let doubleAllQueryString = `
+query DoubleAllFields {
+  countries {
+    capital
+    code
+    currency
+    emoji
+    emojiU
+    name
+    native
+    phone
+    __typename
+    languages {
+      code
+      name
+      native
+      rtl
+      __typename
+    }
+  }
+}
+`
+
 export default [
   verify({
     query: twoCountries,
@@ -94,7 +166,6 @@ export default [
     schemaPath: 'countries.graphql',
     string: countryQueryStringRequired,
   }),
-
   verify({
     query: namedQuery,
     string: namedQueryString,
@@ -102,5 +173,23 @@ export default [
     variables: {
       test: 'x',
     },
+  }),
+  verify({
+    query: allQuery,
+    string: allQueryString,
+    schemaPath: 'countries.graphql',
+    variables: {},
+  }),
+  verify({
+    query: nestedAllQuery,
+    string: nestedAllQueryString,
+    schemaPath: 'countries.graphql',
+    variables: {},
+  }),
+  verify({
+    query: doubleAllQuery,
+    string: doubleAllQueryString,
+    schemaPath: 'countries.graphql',
+    variables: {},
   }),
 ]
