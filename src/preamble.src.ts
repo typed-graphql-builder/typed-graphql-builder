@@ -415,3 +415,7 @@ export function all<I extends $Base<any>>(instance: I) {
 		fieldName => instance?.[fieldName],
 	) as any) as AllFields<I>
 }
+
+type ExactArgNames<GenericType, Constraint> = GenericType & {
+  [Key in keyof GenericType]: Key extends keyof Constraint ? GenericType[Key] : never
+}
