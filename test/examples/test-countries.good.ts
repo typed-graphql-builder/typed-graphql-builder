@@ -143,6 +143,19 @@ query DoubleAllFields {
 }
 `
 
+let filterVariableQuery = query('FilterVariable', q => [
+  q.countries({filter: $('filter')}, c => [c.capital, c.code])
+])
+
+let filterVariableQueryString = `
+query FilterVariable($filter: CountryFilterInput) {
+  countries(filter: $filter) {
+    capital
+    code
+  }
+}
+`
+
 export default [
   verify({
     query: twoCountries,
@@ -191,5 +204,15 @@ export default [
     string: doubleAllQueryString,
     schemaPath: 'countries.graphql',
     variables: {},
+  }),
+  verify({
+    query: filterVariableQuery,
+    string: filterVariableQueryString,
+    schemaPath: 'countries.graphql',
+    variables: {
+      filter: {
+        code: { eq: 'x' },
+      },
+    },
   }),
 ]
