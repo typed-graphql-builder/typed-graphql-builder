@@ -231,20 +231,23 @@ export class ${className} extends $Base<"${className}"> {
     const fieldTypeName = printTypeBase(field.type)
     let hasArgs = false,
       hasSelector = false
+
+    let argsType = ''
+
     if (field.arguments?.length && includeArgs) {
       hasArgs = true
-      methodArgs.push(`args: Args`)
+      argsType = `{
+        ${(field.arguments ?? []).map(arg => printInputField(arg)).join('\n')},
+      }`
+      methodArgs.push(`args: ExactArgNames<Args, ${argsType}>`)
     }
     if (gqlTypeHasSelector(fieldTypeName)) {
       hasSelector = true
-
       methodArgs.push(`selectorFn: (s: ${fieldTypeName}) => [...Sel]`)
     }
     if (methodArgs.length > 0) {
       let methodArgsSerialized = methodArgs.join(', ')
-      const argsType = `{
-        ${(field.arguments ?? []).map(arg => printInputField(arg)).join('\n')},
-      }`
+
       const generics = (hasArgs ? [`Args extends VariabledInput<${argsType}>`] : []).concat(
         hasSelector ? [`Sel extends Selection<${fieldTypeName}>`] : []
       )
