@@ -379,26 +379,20 @@ export function fragment<T, Sel extends Selection<T>>(
   return selectFn(new GQLType())
 }
 
-type LastOf<T> = UnionToIntersection<
-	T extends any ? () => T : never
-> extends () => infer R
-	? R
-	: never
+type LastOf<T> = UnionToIntersection<T extends any ? () => T : never> extends () => infer R
+  ? R
+  : never
 
 // TS4.0+
 type Push<T extends any[], V> = [...T, V]
 
 // TS4.1+
-type TuplifyUnion<
-	T,
-	L = LastOf<T>,
-	N = [T] extends [never] ? true : false
-> = true extends N ? [] : Push<TuplifyUnion<Exclude<T, L>>, L>
+type TuplifyUnion<T, L = LastOf<T>, N = [T] extends [never] ? true : false> = true extends N
+  ? []
+  : Push<TuplifyUnion<Exclude<T, L>>, L>
 
 type AllFieldProperties<I> = {
-	[K in keyof I]: I[K] extends $Field<infer Name, infer Type, any>
-		? $Field<Name, Type, any>
-		: never
+  [K in keyof I]: I[K] extends $Field<infer Name, infer Type, any> ? $Field<Name, Type, any> : never
 }
 
 type ValueOf<T> = T[keyof T]
@@ -406,16 +400,27 @@ type ValueOf<T> = T[keyof T]
 export type AllFields<T> = TuplifyUnion<ValueOf<AllFieldProperties<T>>>
 
 export function all<I extends $Base<any>>(instance: I) {
-	const prototype = Object.getPrototypeOf(instance)
-	const allFields = Object.getOwnPropertyNames(prototype)
-		.map(k => prototype[k])
-		.filter(o => o?.kind === 'field')
-		.map(o => o?.name) as (keyof typeof instance)[]
-	return (allFields.map(
-		fieldName => instance?.[fieldName],
-	) as any) as AllFields<I>
+  const prototype = Object.getPrototypeOf(instance)
+  const allFields = Object.getOwnPropertyNames(prototype)
+    .map(k => prototype[k])
+    .filter(o => o?.kind === 'field')
+    .map(o => o?.name) as (keyof typeof instance)[]
+  return allFields.map(fieldName => instance?.[fieldName]) as any as AllFields<I>
 }
 
-type ExactArgNames<GenericType, Constraint> = GenericType & {
-  [Key in keyof GenericType]: Key extends keyof Constraint ? GenericType[Key] : never
-}
+
+type ExactArgNames<GenericType, Constraint> = [Constraint] extends
+  [$Atomic
+  | null
+  | undefined
+  | CustomScalar<any>]
+  ? GenericType
+  : Constraint extends ReadonlyArray<infer InnerConstraint>
+  ? GenericType extends ReadonlyArray<infer Inner>
+    ? ReadonlyArray<ExactArgNames<Inner, InnerConstraint>>
+    : GenericType
+  : GenericType & {
+      [Key in keyof GenericType]: Key extends keyof Constraint
+        ? ExactArgNames<GenericType[Key], Constraint[Key]>
+        : never
+    }
