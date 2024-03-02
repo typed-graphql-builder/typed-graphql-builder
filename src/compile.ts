@@ -135,7 +135,7 @@ export function compileSchemaDefinitions(
   }
 
   function printAtomicTypes() {
-    return `type $Atomic = ${Array.from(new Set(atomicTypes.values())).join(' | ')}
+    return `type $Atomic = ${Array.from(new Set(atomicTypes.values())).concat('null', 'undefined').join(' | ')}
 `
   }
 

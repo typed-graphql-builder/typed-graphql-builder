@@ -1,4 +1,4 @@
-type $Atomic = string | number
+type $Atomic = string | number | null | undefined
 let $InputTypes: { [key: string]: { [key: string]: string } } = {}
 let $Enums = new Set()
 
@@ -26,9 +26,7 @@ class Variable<T, Name extends string> {
   }
 }
 
-type ArrayInput<I> = [I] extends [$Atomic | null | undefined]
-  ? never
-  : ReadonlyArray<VariabledInput<I>>
+type ArrayInput<I> = [I] extends [$Atomic] ? never : ReadonlyArray<VariabledInput<I>>
 
 type AllowedInlineScalars<S> = S extends string | number ? S : never
 
@@ -49,10 +47,17 @@ type VariabledInput<T> = [T] extends [CustomScalar<infer S> | null | undefined]
     Variable<S, any> | AllowedInlineScalars<S> | null | undefined
   : [T] extends [CustomScalar<infer S>]
   ? Variable<S, any> | AllowedInlineScalars<S>
-  : [T] extends [$Atomic | null | undefined]
+  : [T] extends [$Atomic]
   ? Variable<T, any> | T
   : T extends ReadonlyArray<infer I>
   ? VariableWithoutScalars<T, any> | T | ArrayInput<I>
+  : T extends Record<string, any> | null | undefined
+  ?
+      | VariableWithoutScalars<T | null | undefined, any>
+      | null
+      | undefined
+      | { [K in keyof T]: VariabledInput<T[K]> }
+      | T
   : T extends Record<string, any>
   ? VariableWithoutScalars<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
   : never
@@ -408,12 +413,7 @@ export function all<I extends $Base<any>>(instance: I) {
   return allFields.map(fieldName => instance?.[fieldName]) as any as AllFields<I>
 }
 
-
-type ExactArgNames<GenericType, Constraint> = [Constraint] extends
-  [$Atomic
-  | null
-  | undefined
-  | CustomScalar<any>]
+type ExactArgNames<GenericType, Constraint> = [Constraint] extends [$Atomic | CustomScalar<any>]
   ? GenericType
   : Constraint extends ReadonlyArray<infer InnerConstraint>
   ? GenericType extends ReadonlyArray<infer Inner>
