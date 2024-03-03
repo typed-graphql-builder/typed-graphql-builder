@@ -10,8 +10,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@parcel/packager-ts": "2.7.0",
-    "@parcel/transformer-typescript-types": "2.7.0",
+    "@parcel/packager-ts": "2.12.0",
+    "@parcel/transformer-inline-string": "2.12.0",
+    "@parcel/transformer-typescript-types": "2.12.0",
     "@swc-node/register": "^1.5.1",
     "@types/glob": "^8.0.0",
     "@types/node": "^18.7.15",
@@ -19,13 +20,13 @@
     "@types/yargs": "^17.0.12",
     "coveralls": "^3.1.1",
     "npm-run-all": "^4.1.5",
-    "parcel": "^2.7.0",
+    "parcel": "2.12.0",
+    "semantic-release": "^19.0.5",
     "swc-node": "^1.0.0",
     "tap": "^16.3.0",
     "ts-node": "^10.9.1",
-    "typescript": "~4.7.0",
-    "util": "^0.12.4",
-    "semantic-release": "^19.0.5"
+    "typescript": "~5.3.0",
+    "util": "^0.12.4"
   },
   "scripts": {
     "build": "parcel build  --no-cache",

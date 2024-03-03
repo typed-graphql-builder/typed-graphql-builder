@@ -1,0 +1,9 @@
+input ArgumentVariablesInput {
+    arg1: String
+    arg2: String
+}
+
+type Query{
+    topLevelVariablesNotNullable(arg1: String, arg2: String): String
+    optionalObjectVariablesRequired(arg1: ArgumentVariablesInput, arg2: ArgumentVariablesInput): String
+}
