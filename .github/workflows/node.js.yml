@@ -28,6 +28,8 @@ jobs:
         cache: 'yarn'
     - run: yarn
     - run: yarn run build
+    # Make sure the built binary can run (detect Parcel regressions)
+    - run: node ./dist/cli.js --version
     - run: yarn test
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
