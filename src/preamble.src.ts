@@ -265,7 +265,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       default:
         if (args == null) return 'null'
         if (VariableName in (args as any)) {
-          if (!argVarType) throw new Error('Cannot use variabe as sole unnamed field argument')
+          if (!argVarType) throw new globalThis.Error('Cannot use variabe as sole unnamed field argument')
           const variable = args as Variable<any, any>
           const argVarName = variable[VariableName]
           variables.set(argVarName, { type: argVarType, variable: variable })
@@ -279,7 +279,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
             .map(([key, val]) => {
               let argTypeForKey = argTypes[key]
               if (!argTypeForKey) {
-                throw new Error(`Argument type for ${key} not found`)
+                throw new globalThis.Error(`Argument type for ${key} not found`)
               }
               const cleanType = argTypeForKey.replace('[', '').replace(']', '').replace(/!/g, '')
               return (
@@ -320,7 +320,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
 
       return retVal + ' '
     } else {
-      throw new Error('Uknown field kind')
+      throw new globalThis.Error('Uknown field kind')
     }
   }
 
