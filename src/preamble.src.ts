@@ -384,25 +384,13 @@ export function fragment<T, Sel extends Selection<T>>(
   return selectFn(new GQLType())
 }
 
-type LastOf<T> = UnionToIntersection<T extends any ? () => T : never> extends () => infer R
-  ? R
-  : never
-
-// TS4.0+
-type Push<T extends any[], V> = [...T, V]
-
-// TS4.1+
-type TuplifyUnion<T, L = LastOf<T>, N = [T] extends [never] ? true : false> = true extends N
-  ? []
-  : Push<TuplifyUnion<Exclude<T, L>>, L>
-
 type AllFieldProperties<I> = {
   [K in keyof I]: I[K] extends $Field<infer Name, infer Type, any> ? $Field<Name, Type, any> : never
 }
 
 type ValueOf<T> = T[keyof T]
 
-export type AllFields<T> = TuplifyUnion<ValueOf<AllFieldProperties<T>>>
+export type AllFields<T> = ValueOf<AllFieldProperties<T>>[]
 
 export function all<I extends $Base<any>>(instance: I) {
   const prototype = Object.getPrototypeOf(instance)
