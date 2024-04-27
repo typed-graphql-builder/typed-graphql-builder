@@ -44,7 +44,7 @@ type VariableWithoutScalars<T, Str extends string> = Variable<UnwrapCustomScalar
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
 type VariabledInput<T> = [T] extends [CustomScalar<infer S> | null | undefined]
   ? // scalars only support variable input
-    Variable<S, any> | AllowedInlineScalars<S> | null | undefined
+    Variable<S | null | undefined, any> | AllowedInlineScalars<S> | null | undefined
   : [T] extends [CustomScalar<infer S>]
   ? Variable<S, any> | AllowedInlineScalars<S>
   : [T] extends [$Atomic]
@@ -265,7 +265,8 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
       default:
         if (args == null) return 'null'
         if (VariableName in (args as any)) {
-          if (!argVarType) throw new globalThis.Error('Cannot use variabe as sole unnamed field argument')
+          if (!argVarType)
+            throw new globalThis.Error('Cannot use variabe as sole unnamed field argument')
           const variable = args as Variable<any, any>
           const argVarName = variable[VariableName]
           variables.set(argVarName, { type: argVarType, variable: variable })
