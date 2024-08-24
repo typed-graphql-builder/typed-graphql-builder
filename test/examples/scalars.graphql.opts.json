@@ -1,5 +1,6 @@
 {
   "scalar": [
-    "JSONObject={[key:string]:string|null}"
+    "JSONObject={[key:string]:string|null}",
+    "(.+)=./scalars-types.ts#$1"
   ]
 }
