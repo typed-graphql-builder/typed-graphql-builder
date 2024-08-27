@@ -29,8 +29,6 @@ type GetInputOfTypedDocumentNode<T extends TypedDocumentNode<any, any>> = T exte
 
 type InputOfGenericWhere = GetInputOfTypedDocumentNode<typeof genericWhere>
 
-declare let x: InputOfGenericWhere
-
 let example1: InputOfGenericWhere = {
   where: {
     createdAt: {
@@ -39,14 +37,13 @@ let example1: InputOfGenericWhere = {
   }
 }
 
-type xdotwhere = typeof x.where
+type xdotwhere = typeof example1.where
 
 let example2: xdotwhere = {
   createdAt: {
     _eq: '2024-01-01'
   }
 }
-
 
 
 let bookingsBetween = query(q => [
