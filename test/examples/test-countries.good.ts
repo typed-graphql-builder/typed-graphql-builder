@@ -71,9 +71,7 @@ query MyName($test: ID!) {
 }
 `
 
-let allQuery = query('AllFields', q => [
-  q.countries(all),
-])
+let allQuery = query('AllFields', q => [q.countries(all)])
 
 let allQueryString = `
 query AllFields {
@@ -92,10 +90,7 @@ query AllFields {
 `
 
 let nestedAllQuery = query('NestedAllFields', q => [
-  q.countries(c => [
-    c.capital,
-    c.languages(all),
-  ]),
+  q.countries(c => [c.capital, c.languages(all)]),
 ])
 
 let nestedAllQueryString = `
@@ -114,10 +109,7 @@ query NestedAllFields {
 `
 
 let doubleAllQuery = query('DoubleAllFields', q => [
-  q.countries(c => [
-    ...all(c),
-    c.languages(all),
-  ]),
+  q.countries(c => [...all(c), c.languages(all)]),
 ])
 
 let doubleAllQueryString = `
@@ -144,7 +136,7 @@ query DoubleAllFields {
 `
 
 let filterVariableQuery = query('FilterVariable', q => [
-  q.countries({filter: $('filter')}, c => [c.capital, c.code])
+  q.countries({ filter: $('filter') }, c => [c.capital, c.code]),
 ])
 
 let filterVariableQueryString = `
