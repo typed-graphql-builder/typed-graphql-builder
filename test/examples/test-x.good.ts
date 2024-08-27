@@ -31,11 +31,22 @@ type InputOfGenericWhere = GetInputOfTypedDocumentNode<typeof genericWhere>
 
 declare let x: InputOfGenericWhere
 
-type xdotwhere = NonNullable<typeof x.where>
+let example1: InputOfGenericWhere = {
+  where: {
+    createdAt: {
+      _eq: '2024-01-01'
+    }
+  }
+}
 
-declare let y: xdotwhere;
+type xdotwhere = typeof x.where
 
-type ydotcreatedAt = typeof y.createdAt
+let example2: xdotwhere = {
+  createdAt: {
+    _eq: '2024-01-01'
+  }
+}
+
 
 
 let bookingsBetween = query(q => [
