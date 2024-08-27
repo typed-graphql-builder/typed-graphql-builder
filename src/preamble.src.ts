@@ -198,6 +198,7 @@ type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer 
   // Avoid generating an index signature for possibly undefined or null inputs.
   // The compiler incorrectly infers null or undefined, and we must force access the Inputs
   // type to convince the compiler its "never", while still retaining {} as the result
+  // for null and undefined cases
   // Works around issue 79
   : Inputs extends (null | undefined)
   ? { [K in keyof Inputs]: Inputs[K] }
