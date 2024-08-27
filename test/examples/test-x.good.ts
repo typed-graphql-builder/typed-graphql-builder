@@ -37,9 +37,9 @@ let example1: InputOfGenericWhere = {
   }
 }
 
-type xdotwhere = typeof example1.where
+type InputDotWhere = typeof example1.where
 
-let example2: xdotwhere = {
+let example2: InputDotWhere = {
   createdAt: {
     _eq: '2024-01-01'
   }
