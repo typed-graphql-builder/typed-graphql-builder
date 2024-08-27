@@ -2,7 +2,7 @@
 
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { verify } from './verify'
-import { query, order_by, $, $$, mutation, GetVariables } from './x.graphql.api'
+import { query, order_by, $, $$, mutation } from './x.graphql.api'
 
 let orderByTest = query(q => [
   q.bookings(
@@ -24,6 +24,19 @@ let genericWhere = query(q => [
   // does not seem to generate the correct variable type
   q.aggregateBookings({ where: $('where') }, a => [a.aggregate(a => [a.count(a.count)])])
 ])
+
+type GetInputOfTypedDocumentNode<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<any, infer Input> ? Input : never
+
+type InputOfGenericWhere = GetInputOfTypedDocumentNode<typeof genericWhere>
+
+declare let x: InputOfGenericWhere
+
+type xdotwhere = NonNullable<typeof x.where>
+
+declare let y: xdotwhere;
+
+type ydotcreatedAt = typeof y.createdAt
+
 
 let bookingsBetween = query(q => [
   q.bookings(
