@@ -1,6 +1,3 @@
-// Todo: add big query tests
-
-import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { verify } from './verify'
 import { query, order_by, $, $$, mutation } from './x.graphql.api'
 
@@ -24,26 +21,6 @@ let genericWhere = query(q => [
   // does not seem to generate the correct variable type
   q.aggregateBookings({ where: $('where') }, a => [a.aggregate(a => [a.count(a.count)])])
 ])
-
-type GetInputOfTypedDocumentNode<T extends TypedDocumentNode<any, any>> = T extends TypedDocumentNode<any, infer Input> ? Input : never
-
-type InputOfGenericWhere = GetInputOfTypedDocumentNode<typeof genericWhere>
-
-let example1: InputOfGenericWhere = {
-  where: {
-    createdAt: {
-      _eq: '2024-01-01'
-    }
-  }
-}
-
-type InputDotWhere = typeof example1.where
-
-let example2: InputDotWhere = {
-  createdAt: {
-    _eq: '2024-01-01'
-  }
-}
 
 
 let bookingsBetween = query(q => [

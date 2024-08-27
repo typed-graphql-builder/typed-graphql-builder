@@ -44,7 +44,7 @@ type VariableWithoutScalars<T, Str extends string> = Variable<UnwrapCustomScalar
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
 type VariabledInput<T> = [T] extends [CustomScalar<infer S> | null | undefined]
   ? // scalars only support variable input
-    Variable<S | null | undefined, any> | AllowedInlineScalars<S> | null | undefined
+  Variable<S | null | undefined, any> | AllowedInlineScalars<S> | null | undefined
   : [T] extends [CustomScalar<infer S>]
   ? Variable<S, any> | AllowedInlineScalars<S>
   : [T] extends [$Atomic]
@@ -53,11 +53,11 @@ type VariabledInput<T> = [T] extends [CustomScalar<infer S> | null | undefined]
   ? VariableWithoutScalars<T, any> | T | ArrayInput<I>
   : T extends Record<string, any> | null | undefined
   ?
-      | VariableWithoutScalars<T | null | undefined, any>
-      | null
-      | undefined
-      | { [K in keyof T]: VariabledInput<T[K]> }
-      | T
+  | VariableWithoutScalars<T | null | undefined, any>
+  | null
+  | undefined
+  | { [K in keyof T]: VariabledInput<T[K]> }
+  | T
   : T extends Record<string, any>
   ? VariableWithoutScalars<T, any> | { [K in keyof T]: VariabledInput<T[K]> } | T
   : never
@@ -97,7 +97,7 @@ class $Field<Name extends string, Type, Vars = {}> {
   public vars!: Vars
   public alias: string | null = null
 
-  constructor(public name: Name, public options: SelectOptions) {}
+  constructor(public name: Name, public options: SelectOptions) { }
 
   as<Rename extends string>(alias: Rename): $Field<Rename, Type, Vars> {
     const f = new $Field(this.name, this.options)
@@ -108,7 +108,7 @@ class $Field<Name extends string, Type, Vars = {}> {
 
 class $Base<Name extends string> {
   // @ts-ignore
-  constructor(private $$name: Name) {}
+  constructor(private $$name: Name) { }
 
   protected $_select<Key extends string>(
     name: Key,
@@ -125,7 +125,7 @@ class $Union<T, Name extends String> extends $Base<Name> {
   // @ts-ignore
   private $$name!: Name
 
-  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
+  constructor(private selectorClasses: { [K in keyof T]: { new(): T[K] } }, $$name: Name) {
     super($$name)
   }
 
@@ -146,7 +146,7 @@ class $Interface<T, Name extends string> extends $Base<Name> {
   // @ts-ignore
   private $$name!: Name
 
-  constructor(private selectorClasses: { [K in keyof T]: { new (): T[K] } }, $$name: Name) {
+  constructor(private selectorClasses: { [K in keyof T]: { new(): T[K] } }, $$name: Name) {
     super($$name)
   }
   $on<Type extends keyof T, Sel extends Selection<T[Type]>>(
@@ -163,7 +163,7 @@ class $UnionSelection<T, Vars> {
   public kind: 'union' = 'union'
   // @ts-ignore
   private vars!: Vars
-  constructor(public alternativeName: string, public alternativeSelection: Selection<T>) {}
+  constructor(public alternativeName: string, public alternativeSelection: Selection<T>) { }
 }
 
 type Selection<_any> = ReadonlyArray<$Field<any, any, any> | $UnionSelection<any, any>>
@@ -178,15 +178,15 @@ export type GetOutput<X extends Selection<any>> = Simplify<
   UnionToIntersection<
     {
       [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any>
-        ? { [K in Name]: LeafType<Type> }
-        : never
+      ? { [K in Name]: LeafType<Type> }
+      : never
     }[keyof X & number]
   > &
-    NeverNever<
-      {
-        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? LeafType<Type> : never
-      }[keyof X & number]
-    >
+  NeverNever<
+    {
+      [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? LeafType<Type> : never
+    }[keyof X & number]
+  >
 >
 
 type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
@@ -195,21 +195,27 @@ type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
 
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>
   ? PossiblyOptionalVar<VName, VType>
+  // Avoid generating an index signature for possibly undefined or null inputs.
+  // The compiler incorrectly infers null or undefined, and we must force access the Inputs
+  // type to convince the compiler its "never", while still retaining {} as the result
+  // Works around issue 79
+  : Inputs extends (null | undefined)
+  ? { [K in keyof Inputs]: Inputs[K] }
   : Inputs extends $Atomic
   ? {}
   : Inputs extends any[] | readonly any[]
   ? UnionToIntersection<
-      { [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs & number]
-    >
+    { [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs & number]
+  >
   : UnionToIntersection<{ [K in keyof Inputs]: ExtractInputVariables<Inputs[K]> }[keyof Inputs]>
 
 export type GetVariables<Sel extends Selection<any>, ExtraVars = {}> = UnionToIntersection<
   {
     [I in keyof Sel]: Sel[I] extends $Field<any, any, infer Vars>
-      ? Vars
-      : Sel[I] extends $UnionSelection<any, infer Vars>
-      ? Vars
-      : never
+    ? Vars
+    : Sel[I] extends $UnionSelection<any, infer Vars>
+    ? Vars
+    : never
   }[keyof Sel & number]
 > &
   ExtractInputVariables<ExtraVars>
@@ -232,8 +238,8 @@ const arrRegex = /\[(.*?)\]/
 function getArgVarType(input: string): ArgVarType {
   const array = input.includes('[')
     ? {
-        isRequired: input.endsWith('!'),
-      }
+      isRequired: input.endsWith('!'),
+    }
     : null
 
   const type = array ? arrRegex.exec(input)![1]! : input
@@ -379,7 +385,7 @@ export type QueryInputType<T extends TypedDocumentNode<any>> = T extends TypedDo
   : never
 
 export function fragment<T, Sel extends Selection<T>>(
-  GQLType: { new (): T },
+  GQLType: { new(): T },
   selectFn: (selector: T) => [...Sel]
 ) {
   return selectFn(new GQLType())
@@ -418,10 +424,10 @@ type ExactArgNames<GenericType, Constraint> = [Constraint] extends [$Atomic | Cu
   ? GenericType
   : Constraint extends ReadonlyArray<infer InnerConstraint>
   ? GenericType extends ReadonlyArray<infer Inner>
-    ? ReadonlyArray<ExactArgNames<Inner, InnerConstraint>>
-    : GenericType
+  ? ReadonlyArray<ExactArgNames<Inner, InnerConstraint>>
+  : GenericType
   : GenericType & {
-      [Key in keyof GenericType]: Key extends keyof Constraint
-        ? ExactArgNames<GenericType[Key], Constraint[Key]>
-        : never
-    }
+    [Key in keyof GenericType]: Key extends keyof Constraint
+    ? ExactArgNames<GenericType[Key], Constraint[Key]>
+    : never
+  }
