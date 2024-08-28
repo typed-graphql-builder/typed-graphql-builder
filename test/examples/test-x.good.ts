@@ -1,5 +1,3 @@
-// Todo: add big query tests
-
 import { verify } from './verify'
 import { query, order_by, $, $$, mutation } from './x.graphql.api'
 
@@ -16,6 +14,11 @@ let orderByTest = query(q => [
     },
     o => [o.id, o.guestName, o.nights, o.bookerName]
   ),
+])
+
+let genericWhere = query(q => [
+  // does not seem to generate the correct variable type
+  q.aggregateBookings({ where: $('where') }, a => [a.aggregate(a => [a.count(a.count)])]),
 ])
 
 let bookingsBetween = query(q => [
@@ -122,5 +125,15 @@ export default [
     },
     schemaPath: 'x.graphql',
     string: nullableArgumentString,
+  }),
+
+  verify({
+    query: genericWhere,
+    variables: {
+      where: {
+        createdAt: { _eq: '2024-01-01' },
+      },
+    },
+    schemaPath: 'x.graphql',
   }),
 ]
