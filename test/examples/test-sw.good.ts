@@ -1,4 +1,4 @@
-import { query, $, QueryOutputType } from './sw.graphql.api'
+import { query, $, QueryOutputType, OutputTypeOf, Node } from './sw.graphql.api'
 import { verify } from './verify'
 
 let planetQuery = query(q => [
@@ -10,6 +10,16 @@ let planetQuery = query(q => [
     p.terrains.as('terrain'),
   ]),
 ])
+
+type NodeType = OutputTypeOf<Node>
+
+export function typechecks(nt: NodeType) {
+  if (nt.__typename === 'Person') {
+    console.log(nt.birthYear)
+  } else if (nt.__typename === 'Planet') {
+    console.log(nt.climates)
+  }
+}
 
 let planetQueryString = `query ($planet_id: ID) {
   planet(id: $planet_id) {
