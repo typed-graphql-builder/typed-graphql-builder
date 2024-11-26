@@ -21,6 +21,8 @@ let createEncompassingVariableMutation = mutation(m => [
   ),
 ])
 
+let createNonemptyInput = mutation(m => [m.createNonEmptyString({ wrappedInput: { code: '1' } })])
+
 let createManyMutation = mutation(m => [m.createMany({ inputs: $('myInputs') })])
 
 export default [
@@ -53,6 +55,12 @@ export default [
         },
       ],
     },
+    schemaPath: 'scalars.graphql',
+  }),
+
+  verify({
+    query: createNonemptyInput,
+    variables: {},
     schemaPath: 'scalars.graphql',
   }),
 ]
