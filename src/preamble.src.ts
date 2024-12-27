@@ -1,4 +1,4 @@
-type $Atomic = string | number | null | undefined
+type $Atomic = string | number | boolean | null | undefined
 let $InputTypes: { [key: string]: { [key: string]: string } } = {}
 let $Enums = new Set()
 
@@ -425,7 +425,9 @@ export function all<I extends $Base<any>>(instance: I) {
   return allFields.map(fieldName => instance?.[fieldName]) as any as AllFields<I>
 }
 
-type ExactArgNames<GenericType, Constraint> = [Constraint] extends [$Atomic | CustomScalar<any>]
+type ExactArgNames<GenericType, Constraint> = GenericType extends never
+  ? never
+  : [Constraint] extends [$Atomic | CustomScalar<any>]
   ? GenericType
   : Constraint extends ReadonlyArray<infer InnerConstraint>
   ? GenericType extends ReadonlyArray<infer Inner>

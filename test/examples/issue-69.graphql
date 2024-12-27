@@ -1,6 +1,6 @@
 input ArgumentVariablesInput {
-    arg1: String
-    arg2: String
+    innerarg1: String
+    innerarg2: String
 }
 
 type Query{

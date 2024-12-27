@@ -135,7 +135,9 @@ export function compileSchemaDefinitions(
   }
 
   function printAtomicTypes() {
-    return `type $Atomic = ${Array.from(new Set(atomicTypes.values())).concat('null', 'undefined').join(' | ')}
+    return `type $Atomic = ${Array.from(new Set(atomicTypes.values()))
+      .concat('null', 'undefined')
+      .join(' | ')}
 `
   }
 
@@ -302,7 +304,7 @@ export class ${className} extends $Base<"${className}"> {
 
         ${hasSelector ? `selection: selectorFn(new ${fieldTypeName})` : ''}
       };
-      return this.$_select("${field.name.value}", options) as any
+      return this.$_select("${field.name.value}", options as any) as any
     }
   `
     } else {
