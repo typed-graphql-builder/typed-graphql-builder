@@ -427,6 +427,9 @@ export function all<I extends $Base<any>>(instance: I) {
   return allFields.map(fieldName => instance?.[fieldName]) as any as AllFields<I>
 }
 
+// We use a dummy conditional type that involves GenericType to defer the compiler's inference of
+// any possible variables nested in this type. This addresses a problem where variables are
+// inferred with type unknown
 type ExactArgNames<GenericType, Constraint> = GenericType extends never
   ? never
   : [Constraint] extends [$Atomic | CustomScalar<any>]
