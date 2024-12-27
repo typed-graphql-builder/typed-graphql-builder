@@ -191,6 +191,8 @@ export type GetOutput<X extends Selection<any>> = Simplify<
 
 type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
   ? { [key in VName]?: VType }
+  : null extends VType
+  ? { [key in VName]?: VType }
   : { [key in VName]: VType }
 
 type ExtractInputVariables<Inputs> = Inputs extends Variable<infer VType, infer VName>

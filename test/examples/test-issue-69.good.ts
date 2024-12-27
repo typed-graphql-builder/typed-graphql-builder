@@ -4,7 +4,7 @@ import { $, query } from './issue-69.graphql.api'
 const EmptyVariablesQuery = query(q => [
   q.topLevelVariablesNotNullable({
     arg1: $('arg1'),
-    arg2: undefined,
+    arg2: $('arg2'),
   }),
 ])
 
