@@ -25,7 +25,7 @@
     "swc-node": "^1.0.0",
     "tap": "^16.3.0",
     "ts-node": "^10.9.1",
-    "typescript": "5.6.3",
+    "typescript": "^5.7.2",
     "util": "^0.12.4"
   },
   "scripts": {
