@@ -18,7 +18,7 @@ let orderByTest = query(q => [
 
 let genericWhere = query(q => [
   // does not seem to generate the correct variable type
-  q.aggregateBookings({ where: $('where') }, a => [a.aggregate(a => [a.count(a.count)])]),
+  q.aggregateBookings({ where: $('where') }, a => [a.aggregate(a => [a.count({})])]),
 ])
 
 let bookingsBetween = query(q => [

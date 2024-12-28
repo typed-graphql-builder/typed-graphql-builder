@@ -1,4 +1,4 @@
-type $Atomic = string | number | null | undefined
+type $Atomic = string | number | boolean | null | undefined
 let $InputTypes: { [key: string]: { [key: string]: string } } = {}
 let $Enums = new Set()
 
@@ -190,6 +190,8 @@ export type GetOutput<X extends Selection<any>> = Simplify<
 >
 
 type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
+  ? { [key in VName]?: VType }
+  : null extends VType
   ? { [key in VName]?: VType }
   : { [key in VName]: VType }
 
@@ -425,7 +427,12 @@ export function all<I extends $Base<any>>(instance: I) {
   return allFields.map(fieldName => instance?.[fieldName]) as any as AllFields<I>
 }
 
-type ExactArgNames<GenericType, Constraint> = [Constraint] extends [$Atomic | CustomScalar<any>]
+// We use a dummy conditional type that involves GenericType to defer the compiler's inference of
+// any possible variables nested in this type. This addresses a problem where variables are
+// inferred with type unknown
+type ExactArgNames<GenericType, Constraint> = GenericType extends never
+  ? never
+  : [Constraint] extends [$Atomic | CustomScalar<any>]
   ? GenericType
   : Constraint extends ReadonlyArray<infer InnerConstraint>
   ? GenericType extends ReadonlyArray<infer Inner>
