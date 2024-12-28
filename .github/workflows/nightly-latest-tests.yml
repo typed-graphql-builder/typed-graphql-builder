@@ -31,7 +31,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
     - run: yarn
-    - run: yarn add --save-dev typescript@${{ matrix.typescript-versions }}
+    - run: yarn add --dev typescript@${{ matrix.typescript-versions }}
     - run: yarn run build
     - run: yarn test
       env:
