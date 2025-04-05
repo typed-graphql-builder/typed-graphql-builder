@@ -174,29 +174,22 @@ type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
 type LeafType<T> = T extends CustomScalar<infer S> ? S : T
 
-/** Removes undefined from a type, preserving null. For selected fields. */
-type SelectedType<T> = Exclude<T, undefined>
-
 export type GetOutput<X extends Selection<any>> = Simplify<
   UnionToIntersection<
     {
       [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any>
-        ? { [K in Name]: SelectedType<LeafType<Type>> }
+        ? { [K in Name]: LeafType<Type> }
         : never
     }[keyof X & number]
   > &
     NeverNever<
       {
-        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any>
-          ? SelectedType<LeafType<Type>>
-          : never
+        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? LeafType<Type> : never
       }[keyof X & number]
     >
 >
 
-type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
-  ? { [key in VName]?: VType }
-  : null extends VType
+type PossiblyOptionalVar<VName extends string, VType> = null extends VType
   ? { [key in VName]?: VType }
   : { [key in VName]: VType }
 
@@ -374,7 +367,7 @@ export type OutputTypeOf<T> = T extends $Interface<infer Subtypes, any>
   : T extends $Union<infer Subtypes, any>
   ? { [K in keyof Subtypes]: OutputTypeOf<Subtypes[K]> }[keyof Subtypes]
   : T extends $Base<any>
-  ? { [K in keyof T]?: OutputTypeOf<T[K]> }
+  ? { [K in keyof T]?: OutputTypeOf<T[K]> | null }
   : [T] extends [$Field<any, infer FieldType, any>]
   ? FieldType
   : [T] extends [(selFn: (arg: infer Inner) => any) => any]

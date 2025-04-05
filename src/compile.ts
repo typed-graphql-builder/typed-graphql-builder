@@ -156,10 +156,10 @@ export function compileSchemaDefinitions(
         return `${printTypeWrapped(wrappedType, wrapperDef.type, true)}`
       case gq.Kind.LIST_TYPE:
         return `Array<${printTypeWrapped(wrappedType, wrapperDef.type)}>${
-          !notNull ? ' | undefined' : ''
+          !notNull ? ' | null' : ''
         }`
       case gq.Kind.NAMED_TYPE:
-        return `${toTSTypeName(wrappedType)}${!notNull ? ' | undefined' : ''}`
+        return `${toTSTypeName(wrappedType)}${!notNull ? ' | null' : ''}`
     }
   }
 
@@ -168,9 +168,9 @@ export function compileSchemaDefinitions(
       case gq.Kind.NON_NULL_TYPE:
         return `${printType(def.type, true)}`
       case gq.Kind.LIST_TYPE:
-        return `Readonly<Array<${printType(def.type)}>>${!notNull ? ' | null | undefined' : ''}`
+        return `Readonly<Array<${printType(def.type)}>>${!notNull ? ' | null' : ''}`
       case gq.Kind.NAMED_TYPE:
-        return `${toTSTypeName(def.name.value)}${!notNull ? ' | null | undefined' : ''}`
+        return `${toTSTypeName(def.name.value)}${!notNull ? ' | null' : ''}`
     }
   }
 
