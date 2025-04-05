@@ -14,7 +14,8 @@ export default [
         return
       }
       let firstPost = posts[0]
-      if (firstPost === null) {
+      // Array access can be undefined.
+      if (firstPost === undefined) {
         return
       }
       let author = firstPost.author

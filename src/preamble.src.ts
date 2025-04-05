@@ -174,17 +174,22 @@ type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
 type LeafType<T> = T extends CustomScalar<infer S> ? S : T
 
+/** Removes undefined from a type, preserving null. For selected fields. */
+type SelectedType<T> = Exclude<T, undefined>
+
 export type GetOutput<X extends Selection<any>> = Simplify<
   UnionToIntersection<
     {
       [I in keyof X]: X[I] extends $Field<infer Name, infer Type, any>
-        ? { [K in Name]: LeafType<Type> }
+        ? { [K in Name]: SelectedType<LeafType<Type>> }
         : never
     }[keyof X & number]
   > &
     NeverNever<
       {
-        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any> ? LeafType<Type> : never
+        [I in keyof X]: X[I] extends $UnionSelection<infer Type, any>
+          ? SelectedType<LeafType<Type>>
+          : never
       }[keyof X & number]
     >
 >
@@ -430,6 +435,7 @@ export function all<I extends $Base<any>>(instance: I) {
 // We use a dummy conditional type that involves GenericType to defer the compiler's inference of
 // any possible variables nested in this type. This addresses a problem where variables are
 // inferred with type unknown
+// @ts-ignore
 type ExactArgNames<GenericType, Constraint> = GenericType extends never
   ? never
   : [Constraint] extends [$Atomic | CustomScalar<any>]
