@@ -44,7 +44,7 @@ async function fetchOrRead(args: Args) {
           query: gq.getIntrospectionQuery(),
         }),
       })
-      let body = await res.body.json()
+      let body: any = await res.body.json()
       if (body.errors) {
         throw new UserFacingError(
           `Error introspecting schema from ${args.schema}: ${JSON.stringify(body.errors, null, 2)}`

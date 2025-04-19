@@ -189,9 +189,7 @@ export type GetOutput<X extends Selection<any>> = Simplify<
     >
 >
 
-type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
-  ? { [key in VName]?: VType }
-  : null extends VType
+type PossiblyOptionalVar<VName extends string, VType> = null extends VType
   ? { [key in VName]?: VType }
   : { [key in VName]: VType }
 
@@ -369,7 +367,7 @@ export type OutputTypeOf<T> = T extends $Interface<infer Subtypes, any>
   : T extends $Union<infer Subtypes, any>
   ? { [K in keyof Subtypes]: OutputTypeOf<Subtypes[K]> }[keyof Subtypes]
   : T extends $Base<any>
-  ? { [K in keyof T]?: OutputTypeOf<T[K]> }
+  ? { [K in keyof T]?: OutputTypeOf<T[K]> | null }
   : [T] extends [$Field<any, infer FieldType, any>]
   ? FieldType
   : [T] extends [(selFn: (arg: infer Inner) => any) => any]
@@ -430,6 +428,7 @@ export function all<I extends $Base<any>>(instance: I) {
 // We use a dummy conditional type that involves GenericType to defer the compiler's inference of
 // any possible variables nested in this type. This addresses a problem where variables are
 // inferred with type unknown
+// @ts-ignore
 type ExactArgNames<GenericType, Constraint> = GenericType extends never
   ? never
   : [Constraint] extends [$Atomic | CustomScalar<any>]
