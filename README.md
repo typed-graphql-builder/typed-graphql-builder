@@ -105,4 +105,4 @@ const CountryListComponent = () => {
 
 ## Documentation
 
-For more information, visit https://typed-graphql-builder.spion.dev
+For more information, see https://typed-graphql-builder.spion.dev
