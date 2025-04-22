@@ -367,7 +367,7 @@ export type OutputTypeOf<T> = T extends $Interface<infer Subtypes, any>
   : T extends $Union<infer Subtypes, any>
   ? { [K in keyof Subtypes]: OutputTypeOf<Subtypes[K]> }[keyof Subtypes]
   : T extends $Base<any>
-  ? { [K in keyof T]?: OutputTypeOf<T[K]> | null }
+  ? { [K in keyof T]?: OutputTypeOf<T[K]> }
   : [T] extends [$Field<any, infer FieldType, any>]
   ? FieldType
   : [T] extends [(selFn: (arg: infer Inner) => any) => any]
