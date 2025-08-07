@@ -4,7 +4,6 @@ let $Enums = new Set()
 
 /* BEGIN PREAMBLE */
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { gql } from 'graphql-tag'
 
 /* tslint:disable */
 /* eslint-disable */
@@ -442,3 +441,13 @@ type ExactArgNames<GenericType, Constraint> = GenericType extends never
         ? ExactArgNames<GenericType[Key], Constraint[Key]>
         : never
     }
+
+
+export type NameOf<T> = 
+  T extends $Interface<any, infer Name>
+  ? Name
+  : T extends $Union<any, infer Name>
+  ? Name
+  : T extends $Base<infer Name>
+  ? Name
+  : never
