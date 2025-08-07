@@ -442,3 +442,13 @@ type ExactArgNames<GenericType, Constraint> = GenericType extends never
         ? ExactArgNames<GenericType[Key], Constraint[Key]>
         : never
     }
+
+
+export type NameOf<T> = 
+  T extends $Interface<any, infer Name>
+  ? Name
+  : T extends $Union<any, infer Name>
+  ? Name
+  : T extends $Base<infer Name>
+  ? Name
+  : never
