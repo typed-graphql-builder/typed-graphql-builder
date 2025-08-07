@@ -189,9 +189,7 @@ export type GetOutput<X extends Selection<any>> = Simplify<
     >
 >
 
-type PossiblyOptionalVar<VName extends string, VType> = undefined extends VType
-  ? { [key in VName]?: VType }
-  : null extends VType
+type PossiblyOptionalVar<VName extends string, VType> = null extends VType
   ? { [key in VName]?: VType }
   : { [key in VName]: VType }
 
@@ -430,6 +428,7 @@ export function all<I extends $Base<any>>(instance: I) {
 // We use a dummy conditional type that involves GenericType to defer the compiler's inference of
 // any possible variables nested in this type. This addresses a problem where variables are
 // inferred with type unknown
+// @ts-ignore
 type ExactArgNames<GenericType, Constraint> = GenericType extends never
   ? never
   : [Constraint] extends [$Atomic | CustomScalar<any>]
@@ -443,3 +442,13 @@ type ExactArgNames<GenericType, Constraint> = GenericType extends never
         ? ExactArgNames<GenericType[Key], Constraint[Key]>
         : never
     }
+
+
+export type NameOf<T> = 
+  T extends $Interface<any, infer Name>
+  ? Name
+  : T extends $Union<any, infer Name>
+  ? Name
+  : T extends $Base<infer Name>
+  ? Name
+  : never
