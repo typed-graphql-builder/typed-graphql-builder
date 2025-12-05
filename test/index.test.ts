@@ -69,7 +69,7 @@ function compileTs(_file: string) {
     '--target',
     'es2019',
     '--moduleResolution',
-    'node',
+    'bundler',
     '--noUncheckedIndexedAccess',
     '--noUnusedLocals',
     '--noUnusedParameters',
