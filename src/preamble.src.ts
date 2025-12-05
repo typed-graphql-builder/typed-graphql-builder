@@ -280,7 +280,7 @@ function fieldToQuery(prefix: string, field: $Field<any, any, any>) {
           return '$' + argVarName
         }
         if (Array.isArray(args))
-          return '[' + args.map(arg => stringifyArgs(arg, argTypes, argVarType)).join(',') + ']'
+          return '[' + args.map(arg => stringifyArgs(arg, argTypes, argVarType && { ...argVarType, array: null })).join(',') + ']'
         const wrapped = (content: string) => (argVarType ? '{' + content + '}' : content)
         return wrapped(
           Array.from(Object.entries(args))
@@ -444,7 +444,7 @@ type ExactArgNames<GenericType, Constraint> = GenericType extends never
     }
 
 
-export type NameOf<T> = 
+export type NameOf<T> =
   T extends $Interface<any, infer Name>
   ? Name
   : T extends $Union<any, infer Name>
