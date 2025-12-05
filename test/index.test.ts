@@ -51,14 +51,41 @@ function spawn(cmd: string, args: string[], options?: SpawnSyncOptionsWithBuffer
   )
 }
 
+function getTscMajorVersion(): number {
+  const result = spawn('tsc', ['--version'], { cwd: __dirname })
+  const version = result.stdout?.toString() || ''
+  const match = version.match(/Version (\d+)/)
+  return match?.[1] ? parseInt(match[1], 10) : 0
+}
+
+const tscMajorVersion = getTscMajorVersion()
+
 function compileTs(_file: string) {
-  return spawn(
-    `tsc`,
-    ['--noEmit', '--skipLibCheck', '--strict', '--esModuleInterop', '--target', 'es5', _file],
-    {
-      cwd: __dirname,
-    }
-  )
+  const args = [
+    '--noEmit',
+    '--skipLibCheck',
+    '--strict',
+    '--esModuleInterop',
+    '--target',
+    'es2019',
+    '--moduleResolution',
+    'node',
+    '--noUncheckedIndexedAccess',
+    '--noUnusedLocals',
+    '--noUnusedParameters',
+    '--noImplicitReturns',
+    '--forceConsistentCasingInFileNames',
+    _file,
+  ]
+
+  // TS 6.0+ requires --ignoreConfig when passing files on command line
+  if (tscMajorVersion >= 6) {
+    args.unshift('--ignoreConfig')
+  }
+
+  return spawn(`tsc`, args, {
+    cwd: __dirname,
+  })
 }
 
 for (let schema of glob.sync(`./examples/*.graphql`, { cwd: __dirname })) {
